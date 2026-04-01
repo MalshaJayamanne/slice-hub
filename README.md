@@ -93,13 +93,13 @@ food-ordering-system
 ## 1. Clone the repository
 
 ```
-git clone https://github.com/yourusername/food-ordering-system.git
+git clone https://github.com/MalshaJayamanne/slice-hub.git
 ```
 
 ## 2. Navigate to the project folder
 
 ```
-cd food-ordering-system
+cd slice-hub
 ```
 
 ## 3. Install dependencies
