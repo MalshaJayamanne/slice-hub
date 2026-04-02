@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🍔 Food Ordering System – Slice Hub
 
 A modern **E-Commerce Food Ordering Web Application** built using **React and Vite**.
@@ -169,3 +170,191 @@ git push origin new-feature
 ```
 
 ---
+=======
+# 🍔 Slice Hub
+
+## ✨ Overview
+
+Slice Hub is a multi-role food ordering web application planned with the **MERN stack**.
+The project is designed to support:
+
+- Customers who browse restaurants, add food to cart, place orders, and track deliveries
+- Sellers who manage restaurant menus and incoming orders
+- Admins who monitor users, restaurants, and platform activity
+
+This repository currently contains:
+
+- A **React + Vite** frontend scaffold
+- A **minimal backend folder structure** for the upcoming Node.js + Express API
+- A detailed software requirements document in [SRS.md](./SRS.md)
+
+## 🎯 Project Goals
+
+- Build a portfolio-ready full-stack food ordering platform
+- Follow a clean and scalable project structure
+- Support role-based workflows for customer, seller, and admin users
+- Create a strong foundation for future features like payments, real-time tracking, and AI assistance
+
+## 👥 User Roles
+
+### 🧑 Customer
+
+- Browse restaurants
+- View food menus
+- Add items to cart
+- Checkout and place orders
+- Track order status
+
+### 🧑‍🍳 Seller
+
+- Manage restaurant menu items
+- View incoming orders
+- Update order status
+- Use seller dashboard features
+
+### 🛡️ Admin
+
+- Manage users
+- Manage restaurants
+- Monitor platform activity
+- Review overall order flow
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- JavaScript (ES Modules)
+- CSS
+- React Router DOM
+- Axios
+- Redux Toolkit
+
+### Backend
+
+- Node.js
+- Express.js
+- MongoDB
+
+### Development Tools
+
+- ESLint
+- Git and GitHub
+
+## 📁 Project Structure
+
+```text
+slice-hub/
+├── backend/
+│   ├── package.json
+│   ├── .env.example
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       ├── config/
+│       ├── controllers/
+│       ├── middleware/
+│       ├── models/
+│       └── routes/
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── public/
+│   └── src/
+│       ├── assets/
+│       ├── components/
+│       ├── pages/
+│       ├── routes/
+│       ├── App.jsx
+│       ├── main.jsx
+│       ├── constants.js
+│       └── index.css
+└── SRS.md
+```
+
+
+## ⚙️ Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd slice-hub
+```
+
+### 2. Run the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend development server:
+
+```text
+http://localhost:5173
+```
+
+### 3. Backend note
+
+The backend structure is present, but the API has not been implemented yet.
+You can build it gradually inside the existing [backend](./backend) folder.
+
+## 📌 Planned Features
+
+- User registration and login
+- JWT-based authentication
+- Restaurant listing
+- Food menu browsing
+- Search and filtering
+- Cart management
+- Checkout flow
+- Order tracking
+- Seller dashboard
+- Admin dashboard
+- Role-based access control
+
+## 🔒 Security Goals
+
+- Password hashing with bcrypt
+- JWT authentication
+- Role-based authorization
+- Input validation
+- Protection against common web vulnerabilities
+
+## 📄 Documentation
+
+- Full requirements specification: [SRS.md](./SRS.md)
+
+## 🚀 Future Enhancements
+
+- Online payment integration
+- Real-time order tracking
+- Notifications
+- Ratings and reviews
+- Promotions and discount support
+- AI-powered recommendations and assistant features
+
+## 🤝 Contribution Workflow
+
+- Create a feature branch
+- Make focused changes
+- Test before merging
+- Use pull requests for review
+
+Example:
+
+```bash
+git checkout -b feature/auth
+git add .
+git commit -m "Add auth scaffold"
+git push origin feature/auth
+```
+
+## 📚 Project Note
+
+This README reflects the **current repository state** and the **planned target system** described in the SRS.
+As the project grows, this file should be updated alongside major frontend, backend, and deployment milestones.
+>>>>>>> 270a7e4 (Make file structure and add Reamdme)
