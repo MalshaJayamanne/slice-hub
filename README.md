@@ -1,232 +1,26 @@
-<<<<<<< HEAD
-# 🍔 Food Ordering System – Slice Hub
+# Slice Hub
 
-A modern **E-Commerce Food Ordering Web Application** built using **React and Vite**.
+Slice Hub is a MERN-style food ordering project with separate `frontend` and `backend` apps. The platform is planned to support three user roles:
 
-This project is part of a **MERN Stack Food Delivery Platform** that supports multiple user roles including **Customer, Seller (Restaurant Owner), and Admin**.
+- Customer
+- Seller
+- Admin
 
-The system allows customers to browse restaurants, order food, and track orders while enabling sellers and administrators to manage menus, orders, and platform operations.
+The current repository includes:
 
----
+- A React + Vite frontend scaffold
+- A Node.js + Express backend foundation
+- MongoDB connection setup with Mongoose
+- Authentication foundation with register/login, password hashing, JWT, and auth middleware
+- Project requirements in [SRS.md](./SRS.md)
 
-# 🚀 Tech Stack
-
-Frontend technologies used in this project:
-
-- React.js
-- Vite
-- JavaScript (ES6+)
-- CSS
-- React Router (for navigation)
-- Axios (for API requests)
-- Redux Toolkit (for state management – optional)
-
----
-
-# 👥 User Roles
-
-The system supports three main user roles:
-
-## Customer
-- Browse restaurants
-- View food menus
-- Add food to cart
-- Place orders
-- Track orders
-- Manage profile
-
-## Seller (Restaurant Owner)
-- Manage restaurant menu
-- Add / edit / delete food items
-- View incoming orders
-- Update order status
-- View sales analytics
-
-## Admin
-- Manage users
-- Approve restaurants
-- Monitor orders
-- Manage platform promotions
-- View system analytics
-
----
-
-# 📂 Project Structure
-
-```
-food-ordering-system
-│
-├── public
-│
-├── src
-│   ├── components
-│   │   ├── Navbar.jsx
-│   │   ├── Sidebar.jsx
-│   │   ├── FoodCard.jsx
-│   │   ├── RestaurantCard.jsx
-│   │   ├── StarRating.jsx
-│   │   └── Footer.jsx
-│   │
-│   ├── pages
-│   │   ├── Home.jsx
-│   │   ├── RestaurantMenu.jsx
-│   │   ├── FoodDetails.jsx
-│   │   ├── Cart.jsx
-│   │   ├── Checkout.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── SellerDashboard.jsx
-│   │   └── AdminDashboard.jsx
-│   │
-│   ├── App.jsx
-│   ├── main.jsx
-│   ├── index.css
-│   └── constants.js
-│
-├── package.json
-├── vite.config.js
-└── README.md
-```
-
----
-
-# ⚙️ Installation & Setup
-
-## 1. Clone the repository
-
-```
-git clone https://github.com/yourusername/food-ordering-system.git
-```
-
-## 2. Navigate to the project folder
-
-```
-cd food-ordering-system
-```
-
-## 3. Install dependencies
-
-```
-npm install
-```
-
-## 4. Run the development server
-
-```
-npm run dev
-```
-
-The application will start on:
-
-```
-http://localhost:5173
-```
-
----
-
-# 📱 Features (Planned)
-
-- Restaurant listing
-- Food menu browsing
-- Cart management
-- Secure checkout
-- Order tracking
-- Seller dashboard
-- Admin management panel
-- Multi-user authentication
-- Responsive design
-
----
-
-# 🔮 Future Development
-
-Upcoming features:
-
-- Backend API using **Node.js + Express**
-- Database integration with **MongoDB**
-- Authentication using **JWT**
-- Payment gateway integration
-- Order notifications
-- Real-time order tracking
-
----
-
-# 🤝 Collaboration
-
-This project is developed collaboratively.
-
-Team members can contribute by:
-
-1. Creating a new branch
-2. Implementing new features
-3. Submitting pull requests
-
-Example workflow:
-
-```
-git checkout -b new-feature
-git add .
-git commit -m "Added new feature"
-git push origin new-feature
-```
-
----
-=======
-# 🍔 Slice Hub
-
-## ✨ Overview
-
-Slice Hub is a multi-role food ordering web application planned with the **MERN stack**.
-The project is designed to support:
-
-- Customers who browse restaurants, add food to cart, place orders, and track deliveries
-- Sellers who manage restaurant menus and incoming orders
-- Admins who monitor users, restaurants, and platform activity
-
-This repository currently contains:
-
-- A **React + Vite** frontend scaffold
-- A **minimal backend folder structure** for the upcoming Node.js + Express API
-- A detailed software requirements document in [SRS.md](./SRS.md)
-
-## 🎯 Project Goals
-
-- Build a portfolio-ready full-stack food ordering platform
-- Follow a clean and scalable project structure
-- Support role-based workflows for customer, seller, and admin users
-- Create a strong foundation for future features like payments, real-time tracking, and AI assistance
-
-## 👥 User Roles
-
-### 🧑 Customer
-
-- Browse restaurants
-- View food menus
-- Add items to cart
-- Checkout and place orders
-- Track order status
-
-### 🧑‍🍳 Seller
-
-- Manage restaurant menu items
-- View incoming orders
-- Update order status
-- Use seller dashboard features
-
-### 🛡️ Admin
-
-- Manage users
-- Manage restaurants
-- Monitor platform activity
-- Review overall order flow
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
 - React
 - Vite
-- JavaScript (ES Modules)
-- CSS
+- JavaScript
 - React Router DOM
 - Axios
 - Redux Toolkit
@@ -235,126 +29,222 @@ This repository currently contains:
 
 - Node.js
 - Express.js
-- MongoDB
+- MongoDB Atlas / MongoDB
+- Mongoose
+- bcryptjs
+- jsonwebtoken
 
-### Development Tools
-
-- ESLint
-- Git and GitHub
-
-## 📁 Project Structure
+## Project Structure
 
 ```text
 slice-hub/
-├── backend/
-│   ├── package.json
-│   ├── .env.example
-│   └── src/
-│       ├── app.js
-│       ├── server.js
-│       ├── config/
-│       ├── controllers/
-│       ├── middleware/
-│       ├── models/
-│       └── routes/
-├── frontend/
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── public/
-│   └── src/
-│       ├── assets/
-│       ├── components/
-│       ├── pages/
-│       ├── routes/
-│       ├── App.jsx
-│       ├── main.jsx
-│       ├── constants.js
-│       └── index.css
-└── SRS.md
+|-- backend/
+|   |-- .env
+|   |-- .env.example
+|   |-- .gitignore
+|   |-- package.json
+|   `-- src/
+|       |-- app.js
+|       |-- server.js
+|       |-- config/
+|       |   `-- db.js
+|       |-- controllers/
+|       |   `-- authController.js
+|       |-- middleware/
+|       |   |-- authMiddleware.js
+|       |   |-- errorMiddleware.js
+|       |   `-- roleMiddleware.js
+|       |-- models/
+|       |   |-- Food.js
+|       |   |-- Order.js
+|       |   |-- Restaurant.js
+|       |   `-- User.js
+|       `-- routes/
+|           |-- adminRoutes.js
+|           |-- authRoutes.js
+|           |-- foodRoutes.js
+|           |-- orderRoutes.js
+|           `-- restaurantRoutes.js
+|-- frontend/
+|   |-- package.json
+|   |-- vite.config.js
+|   |-- public/
+|   `-- src/
+|       |-- assets/
+|       |-- components/
+|       |-- pages/
+|       |-- routes/
+|       |-- App.jsx
+|       |-- constants.js
+|       |-- index.css
+|       `-- main.jsx
+|-- README.md
+|-- SRS.md
+`-- Split work.md
 ```
 
+## Environment Variables
 
-## ⚙️ Getting Started
+Backend environment variables live in `backend/.env`.
 
-### 1. Clone the repository
+Required values:
 
-```bash
-git clone <your-repository-url>
-cd slice-hub
+```env
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+MONGODB_URI=your-mongodb-connection-string
+JWT_SECRET=your-jwt-secret
+JWT_EXPIRES_IN=7d
 ```
 
-### 2. Run the frontend
+Use [backend/.env.example](./backend/.env.example) as the template.
 
-```bash
+## Install Commands
+
+Run these commands from the project root:
+
+```powershell
 cd frontend
 npm install
+```
+
+```powershell
+cd backend
+npm install
+```
+
+## Run Commands
+
+### Run Frontend
+
+```powershell
+cd frontend
 npm run dev
 ```
 
-Frontend development server:
+Frontend URL:
 
 ```text
 http://localhost:5173
 ```
 
-### 3. Backend note
+### Run Backend
 
-The backend structure is present, but the API has not been implemented yet.
-You can build it gradually inside the existing [backend](./backend) folder.
-
-## 📌 Planned Features
-
-- User registration and login
-- JWT-based authentication
-- Restaurant listing
-- Food menu browsing
-- Search and filtering
-- Cart management
-- Checkout flow
-- Order tracking
-- Seller dashboard
-- Admin dashboard
-- Role-based access control
-
-## 🔒 Security Goals
-
-- Password hashing with bcrypt
-- JWT authentication
-- Role-based authorization
-- Input validation
-- Protection against common web vulnerabilities
-
-## 📄 Documentation
-
-- Full requirements specification: [SRS.md](./SRS.md)
-
-## 🚀 Future Enhancements
-
-- Online payment integration
-- Real-time order tracking
-- Notifications
-- Ratings and reviews
-- Promotions and discount support
-- AI-powered recommendations and assistant features
-
-## 🤝 Contribution Workflow
-
-- Create a feature branch
-- Make focused changes
-- Test before merging
-- Use pull requests for review
-
-Example:
-
-```bash
-git checkout -b feature/auth
-git add .
-git commit -m "Add auth scaffold"
-git push origin feature/auth
+```powershell
+cd backend
+npm run dev
 ```
 
-## 📚 Project Note
+If you want to run without nodemon:
 
-This README reflects the **current repository state** and the **planned target system** described in the SRS.
-As the project grows, this file should be updated alongside major frontend, backend, and deployment milestones.
->>>>>>> 270a7e4 (Make file structure and add Reamdme)
+```powershell
+cd backend
+npm start
+```
+
+Backend URL:
+
+```text
+http://localhost:5000
+```
+
+Health check:
+
+```text
+GET http://localhost:5000/api/health
+```
+
+## Full Project Run Order
+
+Open two terminals.
+
+Terminal 1:
+
+```powershell
+cd c:\Projects\slice-hub\backend
+npm run dev
+```
+
+Terminal 2:
+
+```powershell
+cd c:\Projects\slice-hub\frontend
+npm run dev
+```
+
+Then open:
+
+```text
+Frontend: http://localhost:5173
+Backend:  http://localhost:5000/api/health
+```
+
+## Available Backend Auth APIs
+
+### Register
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+```
+
+Example body:
+
+```json
+{
+  "name": "Kavindu",
+  "email": "kavindu@example.com",
+  "password": "12345678",
+  "role": "customer"
+}
+```
+
+### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+Example body:
+
+```json
+{
+  "email": "kavindu@example.com",
+  "password": "12345678"
+}
+```
+
+## Current Status
+
+Implemented now:
+
+- Backend project structure
+- Express server setup
+- MongoDB connection setup
+- Environment variable setup
+- `User` model
+- Auth register/login routes
+- Password hashing with bcrypt
+- JWT generation
+- Auth middleware
+- Role-check middleware
+
+Still in progress:
+
+- Restaurant APIs
+- Food APIs
+- Order APIs
+- Frontend integration of all backend features
+
+## Documentation
+
+- Requirements: [SRS.md](./SRS.md)
+- Task split: [Split work.md](./Split%20work.md)
+
+## Notes
+
+- Do not commit `backend/.env`
+- Rotate exposed database credentials if they were shared publicly
+- Update this README as new APIs and frontend pages are completed
