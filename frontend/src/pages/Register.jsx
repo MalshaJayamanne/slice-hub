@@ -1,21 +1,36 @@
-// src/pages/Register.jsx
 import React, { useState } from 'react';
+import API from "../api/axios";
 import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook, Instagram } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Register = ({ onNavigate, onRegister }) => {
+const Register = ({ onNavigate }) => {
+
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password !== confirm) {
-      alert('Passwords do not match!');
+      alert("Passwords do not match!");
       return;
     }
-    if (onRegister) onRegister('customer');
-    onNavigate('login');
+
+    try {
+      const res = await API.post("/auth/register", {
+        name,
+        email,
+        password
+      });
+
+      alert("Registration successful!");
+      onNavigate('login');
+
+    } catch (error) {
+      alert(error.response?.data?.message || "Registration failed");
+    }
   };
 
   return (
@@ -38,7 +53,11 @@ const Register = ({ onNavigate, onRegister }) => {
               Slice<span className="text-[#FF3B30]">Hub</span>
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Create Account</h2>
+
+          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">
+            Create Account
+          </h2>
+
           <p className="mt-2 text-sm text-gray-500 font-medium">
             Already have an account?{' '}
             <button
@@ -52,10 +71,28 @@ const Register = ({ onNavigate, onRegister }) => {
 
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Email */}
           <div className="space-y-4">
+
+            {/* Name */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full pl-4 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                placeholder="John Doe"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Email Address
+              </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -71,7 +108,9 @@ const Register = ({ onNavigate, onRegister }) => {
 
             {/* Password */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -87,7 +126,9 @@ const Register = ({ onNavigate, onRegister }) => {
 
             {/* Confirm Password */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Confirm Password</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Confirm Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -100,6 +141,7 @@ const Register = ({ onNavigate, onRegister }) => {
                 />
               </div>
             </div>
+
           </div>
 
           {/* Submit */}
@@ -118,22 +160,25 @@ const Register = ({ onNavigate, onRegister }) => {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">Or continue with</span>
+            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+              Or continue with
+            </span>
           </div>
         </div>
 
         {/* Social Buttons */}
         <div className="grid grid-cols-3 gap-4">
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18} /> Google
+            <Chrome size={18}/> Google
           </button>
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18} /> Facebook
+            <Facebook size={18}/> Facebook
           </button>
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Instagram size={18} /> Instagram
+            <Instagram size={18}/> Instagram
           </button>
         </div>
+
       </motion.div>
     </div>
   );

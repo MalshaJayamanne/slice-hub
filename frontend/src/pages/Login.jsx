@@ -1,15 +1,38 @@
 import React, { useState } from 'react';
+import API from "../api/axios";
 import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook, Instagram } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Login = ({ onNavigate, onLogin }) => {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onLogin) onLogin('customer'); // simulate login
-    onNavigate('home');
+
+    try {
+
+      const res = await API.post("/auth/login", {
+        email,
+        password
+      });
+
+      // save token
+      localStorage.setItem("token", res.data.token);
+
+      // optional role login simulation
+      if (onLogin) onLogin('customer');
+
+      alert("Login successful");
+
+      onNavigate('home');
+
+    } catch (error) {
+
+      alert(error.response?.data?.message || "Login failed");
+
+    }
   };
 
   return (
@@ -32,7 +55,11 @@ const Login = ({ onNavigate, onLogin }) => {
               Slice<span className="text-[#FF3B30]">Hub</span>
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Welcome Back!</h2>
+
+          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">
+            Welcome Back!
+          </h2>
+
           <p className="mt-2 text-sm text-gray-500 font-medium">
             Don't have an account?{' '}
             <button
@@ -47,11 +74,16 @@ const Login = ({ onNavigate, onLogin }) => {
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
+
             {/* Email */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Email Address
+              </label>
+
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+
                 <input
                   type="email"
                   required
@@ -66,13 +98,21 @@ const Login = ({ onNavigate, onLogin }) => {
             {/* Password */}
             <div className="space-y-1">
               <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Password</label>
-                <button type="button" className="text-[10px] font-bold text-[#FF3B30] uppercase tracking-widest hover:underline">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Password
+                </label>
+
+                <button
+                  type="button"
+                  className="text-[10px] font-bold text-[#FF3B30] uppercase tracking-widest hover:underline"
+                >
                   Forgot?
                 </button>
               </div>
+
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+
                 <input
                   type="password"
                   required
@@ -83,6 +123,7 @@ const Login = ({ onNavigate, onLogin }) => {
                 />
               </div>
             </div>
+
           </div>
 
           {/* Remember Me */}
@@ -113,22 +154,29 @@ const Login = ({ onNavigate, onLogin }) => {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
+
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">Or continue with</span>
+            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+              Or continue with
+            </span>
           </div>
         </div>
 
         {/* Social Buttons */}
         <div className="grid grid-cols-3 gap-4">
+
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18} /> Google
+            <Chrome size={18}/> Google
           </button>
+
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18} /> Facebook
+            <Facebook size={18}/> Facebook
           </button>
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Instagram size={18} /> Instagram
+
+          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A11]">
+            <Instagram size={18}/> Instagram
           </button>
+
         </div>
       </motion.div>
     </div>
