@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import API from "../api/axios";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook, Instagram } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Register = ({ onNavigate }) => {
@@ -167,15 +167,12 @@ const Register = ({ onNavigate }) => {
         </div>
 
         {/* Social Buttons */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
             <Chrome size={18}/> Google
           </button>
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
             <Facebook size={18}/> Facebook
-          </button>
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Instagram size={18}/> Instagram
           </button>
         </div>
 
