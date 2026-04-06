@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 import Restaurant from "../models/Restaurant.js";
@@ -21,6 +20,35 @@ const ensureRestaurantAccess = (restaurant, user) => {
     error.statusCode = 403;
     throw error;
   }
+};
+
+const ensureApprovedOrAuthorized = (restaurant, user) => {
+  if (restaurant.status === "approved") {
+    return;
+  }
+
+  if (!user) {
+    const error = new Error("Restaurant not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (user.role === "admin") {
+    return;
+  }
+
+  const ownerId =
+    typeof restaurant.ownerId === "object" && restaurant.ownerId !== null && "_id" in restaurant.ownerId
+      ? restaurant.ownerId._id.toString()
+      : restaurant.ownerId.toString();
+
+  if (ownerId === user._id.toString()) {
+    return;
+  }
+
+  const error = new Error("Restaurant not found.");
+  error.statusCode = 404;
+  throw error;
 };
 
 export const createRestaurant = async (req, res, next) => {
@@ -47,7 +75,7 @@ export const createRestaurant = async (req, res, next) => {
       description,
       category,
       image,
-      status: req.user.role === "admin" && status ? status : undefined,
+      status: req.user.role === "admin" && status ? status : "pending",
     });
 
     const populatedRestaurant = await Restaurant.findById(restaurant._id).populate(
@@ -86,6 +114,10 @@ export const getRestaurants = async (req, res, next) => {
       };
     }
 
+    if (!req.user || req.user.role === "customer") {
+      filter.status = "approved";
+    }
+
     const restaurants = await Restaurant.find(filter)
       .populate("ownerId", "name email role")
       .sort({ createdAt: -1 });
@@ -96,6 +128,7 @@ export const getRestaurants = async (req, res, next) => {
       search: search || "",
       category: category || "",
       cuisine: cuisine || "",
+      status: filter.status || "all",
       restaurants,
     });
   } catch (error) {
@@ -117,6 +150,8 @@ export const getRestaurantById = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+
+    ensureApprovedOrAuthorized(restaurant, req.user);
 
     res.status(200).json({
       success: true,
@@ -160,6 +195,10 @@ export const updateRestaurant = async (req, res, next) => {
 
     if (req.user.role === "admin" && status !== undefined) {
       restaurant.status = status;
+    } else if (req.user.role === "seller" && status !== undefined) {
+      const error = new Error("Forbidden. Only admins can change restaurant approval status.");
+      error.statusCode = 403;
+      throw error;
     }
 
     const updatedRestaurant = await restaurant.save();
@@ -194,6 +233,48 @@ export const deleteRestaurant = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Restaurant deleted successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateRestaurantStatus = async (req, res, next) => {
+  try {
+    validateRestaurantId(req.params.id);
+
+    const { status } = req.body;
+    const allowedStatuses = ["pending", "approved", "rejected"];
+
+    if (!status) {
+      const error = new Error("Status is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!allowedStatuses.includes(status)) {
+      const error = new Error("Status must be pending, approved, or rejected.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const restaurant = await Restaurant.findById(req.params.id);
+
+    if (!restaurant) {
+      const error = new Error("Restaurant not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    restaurant.status = status;
+
+    const updatedRestaurant = await restaurant.save();
+    await updatedRestaurant.populate("ownerId", "name email role");
+
+    res.status(200).json({
+      success: true,
+      message: `Restaurant ${status} successfully.`,
+      restaurant: updatedRestaurant,
     });
   } catch (error) {
     next(error);
