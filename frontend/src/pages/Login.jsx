@@ -1,37 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from "lucide-react";
+import { motion } from "framer-motion";
+
 import API from "../api/axios";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from 'lucide-react';
-import { motion } from 'framer-motion';
 
-const Login = ({ onNavigate, onLogin }) => {
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-
       const res = await API.post("/auth/login", {
         email,
-        password
+        password,
       });
 
-      // save token
-      localStorage.setItem("token", res.data.token);
-
-      // optional role login simulation
-      if (onLogin) onLogin('customer');
+      localStorage.setItem("token", res.data.user.token);
+      localStorage.setItem("authUser", JSON.stringify(res.data.user));
 
       alert("Login successful");
-
-      onNavigate('home');
-
+      navigate("/dashboard");
     } catch (error) {
-
       alert(error.response?.data?.message || "Login failed");
-
     }
   };
 
@@ -42,11 +36,11 @@ const Login = ({ onNavigate, onLogin }) => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full space-y-8 bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100"
       >
-        {/* Logo */}
         <div className="text-center">
-          <div
-            className="flex items-center justify-center cursor-pointer group mb-6"
-            onClick={() => onNavigate('home')}
+          <button
+            type="button"
+            className="mx-auto flex items-center justify-center cursor-pointer group mb-6"
+            onClick={() => navigate("/")}
           >
             <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
               <Pizza size={32} />
@@ -54,28 +48,20 @@ const Login = ({ onNavigate, onLogin }) => {
             <span className="ml-3 text-[#1A1A1A] text-3xl font-bold tracking-tight">
               Slice<span className="text-[#FF3B30]">Hub</span>
             </span>
-          </div>
+          </button>
 
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">
-            Welcome Back!
-          </h2>
+          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Welcome Back!</h2>
 
           <p className="mt-2 text-sm text-gray-500 font-medium">
-            Don't have an account?{' '}
-            <button
-              onClick={() => onNavigate('register')}
-              className="text-[#FF3B30] font-bold hover:underline"
-            >
+            Don't have an account?{" "}
+            <Link to="/register" className="text-[#FF3B30] font-bold hover:underline">
               Create one
-            </button>
+            </Link>
           </p>
         </div>
 
-        {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-
-            {/* Email */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Email Address
@@ -95,7 +81,6 @@ const Login = ({ onNavigate, onLogin }) => {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-1">
               <div className="flex justify-between items-center px-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -119,14 +104,12 @@ const Login = ({ onNavigate, onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
-                  placeholder="••••••••"
+                  placeholder="........"
                 />
               </div>
             </div>
-
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center">
             <input
               id="remember-me"
@@ -139,7 +122,6 @@ const Login = ({ onNavigate, onLogin }) => {
             </label>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
@@ -149,7 +131,6 @@ const Login = ({ onNavigate, onLogin }) => {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
@@ -162,17 +143,14 @@ const Login = ({ onNavigate, onLogin }) => {
           </div>
         </div>
 
-        {/* Social Buttons */}
         <div className="grid grid-cols-2 gap-4">
-
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18}/> Google
+            <Chrome size={18} /> Google
           </button>
 
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18}/> Facebook
+            <Facebook size={18} /> Facebook
           </button>
-
         </div>
       </motion.div>
     </div>

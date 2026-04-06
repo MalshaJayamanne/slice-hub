@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from "lucide-react";
+import { motion } from "framer-motion";
+
 import API from "../api/axios";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from 'lucide-react';
-import { motion } from 'framer-motion';
 
-const Register = ({ onNavigate }) => {
-
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+const Register = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,15 +21,14 @@ const Register = ({ onNavigate }) => {
     }
 
     try {
-      const res = await API.post("/auth/register", {
+      await API.post("/auth/register", {
         name,
         email,
-        password
+        password,
       });
 
       alert("Registration successful!");
-      onNavigate('login');
-
+      navigate("/login");
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }
@@ -40,11 +41,11 @@ const Register = ({ onNavigate }) => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full space-y-8 bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100"
       >
-        {/* Logo */}
         <div className="text-center">
-          <div
-            className="flex items-center justify-center cursor-pointer group mb-6"
-            onClick={() => onNavigate('home')}
+          <button
+            type="button"
+            className="mx-auto flex items-center justify-center cursor-pointer group mb-6"
+            onClick={() => navigate("/")}
           >
             <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
               <Pizza size={32} />
@@ -52,28 +53,20 @@ const Register = ({ onNavigate }) => {
             <span className="ml-3 text-[#1A1A1A] text-3xl font-bold tracking-tight">
               Slice<span className="text-[#FF3B30]">Hub</span>
             </span>
-          </div>
+          </button>
 
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">
-            Create Account
-          </h2>
+          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Create Account</h2>
 
           <p className="mt-2 text-sm text-gray-500 font-medium">
-            Already have an account?{' '}
-            <button
-              onClick={() => onNavigate('login')}
-              className="text-[#FF3B30] font-bold hover:underline"
-            >
+            Already have an account?{" "}
+            <Link to="/login" className="text-[#FF3B30] font-bold hover:underline">
               Sign In
-            </button>
+            </Link>
           </p>
         </div>
 
-        {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-
-            {/* Name */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Full Name
@@ -88,7 +81,6 @@ const Register = ({ onNavigate }) => {
               />
             </div>
 
-            {/* Email */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Email Address
@@ -106,7 +98,6 @@ const Register = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Password
@@ -119,12 +110,11 @@ const Register = ({ onNavigate }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
-                  placeholder="••••••••"
+                  placeholder="........"
                 />
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Confirm Password
@@ -137,14 +127,12 @@ const Register = ({ onNavigate }) => {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
-                  placeholder="••••••••"
+                  placeholder="........"
                 />
               </div>
             </div>
-
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
@@ -154,7 +142,6 @@ const Register = ({ onNavigate }) => {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
@@ -166,16 +153,14 @@ const Register = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Social Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18}/> Google
+            <Chrome size={18} /> Google
           </button>
           <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18}/> Facebook
+            <Facebook size={18} /> Facebook
           </button>
         </div>
-
       </motion.div>
     </div>
   );
