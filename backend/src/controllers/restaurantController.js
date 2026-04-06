@@ -68,10 +68,20 @@ export const createRestaurant = async (req, res, next) => {
 export const getRestaurants = async (req, res, next) => {
   try {
     const filter = {};
+    const search = req.query.search?.trim();
+    const category = req.query.category?.trim();
+    const cuisine = req.query.cuisine?.trim();
 
-    if (req.query.search) {
+    if (search) {
       filter.name = {
-        $regex: req.query.search.trim(),
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (category || cuisine) {
+      filter.category = {
+        $regex: category || cuisine,
         $options: "i",
       };
     }
@@ -83,7 +93,9 @@ export const getRestaurants = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: restaurants.length,
-      search: req.query.search?.trim() || "",
+      search: search || "",
+      category: category || "",
+      cuisine: cuisine || "",
       restaurants,
     });
   } catch (error) {
