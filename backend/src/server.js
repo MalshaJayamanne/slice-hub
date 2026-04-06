@@ -1,29 +1,24 @@
-import express from "express";
-import mongoose from "mongoose";
+
 import dotenv from "dotenv";
-import cors from "cors";
+
+import app from "./app.js";
+import { connectDB } from "./config/db.js";
 
 dotenv.config();
 
-const app = express();
+const PORT = Number(process.env.PORT) || 5000;
 
-app.use(cors({
- origin: "http://localhost:5173",
- credentials: true
-}));
+const startServer = async () => {
+  try {
+    await connectDB();
 
-app.use(express.json());
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  }
+};
 
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("MongoDB Connected"))
-.catch(err=>console.log(err));
-
-app.get("/",(req,res)=>{
- res.send("SliceHub Backend Running...");
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT,()=>{
- console.log(`Server running on port ${PORT}`);
-});
+startServer();
