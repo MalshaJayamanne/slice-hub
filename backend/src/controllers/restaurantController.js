@@ -65,15 +65,25 @@ export const createRestaurant = async (req, res, next) => {
   }
 };
 
-export const getRestaurants = async (_req, res, next) => {
+export const getRestaurants = async (req, res, next) => {
   try {
-    const restaurants = await Restaurant.find()
+    const filter = {};
+
+    if (req.query.search) {
+      filter.name = {
+        $regex: req.query.search.trim(),
+        $options: "i",
+      };
+    }
+
+    const restaurants = await Restaurant.find(filter)
       .populate("ownerId", "name email role")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: restaurants.length,
+      search: req.query.search?.trim() || "",
       restaurants,
     });
   } catch (error) {
