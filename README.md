@@ -238,6 +238,42 @@ Still in progress:
 - Order APIs
 - Frontend integration of all backend features
 
+---
+
+# 🔮 Future Development
+
+Upcoming features:
+
+- Backend API using **Node.js + Express**
+- Database integration with **MongoDB**
+- Authentication using **JWT**
+- Payment gateway integration
+- Order notifications
+- Real-time order tracking
+
+---
+
+# 🤝 Collaboration
+
+This project is developed collaboratively.
+
+Team members can contribute by:
+
+1. Creating a new branch
+2. Implementing new features
+3. Submitting pull requests
+
+Example workflow:
+
+```
+git checkout -b new-feature
+git add .
+git commit -m "Added new feature"
+git push origin new-feature
+```
+
+---
+
 ## Documentation
 
 - Requirements: [SRS.md](./SRS.md)
