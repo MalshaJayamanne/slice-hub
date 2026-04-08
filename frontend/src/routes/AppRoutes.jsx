@@ -2,25 +2,81 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import PageLayout from "../components/PageLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
-import Dashboard from "../pages/Dashboard";
+
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import Dashboard from "../pages/Dashboard";
+
+import RestaurantList from "../pages/RestaurantList";
+import RestaurantDetails from "../pages/RestaurantDetails";
+import SellerRestaurantForm from "../pages/SellerRestaurantForm";
+import AdminRestaurants from "../pages/AdminRestaurants";
 
 function AppRoutes() {
+
   return (
+
     <Routes>
+
       <Route element={<PageLayout />}>
+
+        {/* PUBLIC ROUTES */}
+
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* PUBLIC RESTAURANT BROWSING */}
+
+        <Route path="/restaurants" element={<RestaurantList />} />
+        <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+
+        {/* AUTHENTICATED USER */}
+
         <Route element={<ProtectedRoute />}>
+
           <Route path="/dashboard" element={<Dashboard />} />
+
         </Route>
+
+        {/* SELLER ROUTES */}
+
+        <Route element={<ProtectedRoute role="seller" />}>
+
+          <Route
+            path="/seller/restaurant/create"
+            element={<SellerRestaurantForm />}
+          />
+
+          <Route
+            path="/seller/restaurant/edit/:id"
+            element={<SellerRestaurantForm />}
+          />
+
+        </Route>
+
+        {/* ADMIN ROUTES */}
+
+        <Route element={<ProtectedRoute role="admin" />}>
+
+          <Route
+            path="/admin/restaurants"
+            element={<AdminRestaurants />}
+          />
+
+        </Route>
+
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+
+      {/* FALLBACK */}
+
+      <Route path="*" element={<h1>404 Page Not Found</h1>} />
+
     </Routes>
+
   );
+
 }
 
 export default AppRoutes;

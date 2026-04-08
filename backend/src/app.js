@@ -1,25 +1,32 @@
-
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import restaurantRoutes from "./routes/restaurantRoutes.js";
+
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
 const app = express();
+
+app.use(helmet());
 
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
