@@ -1,18 +1,99 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { User, Package, MapPin, LogOut, ChevronRight, Settings } from "lucide-react";
+import { motion } from "framer-motion";
+
 export default function Dashboard() {
+
+  const navigate = useNavigate();
+
   const storedUser = localStorage.getItem("authUser");
   const user = storedUser ? JSON.parse(storedUser) : null;
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("authUser");
+    navigate("/login");
+  };
+
   return (
-    <section className="mx-auto flex min-h-[60vh] w-full max-w-6xl flex-col justify-center gap-4 px-4 py-16 sm:px-6 lg:px-8">
-      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#FF3B30]">
-        Protected Route
-      </p>
-      <h1 className="text-4xl font-black tracking-tight text-[#1A1A1A]">
-        Welcome back{user?.name ? `, ${user.name}` : ""}.
-      </h1>
-      <p className="max-w-2xl text-lg text-gray-600">
-        You are signed in{user?.role ? ` as a ${user.role}` : ""}. This page is only available when a valid token exists in local storage.
-      </p>
-    </section>
+    <div className="max-w-6xl mx-auto px-6 py-12">
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* Profile Card */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="bg-white rounded-3xl p-8 shadow border text-center"
+        >
+
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User size={40} className="text-red-500" />
+          </div>
+
+          <h2 className="text-2xl font-bold">
+            {user?.name || "User"}
+          </h2>
+
+          <p className="text-gray-500">
+            {user?.email}
+          </p>
+
+          <p className="text-sm text-gray-400 mt-2">
+            Role: {user?.role}
+          </p>
+
+          <button className="mt-6 w-full flex items-center justify-center gap-2 border p-3 rounded-xl hover:bg-gray-50">
+            <Settings size={18} />
+            Edit Profile
+          </button>
+
+        </motion.div>
+
+        {/* Dashboard Menu */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow border space-y-4">
+
+          <h1 className="text-3xl font-bold mb-6">
+            Welcome back {user?.name}
+          </h1>
+
+          <button
+            onClick={() => navigate("/orders")}
+            className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-3">
+              <Package />
+              Order History
+            </div>
+            <ChevronRight />
+          </button>
+
+          <button
+            onClick={() => navigate("/addresses")}
+            className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-3">
+              <MapPin />
+              Saved Addresses
+            </div>
+            <ChevronRight />
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-between p-4 rounded-xl text-red-500 hover:bg-red-50"
+          >
+            <div className="flex items-center gap-3">
+              <LogOut />
+              Logout
+            </div>
+            <ChevronRight />
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
   );
 }
