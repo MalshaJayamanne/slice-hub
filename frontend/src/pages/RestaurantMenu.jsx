@@ -91,7 +91,7 @@ const RestaurantMenu = ({ onAddToCart }) => {
         />
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/restaurants")}
           className="absolute top-4 left-4 bg-white p-2 rounded-full"
         >
           <ChevronLeft />

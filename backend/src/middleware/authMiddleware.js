@@ -41,3 +41,32 @@ export const protect = async (req, _res, next) => {
     next(error);
   }
 };
+
+export const optionalProtect = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return next();
+    }
+
+    if (!process.env.JWT_SECRET) {
+      const error = new Error("JWT_SECRET is not configured.");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select("-passwordHash");
+
+    if (user && user.isActive) {
+      req.user = user;
+    }
+
+    next();
+  } catch (_error) {
+    next();
+  }
+};

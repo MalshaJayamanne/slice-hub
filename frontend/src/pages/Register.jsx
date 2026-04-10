@@ -8,6 +8,7 @@ import API from "../api/axios";
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("customer");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Register = () => {
         name,
         email,
         password,
+        role,
       });
 
       alert("Registration successful!");
@@ -96,6 +98,24 @@ const Register = () => {
                   placeholder="name@example.com"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Account Type
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+              >
+                <option value="customer">Customer</option>
+                <option value="seller">Seller</option>
+              </select>
+            </div>
+
+            <div className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-gray-600">
+              Sellers can create and manage restaurants after signing in. Admin accounts are created separately by the backend.
             </div>
 
             <div className="space-y-1">

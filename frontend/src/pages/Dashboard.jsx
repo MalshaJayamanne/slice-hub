@@ -90,6 +90,32 @@ export default function Dashboard() {
             <ChevronRight />
           </button>
 
+          {user?.role === "seller" && (
+            <button
+              onClick={() => navigate("/seller/restaurant/create")}
+              className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <Settings />
+                Manage Restaurant
+              </div>
+              <ChevronRight />
+            </button>
+          )}
+
+          {user?.role === "admin" && (
+            <button
+              onClick={() => navigate("/admin/restaurants")}
+              className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <Settings />
+                Review Restaurants
+              </div>
+              <ChevronRight />
+            </button>
+          )}
+
         </div>
 
       </div>
