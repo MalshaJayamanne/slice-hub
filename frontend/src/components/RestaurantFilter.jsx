@@ -13,6 +13,7 @@ const RestaurantFilter = ({category,setCategory}) => {
       <option value="">All</option>
       <option value="Italian">Italian</option>
       <option value="Sri Lankan">Sri Lankan</option>
+      <option value="Indian">Indian</option>
       <option value="Chinese">Chinese</option>
       <option value="Fast Food">Fast Food</option>
 

@@ -9,7 +9,7 @@ import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 
 import RestaurantList from "../pages/RestaurantList";
-import RestaurantDetails from "../pages/RestaurantDetails";
+import RestaurantMenu from "../pages/RestaurantMenu";
 import SellerRestaurantForm from "../pages/SellerRestaurantForm";
 import AdminRestaurants from "../pages/AdminRestaurants";
 
@@ -30,7 +30,7 @@ function AppRoutes() {
         {/* PUBLIC RESTAURANT BROWSING */}
 
         <Route path="/restaurants" element={<RestaurantList />} />
-        <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+        <Route path="/restaurant/:id" element={<RestaurantMenu />} />
 
         {/* AUTHENTICATED USER */}
 

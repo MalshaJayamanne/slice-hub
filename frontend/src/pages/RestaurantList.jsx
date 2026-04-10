@@ -1,9 +1,7 @@
-/*import React, { useEffect, useState } from "react";
-import RestaurantSearch from "../components/RestaurantSearch";
-import RestaurantFilter from "../components/RestaurantFilter";
 
-// Dummy restaurant data
-const dummyRestaurants = [
+
+/* Dummy restaurant data
+const RestaurantList = [
   {
     _id: "1",
     name: "Pizza Hut",
@@ -67,237 +65,249 @@ const dummyRestaurants = [
       "https://images.pexels.com/photos/4611989/pexels-photo-4611989.jpeg?auto=compress&cs=tinysrgb&w=400",
     deliveryTime: "18-28 min",
   },
-];
+]; */
 
-const RestaurantsDummy = () => {
+
+import React, { useState, useEffect } from "react";
+import { restaurantService } from "../services/restaurantService";
+import RestaurantCard from "../components/RestaurantCard";
+
+import { Search, Filter, Star, Loader2, AlertCircle, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+import { CATEGORIES } from "../constants";
+
+const RestaurantList = ({ onNavigate }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
 
-  const categories = [...new Set(dummyRestaurants.map((r) => r.category))];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [minRating, setMinRating] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    fetchRestaurants();
+  }, []);
 
-    const timer = setTimeout(() => {
-      let filtered = dummyRestaurants;
-
-      if (search) {
-        filtered = filtered.filter((r) =>
-          r.name.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      if (category) {
-        filtered = filtered.filter(
-          (r) => r.category.toLowerCase() === category.toLowerCase()
-        );
-      }
-
-      setRestaurants(filtered);
+  const fetchRestaurants = async () => {
+    try {
+      setLoading(true);
+      const res = await restaurantService.getRestaurants();
+      setRestaurants(res.data || []);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load restaurants. Please try again later.");
+      console.error(err);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [search, category]);
+  const filteredRestaurants = restaurants.filter((r) => {
+    const matchesSearch = (r.name || "")
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
 
-  if (loading)
-    return <p style={{ color: "var(--contrast-dark)" }}>Loading restaurants...</p>;
-  if (error)
-    return <p style={{ color: "var(--primary-red)" }}>{error}</p>;
-  if (restaurants.length === 0)
-    return <p style={{ color: "var(--contrast-dark)" }}>No restaurants found</p>;
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (r.categories && r.categories.includes(selectedCategory));
+
+    const matchesRating = (r.rating || 0) >= minRating;
+
+    return matchesSearch && matchesCategory && matchesRating;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+        <p className="text-gray-500 font-bold animate-pulse text-xs uppercase tracking-widest">
+          Discovering the best slices...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
+        <AlertCircle size={40} className="text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-800">
+          Something went wrong
+        </h2>
+        <p className="text-gray-500">{error}</p>
+
+        <button
+          onClick={fetchRestaurants}
+          className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl transition"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="restaurants-page"
-      style={{
-        padding: "20px",
-        fontFamily: "Arial",
-        minHeight: "100vh",
-      }}
-    >
-      <h1 style={{ marginBottom: "15px", color: "var(--contrast-dark)" }}>
-        Restaurants
-      </h1>
+    <div className="max-w-7xl mx-auto px-4 py-10">
 
-      <RestaurantSearch search={search} setSearch={setSearch} />
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
+        <h1 className="text-4xl font-bold text-gray-800">
+          Explore Restaurants
+        </h1>
 
-      
-      <div
-        style={{
-          display: "flex",
-          overflowX: "auto",
-          gap: "10px",
-          margin: "15px 0",
-          paddingBottom: "5px",
-        }}
-      >
+        {/* SEARCH */}
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-3 text-gray-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search restaurants..."
+              className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary bg-white"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="p-3 border border-gray-200 rounded-xl hover:bg-gray-100 transition"
+          >
+            <Filter size={20} className="text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* CATEGORY FILTER */}
+      <div className="flex gap-3 overflow-x-auto pb-4 mb-6">
+
+        {/* ALL BUTTON */}
         <button
-          onClick={() => setCategory("")}
-          style={{
-            padding: "8px 15px",
-            borderRadius: "20px",
-            border: category === "" ? `2px solid var(--primary-red)` : "1px solid #ccc",
-            background: category === "" ? "var(--secondary-orange)" : "#fff",
-            color: category === "" ? "#fff" : "var(--contrast-dark)",
-            cursor: "pointer",
-          }}
+          onClick={() => setSelectedCategory("All")}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
+            selectedCategory === "All"
+              ? "bg-orange-500 text-white shadow-md shadow-orange-200 border border-orange-500"
+              : "bg-gray-100 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+          }`}
         >
           All
         </button>
-        {categories.map((cat) => (
+
+        {CATEGORIES.map((cat) => (
           <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            style={{
-              padding: "8px 15px",
-              borderRadius: "20px",
-              border: category === cat ? `2px solid var(--primary-red)` : "1px solid #ccc",
-              background: category === cat ? "var(--secondary-orange)" : "#fff",
-              color: category === cat ? "#fff" : "var(--contrast-dark)",
-              cursor: "pointer",
-            }}
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.name)}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
+              selectedCategory === cat.name
+                ? "bg-orange-500 text-white shadow-md shadow-orange-200 border border-orange-500"
+                : "bg-gray-100 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+            }`}
           >
-            {cat}
+            {cat.name}
           </button>
         ))}
       </div>
 
-      <RestaurantFilter category={category} setCategory={setCategory} />
-
-    
-      <div
-        className="restaurant-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-        {restaurants.map((restaurant) => (
-          <div
-            key={restaurant._id}
-            style={{
-              borderRadius: "10px",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              backgroundColor: "#fff",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.03)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-            }}
+      {/* ADVANCED FILTER */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            className="overflow-hidden mb-8"
           >
-            <img
-              src={restaurant.image}
-              alt={restaurant.name}
-              style={{ width: "100%", height: "150px", objectFit: "cover" }}
-            />
-            <div style={{ padding: "10px" }}>
-              <h3
-                style={{
-                  margin: "0 0 5px 0",
-                  fontSize: "18px",
-                  color: "var(--contrast-dark)",
-                }}
-              >
-                {restaurant.name}
-              </h3>
-              <p
-                style={{
-                  margin: "0 0 5px 0",
-                  fontSize: "14px",
-                  color: "var(--contrast-dark)",
-                }}
-              >
-                <span
-                  style={{
-                    background: "var(--primary-red)",
-                    color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "12px",
-                    marginRight: "5px",
-                    fontSize: "12px",
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 grid md:grid-cols-3 gap-6 shadow-sm">
+
+              <div>
+                <h4 className="font-bold mb-3 text-gray-700">
+                  Minimum Rating
+                </h4>
+
+                <div className="flex gap-2">
+                  {[3, 4, 4.5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() =>
+                        setMinRating(minRating === rating ? 0 : rating)
+                      }
+                      className={`px-3 py-2 border rounded-lg flex items-center gap-1 transition ${
+                        minRating === rating
+                          ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-200"
+                          : "border-gray-200 hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                    >
+                      {rating}+ <Star size={14} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setMinRating(0);
+                    setSelectedCategory("All");
+                    setSearchQuery("");
                   }}
+                  className="border border-red-200 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-red-50 transition"
                 >
-                  {restaurant.category}
-                </span>
-                • {restaurant.deliveryTime}
-              </p>
-              <p
-                style={{
-                  margin: "0",
-                  color: "var(--contrast-dark)",
-                  fontSize: "12px",
-                }}
-              >
-                ⭐ {restaurant.rating}
-              </p>
+                  <X size={16} />
+                  Reset Filters
+                </button>
+              </div>
+
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-export default RestaurantsDummy;*/
+      {/* RESULT COUNT */}
+      <h2 className="text-xl font-bold mb-6 text-gray-800">
+        {filteredRestaurants.length} Restaurants Found
+      </h2>
 
-import RestaurantCard from "../components/RestaurantCard";
+      {/* RESTAURANT GRID */}
+      {filteredRestaurants.length > 0 ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRestaurants.map((restaurant, i) => (
+            <motion.div
+              key={restaurant._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <RestaurantCard
+                restaurant={restaurant}
+                onClick={(r) =>
+                  onNavigate && onNavigate("menu", r)
+                }
+              />
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+          <Search size={40} className="mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500">No restaurants found.</p>
 
-const RestaurantList = () => {
-
-  // Dummy
-  const restaurants = [
-    {
-      _id: "1",
-      name: "Pizza Hut",
-      rating: 4.6,
-      deliveryTime: "30 min",
-      categories: ["Pizza", "Italian"],
-      image: "https://picsum.photos/400/200?1"
-    },
-    {
-      _id: "2",
-      name: "Burger King",
-      rating: 4.4,
-      deliveryTime: "25 min",
-      categories: ["Burgers", "Fast Food"],
-      image: "https://picsum.photos/400/200?2"
-    },
-    {
-      _id: "3",
-      name: "KFC",
-      rating: 4.5,
-      deliveryTime: "20 min",
-      categories: ["Chicken", "Fast Food"],
-      image: "https://picsum.photos/400/200?3"
-    }
-  ];
-
-  return (
-    <div className="restaurant-page">
-      <h2 className="section-title">Popular Restaurants</h2>
-
-      <div className="restaurant-grid">
-        {restaurants.map((restaurant) => (
-          <RestaurantCard
-            key={restaurant._id}
-            restaurant={restaurant}
-          />
-        ))}
-      </div>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedCategory("All");
+              setMinRating(0);
+            }}
+            className="text-primary font-medium mt-3 hover:underline"
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
     </div>
   );
 };

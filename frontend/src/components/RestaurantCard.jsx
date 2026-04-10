@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, Clock } from "lucide-react";
-import { motion } from "framer-motion";
+//import { motion } from "framer-motion";
 
 const RestaurantCard = ({ restaurant }) => {
   const navigate = useNavigate();
