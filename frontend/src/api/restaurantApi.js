@@ -10,6 +10,9 @@ const restaurantAPI = {
   getRestaurant: (id) =>
     API.get(`/restaurants/${id}`),
 
+  getRestaurantById: (id) =>
+    API.get(`/restaurants/${id}`),
+
   // Create restaurant
   createRestaurant: (data) =>
     API.post("/restaurants", data),

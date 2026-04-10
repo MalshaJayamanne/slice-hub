@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import restaurantAPI from "../api/restaurantapi";
+import { useNavigate, useParams } from "react-router-dom";
+import restaurantAPI from "../api/restaurantApi";
 import { Save, Image as ImageIcon, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 
-const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
+const SellerRestaurantForm = () => {
+  const navigate = useNavigate();
+  const { id: restaurantId } = useParams();
+  const isEditMode = Boolean(restaurantId);
 
-  const [loading, setLoading] = useState(!!restaurantId);
+  const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,10 +20,10 @@ const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
   });
 
   useEffect(() => {
-    if (restaurantId) {
+    if (isEditMode) {
       fetchRestaurant();
     }
-  }, [restaurantId]);
+  }, [restaurantId, isEditMode]);
 
   const fetchRestaurant = async () => {
     try {
@@ -51,19 +55,16 @@ const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
 
       if (restaurantId) {
         await restaurantAPI.updateRestaurant(restaurantId, formData);
-        alert("Restaurant updated successfully!");
       } else {
         await restaurantAPI.createRestaurant(formData);
-        alert("Restaurant created successfully! Waiting for admin approval.");
       }
 
-      if (onNavigate) {
-        onNavigate("seller-dashboard");
-      }
+      setError(null);
+      navigate("/dashboard");
 
     } catch (err) {
       console.error(err);
-      alert("Failed to save restaurant.");
+      setError(err.response?.data?.message || "Failed to save restaurant.");
     } finally {
       setSaving(false);
     }
@@ -84,7 +85,7 @@ const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
       <div className="flex items-center gap-4">
 
         <button
-          onClick={() => onNavigate && onNavigate("seller-dashboard")}
+          onClick={() => navigate("/dashboard")}
           className="p-2 border rounded-lg hover:bg-gray-50"
         >
           <ArrowLeft size={20} />
@@ -92,7 +93,7 @@ const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
 
         <div>
           <h1 className="text-2xl font-bold">
-            {restaurantId ? "Edit Restaurant" : "Create Restaurant"}
+            {isEditMode ? "Edit Restaurant" : "Create Restaurant"}
           </h1>
           <p className="text-gray-500 text-sm">
             Manage your restaurant profile
@@ -201,7 +202,7 @@ const SellerRestaurantForm = ({ restaurantId, onNavigate }) => {
             <Save size={18} />
           )}
 
-          {restaurantId ? "Update Restaurant" : "Create Restaurant"}
+          {isEditMode ? "Update Restaurant" : "Create Restaurant"}
 
         </button>
 
