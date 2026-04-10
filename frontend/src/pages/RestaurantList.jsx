@@ -1,73 +1,3 @@
-
-
-/* Dummy restaurant data
-const RestaurantList = [
-  {
-    _id: "1",
-    name: "Pizza Hut",
-    category: "Pizza",
-    rating: 4.2,
-    image:
-      "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "20-30 min",
-  },
-  {
-    _id: "2",
-    name: "Spice Indian",
-    category: "Indian",
-    rating: 4.5,
-    image:
-      "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "25-35 min",
-  },
-  {
-    _id: "3",
-    name: "Curry Kottu House",
-    category: "Sri Lankan",
-    rating: 4.3,
-    image:
-      "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&h=400",
-    deliveryTime: "30-40 min",
-  },
-  {
-    _id: "4",
-    name: "Dragon Wok",
-    category: "Chinese",
-    rating: 4.0,
-    image:
-      "https://images.pexels.com/photos/357756/pexels-photo-357756.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "20-30 min",
-  },
-  {
-    _id: "5",
-    name: "Bella Italia",
-    category: "Italian",
-    rating: 4.7,
-    image:
-      "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "25-35 min",
-  },
-  {
-    _id: "6",
-    name: "Sushi Master",
-    category: "Japanese",
-    rating: 4.8,
-    image:
-      "https://images.pexels.com/photos/2098087/pexels-photo-2098087.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "30-40 min",
-  },
-  {
-    _id: "7",
-    name: "Taco Fiesta",
-    category: "Mexican",
-    rating: 4.4,
-    image:
-      "https://images.pexels.com/photos/4611989/pexels-photo-4611989.jpeg?auto=compress&cs=tinysrgb&w=400",
-    deliveryTime: "18-28 min",
-  },
-]; */
-
-
 import React, { useState, useEffect } from "react";
 import { restaurantService } from "../services/restaurantService";
 import RestaurantCard from "../components/RestaurantCard";
@@ -77,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { CATEGORIES } from "../constants";
 
-const RestaurantList = ({ onNavigate }) => {
+const RestaurantList = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,8 +24,8 @@ const RestaurantList = ({ onNavigate }) => {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const res = await restaurantService.getRestaurants();
-      setRestaurants(res.data || []);
+      const data = await restaurantService.getRestaurants();
+      setRestaurants(data);
       setError(null);
     } catch (err) {
       setError("Failed to load restaurants. Please try again later.");
@@ -112,7 +42,7 @@ const RestaurantList = ({ onNavigate }) => {
 
     const matchesCategory =
       selectedCategory === "All" ||
-      (r.categories && r.categories.includes(selectedCategory));
+      (r.category || "").toLowerCase() === selectedCategory.toLowerCase();
 
     const matchesRating = (r.rating || 0) >= minRating;
 
@@ -282,12 +212,7 @@ const RestaurantList = ({ onNavigate }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <RestaurantCard
-                restaurant={restaurant}
-                onClick={(r) =>
-                  onNavigate && onNavigate("menu", r)
-                }
-              />
+              <RestaurantCard restaurant={restaurant} />
             </motion.div>
           ))}
         </div>

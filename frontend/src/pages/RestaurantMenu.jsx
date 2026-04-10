@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { restaurantService } from "../services/restaurantService";
 import { Star, Clock, ChevronLeft, Search, Plus, Loader2, AlertCircle } from "lucide-react";
-//import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 const RestaurantMenu = ({ onAddToCart }) => {
 
@@ -29,7 +29,7 @@ const RestaurantMenu = ({ onAddToCart }) => {
       const data = await restaurantService.getRestaurantById(id);
 
       setRestaurant(data);
-      setMenuItems(data.menu || []);
+      setMenuItems(Array.isArray(data.menu) ? data.menu : []);
 
       setError(null);
     } catch (err) {
@@ -56,7 +56,7 @@ const RestaurantMenu = ({ onAddToCart }) => {
         <p>{error}</p>
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/restaurants")}
           className="mt-4 bg-primary text-white px-6 py-2 rounded"
         >
           Back Home
@@ -65,7 +65,7 @@ const RestaurantMenu = ({ onAddToCart }) => {
     );
   }
 
-  const categories = ["All", ...(restaurant.categories || [])];
+  const categories = ["All", ...(restaurant.category ? [restaurant.category] : [])];
 
   const filteredMenu = menuItems.filter((item) => {
 
@@ -107,12 +107,12 @@ const RestaurantMenu = ({ onAddToCart }) => {
 
               <span className="flex items-center gap-1">
                 <Star size={16} fill="yellow" />
-                {restaurant.rating}
+                {restaurant.rating || "New"}
               </span>
 
               <span className="flex items-center gap-1">
                 <Clock size={16} />
-                {restaurant.deliveryTime}
+                {restaurant.deliveryTime || "30-40 min"}
               </span>
 
             </div>
@@ -170,49 +170,60 @@ const RestaurantMenu = ({ onAddToCart }) => {
 
         {/* Menu Grid */}
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {filteredMenu.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-6">
 
-          {filteredMenu.map((item) => (
+            {filteredMenu.map((item) => (
 
-            <motion.div
-              key={item._id}
-              whileHover={{ scale: 1.03 }}
-              className="bg-white rounded-xl shadow p-4"
-            >
+              <motion.div
+                key={item._id}
+                whileHover={{ scale: 1.03 }}
+                className="bg-white rounded-xl shadow p-4"
+              >
 
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-40 w-full object-cover rounded-lg mb-4"
-              />
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-40 w-full object-cover rounded-lg mb-4"
+                />
 
-              <h3 className="font-bold">{item.name}</h3>
+                <h3 className="font-bold">{item.name}</h3>
 
-              <p className="text-gray-500 text-sm mb-2">
-                {item.description}
-              </p>
+                <p className="text-gray-500 text-sm mb-2">
+                  {item.description}
+                </p>
 
-              <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center">
 
-                <span className="font-bold text-primary">
-                  ${item.price}
-                </span>
+                  <span className="font-bold text-primary">
+                    ${item.price}
+                  </span>
 
-                <button
-                  onClick={() => onAddToCart(item)}
-                  className="bg-black text-white px-3 py-1 rounded flex items-center gap-1"
-                >
-                  <Plus size={16} />
-                  Add
-                </button>
+                  <button
+                    onClick={() => onAddToCart?.(item)}
+                    className="bg-black text-white px-3 py-1 rounded flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Add
+                  </button>
 
-              </div>
+                </div>
 
-            </motion.div>
+              </motion.div>
 
-          ))}
+            ))}
 
-        </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Menu coming soon
+            </h2>
+            <p className="mt-2 text-gray-500">
+              This restaurant is available, but its menu items have not been added yet.
+            </p>
+          </div>
+        )}
 
       </div>
 
