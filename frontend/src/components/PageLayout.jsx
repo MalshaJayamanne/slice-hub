@@ -1,17 +1,18 @@
 import { Outlet } from "react-router-dom";
-
-import Footer from "./Footer";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 function PageLayout() {
   return (
-    <div className="min-h-screen bg-[#F8F5F1] text-[#1A1A1A]">
+    <>
       <Navbar />
-      <main>
+
+      <main className="min-h-screen p-4">
         <Outlet />
       </main>
+
       <Footer />
-    </div>
+    </>
   );
 }
 
