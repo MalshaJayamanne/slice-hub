@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Search, Star, DollarSign, ShoppingBag, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle } from "lucide-react";
-import restaurantAPI from "../api/restaurantapi";
+import { useNavigate } from "react-router-dom";
+import { Search, Star, ShoppingBag, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import restaurantAPI from "../api/restaurantApi";
 import { motion } from "framer-motion";
 
 const AdminRestaurants = () => {
+  const navigate = useNavigate();
 
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,7 @@ const AdminRestaurants = () => {
 
     } catch (err) {
       console.error("Failed to update status", err);
+      setError(err.response?.data?.message || "Failed to update restaurant status.");
     }
   };
 
@@ -103,9 +106,9 @@ const AdminRestaurants = () => {
           }
         >
           <option>All</option>
-          <option>Active</option>
           <option>Pending</option>
-          <option>Suspended</option>
+          <option>Approved</option>
+          <option>Rejected</option>
         </select>
       </div>
 
@@ -181,7 +184,7 @@ const AdminRestaurants = () => {
                       updateStatus(res._id, "approved")
                     }
                   >
-                    <CheckCircle size={18} />
+                    <CheckCircle size={18} className="text-green-600" />
                   </button>
 
                   <button
@@ -190,10 +193,13 @@ const AdminRestaurants = () => {
                       updateStatus(res._id, "rejected")
                     }
                   >
-                    <XCircle size={18} />
+                    <XCircle size={18} className="text-red-600" />
                   </button>
 
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
+                  <button
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                    onClick={() => navigate(`/restaurant/${res._id}`)}
+                  >
                     <ExternalLink size={18} />
                   </button>
 
