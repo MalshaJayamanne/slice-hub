@@ -24,6 +24,8 @@ const buildAuthResponse = (user) => ({
 export const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, role, phone, address, profileImage } = req.body;
+    const normalizedRole = typeof role === "string" ? role.trim().toLowerCase() : "customer";
+    const allowedPublicRoles = ["customer", "seller"];
 
     if (!name || !email || !password) {
       const error = new Error("Name, email, and password are required.");
@@ -34,6 +36,12 @@ export const registerUser = async (req, res, next) => {
     if (!process.env.JWT_SECRET) {
       const error = new Error("JWT_SECRET is not configured.");
       error.statusCode = 500;
+      throw error;
+    }
+
+    if (!allowedPublicRoles.includes(normalizedRole)) {
+      const error = new Error("Role must be either customer or seller.");
+      error.statusCode = 400;
       throw error;
     }
 
@@ -51,7 +59,7 @@ export const registerUser = async (req, res, next) => {
       name,
       email,
       passwordHash,
-      role,
+      role: normalizedRole,
       phone,
       address,
       profileImage,
