@@ -1,12 +1,20 @@
+import express from "express";
+import {
+  createFood,
+  getFoodsByRestaurant,
+  getFoodById,
+  updateFood,
+  deleteFood,
+  searchFoods,
+} from "../controllers/foodController.js";
 
-import { Router } from "express";
+const router = express.Router();
 
-const router = Router();
-
-router.get("/", (_req, res) => {
-  res.status(200).json({
-    message: "Food routes ready for implementation.",
-  });
-});
+router.post("/", createFood);
+router.get("/restaurant/:id", getFoodsByRestaurant);
+router.get("/search", searchFoods);
+router.get("/:id", getFoodById);
+router.put("/:id", updateFood);
+router.delete("/:id", deleteFood);
 
 export default router;
