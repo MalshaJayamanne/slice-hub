@@ -124,7 +124,7 @@ const AdminRestaurants = () => {
               <th className="p-4">Orders</th>
               <th className="p-4">Revenue</th>
               <th className="p-4">Status</th>
-              <th className="p-4 text-right">Actions</th>
+              <th className="p-4">Actions</th>
             </tr>
           </thead>
 

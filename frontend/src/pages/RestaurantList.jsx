@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import { restaurantService } from "../services/restaurantService";
 import RestaurantCard from "../components/RestaurantCard";
 
-import { Search, Filter, Star, Loader2, AlertCircle, X } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Star,
+  Loader2,
+  AlertCircle,
+  X,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { CATEGORIES } from "../constants";
@@ -24,27 +31,39 @@ const RestaurantList = () => {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
+
       const data = await restaurantService.getRestaurants();
-      setRestaurants(data);
+
+      // ✅ Safe API handling
+      const safeData = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.restaurants)
+        ? data.restaurants
+        : [];
+
+      setRestaurants(safeData);
       setError(null);
     } catch (err) {
+      console.error("Restaurant fetch error:", err);
       setError("Failed to load restaurants. Please try again later.");
-      console.error(err);
+      setRestaurants([]); // ✅ prevent stale/broken state
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredRestaurants = restaurants.filter((r) => {
-    const matchesSearch = (r.name || "")
+  // ✅ Prevent crash if restaurants is not array
+  const filteredRestaurants = (restaurants || []).filter((r) => {
+    const matchesSearch = String(r?.name || "")
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
     const matchesCategory =
       selectedCategory === "All" ||
-      (r.category || "").toLowerCase() === selectedCategory.toLowerCase();
+      String(r?.category || "").toLowerCase() ===
+        selectedCategory.toLowerCase();
 
-    const matchesRating = (r.rating || 0) >= minRating;
+    const matchesRating = Number(r?.rating || 0) >= minRating;
 
     return matchesSearch && matchesCategory && matchesRating;
   });
@@ -81,7 +100,6 @@ const RestaurantList = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
-
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
         <h1 className="text-4xl font-bold text-gray-800">
@@ -105,7 +123,7 @@ const RestaurantList = () => {
           </div>
 
           <button
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={() => setShowFilters((prev) => !prev)} // ✅ safer toggle
             className="p-3 border border-gray-200 rounded-xl hover:bg-gray-100 transition"
           >
             <Filter size={20} className="text-gray-600" />
@@ -115,8 +133,6 @@ const RestaurantList = () => {
 
       {/* CATEGORY FILTER */}
       <div className="flex gap-3 overflow-x-auto pb-4 mb-6">
-
-        {/* ALL BUTTON */}
         <button
           onClick={() => setSelectedCategory("All")}
           className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
@@ -128,17 +144,17 @@ const RestaurantList = () => {
           All
         </button>
 
-        {CATEGORIES.map((cat) => (
+        {(CATEGORIES || []).map((cat) => (
           <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.name)}
+            key={cat?.id || cat?.name} // ✅ safer key
+            onClick={() => setSelectedCategory(cat?.name)}
             className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
-              selectedCategory === cat.name
+              selectedCategory === cat?.name
                 ? "bg-orange-500 text-white shadow-md shadow-orange-200 border border-orange-500"
                 : "bg-gray-100 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
             }`}
           >
-            {cat.name}
+            {cat?.name}
           </button>
         ))}
       </div>
@@ -153,7 +169,6 @@ const RestaurantList = () => {
             className="overflow-hidden mb-8"
           >
             <div className="bg-white border border-gray-200 rounded-2xl p-6 grid md:grid-cols-3 gap-6 shadow-sm">
-
               <div>
                 <h4 className="font-bold mb-3 text-gray-700">
                   Minimum Rating
@@ -191,7 +206,6 @@ const RestaurantList = () => {
                   Reset Filters
                 </button>
               </div>
-
             </div>
           </motion.div>
         )}
@@ -202,12 +216,12 @@ const RestaurantList = () => {
         {filteredRestaurants.length} Restaurants Found
       </h2>
 
-      {/* RESTAURANT GRID */}
+      {/* GRID */}
       {filteredRestaurants.length > 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRestaurants.map((restaurant, i) => (
             <motion.div
-              key={restaurant._id}
+              key={restaurant?._id || restaurant?.id || i} // ✅ safer key fallback
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}

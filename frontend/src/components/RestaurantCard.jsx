@@ -6,7 +6,11 @@ import { motion } from "framer-motion";
 const RestaurantCard = ({ restaurant }) => {
   const navigate = useNavigate();
 
+
+  if (!restaurant) return null;
+
   const openRestaurant = () => {
+    if (!restaurant._id) return; // extra safety
     navigate(`/restaurant/${restaurant._id}`);
   };
 
@@ -19,7 +23,7 @@ const RestaurantCard = ({ restaurant }) => {
       <div className="relative h-40 overflow-hidden">
         <img
           src={restaurant.image || "/default-restaurant.png"}
-          alt={restaurant.name}
+          alt={restaurant.name || "Restaurant"}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -34,7 +38,7 @@ const RestaurantCard = ({ restaurant }) => {
 
       <div className="p-4">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold text-lg text-contrast group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-lg text-gray-800 group-hover:text-primary transition-colors">
             {restaurant.name}
           </h3>
 

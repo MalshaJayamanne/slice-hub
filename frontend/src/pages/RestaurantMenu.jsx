@@ -1,27 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertCircle, ChevronLeft, Clock, Loader2, MapPin, Star, Store } from "lucide-react";
+import { AlertCircle, ChevronLeft, Loader2, Search } from "lucide-react";
 
 import { restaurantService } from "../services/restaurantService";
+import foodAPI from "../api/foodAPI";
+import FoodCard from "../components/FoodCard";
 
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [restaurant, setRestaurant] = useState(null);
+  const [foods, setFoods] = useState([]);
+  const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(true);
+  const [foodLoading, setFoodLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
+      if (!id) return;
+
       try {
         setLoading(true);
         const data = await restaurantService.getRestaurantById(id);
-        setRestaurant(data);
+        setRestaurant(data || null);
         setError(null);
       } catch (err) {
         console.error(err);
-        setError(err.response?.data?.message || "Failed to load restaurant details.");
+        setError(
+          err?.response?.data?.message || "Failed to load restaurant"
+        );
+        setRestaurant(null);
       } finally {
         setLoading(false);
       }
@@ -30,12 +41,53 @@ const RestaurantMenu = () => {
     fetchRestaurant();
   }, [id]);
 
+  const fetchFoods = async () => {
+    if (!id) return;
+
+    try {
+      setFoodLoading(true);
+      const res = await foodAPI.getByRestaurant(id);
+      // FIX: response shape is { success, count, foods }
+      setFoods(Array.isArray(res?.data?.foods) ? res.data.foods : []);
+    } catch (err) {
+      console.error(err);
+      setFoods([]);
+    } finally {
+      setFoodLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFoods();
+  }, [id]);
+
+  const handleSearch = async () => {
+    if (!search) return fetchFoods();
+
+    try {
+      setFoodLoading(true);
+      const res = await foodAPI.search(search);
+      // FIX: filter results to current restaurant only, and use correct response shape
+      const all = Array.isArray(res?.data?.foods)
+        ? res.data.foods
+        : Array.isArray(res?.data)
+        ? res.data
+        : [];
+      setFoods(all.filter((f) => f.restaurant === id || f.restaurant?._id === id));
+    } catch (err) {
+      console.error(err);
+      setFoods([]);
+    } finally {
+      setFoodLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
         <p className="text-sm font-medium uppercase tracking-widest text-gray-500">
-          Loading restaurant details...
+          Loading restaurant...
         </p>
       </div>
     );
@@ -43,140 +95,75 @@ const RestaurantMenu = () => {
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 px-4 text-center">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 text-center">
         <AlertCircle className="h-10 w-10 text-red-500" />
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900">Restaurant unavailable</h1>
-          <p className="text-gray-500">{error || "Restaurant not found."}</p>
-        </div>
-        <button
-          onClick={() => navigate("/restaurants")}
-          className="rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary/90"
-        >
-          Back to Restaurants
-        </button>
+        <p>{error || "Restaurant not found"}</p>
       </div>
     );
   }
 
-  const statusTone =
-    restaurant.status === "approved"
-      ? "bg-green-100 text-green-700"
-      : restaurant.status === "rejected"
-        ? "bg-red-100 text-red-700"
-        : "bg-amber-100 text-amber-700";
-
   return (
     <div className="pb-16">
+      {/* HERO */}
       <div className="relative h-72 overflow-hidden bg-gray-900">
         <img
-          src={restaurant.image || "/default-restaurant.png"}
-          alt={restaurant.name}
+          src={restaurant?.image || "https://picsum.photos/800/400"}
+          alt={restaurant?.name || "restaurant"}
           className="h-full w-full object-cover opacity-50"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
-
         <button
           onClick={() => navigate("/restaurants")}
-          className="absolute left-4 top-4 rounded-full bg-white p-2 text-gray-900 shadow"
+          className="absolute left-4 top-4 bg-white p-2 rounded-full"
         >
           <ChevronLeft />
         </button>
 
-        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-6 pb-8 text-white">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusTone}`}>
-              {restaurant.status || "pending"}
-            </span>
-
-            {restaurant.category && (
-              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
-                {restaurant.category}
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-4xl font-bold">{restaurant.name}</h1>
-
-          <div className="mt-3 flex flex-wrap items-center gap-5 text-sm text-white/90">
-            <span className="flex items-center gap-2">
-              <Star size={16} className="fill-yellow-400 text-yellow-400" />
-              {restaurant.rating || "New"}
-            </span>
-
-            <span className="flex items-center gap-2">
-              <Clock size={16} />
-              {restaurant.deliveryTime || "30-40 min"}
-            </span>
-
-            <span className="flex items-center gap-2">
-              <Store size={16} />
-              {restaurant.ownerId?.name || "Seller pending"}
-            </span>
-          </div>
+        <div className="absolute bottom-0 p-6 text-white">
+          <h1 className="text-4xl font-bold">
+            {restaurant?.name}
+          </h1>
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-6 px-6 py-8 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">About This Restaurant</h2>
-          <p className="mt-4 leading-7 text-gray-600">
-            {restaurant.description || "This restaurant has not added a description yet."}
-          </p>
+      {/* MENU SECTION */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold mb-4">Menu</h2>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl bg-gray-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-                Category
-              </p>
-              <p className="mt-2 text-lg font-semibold text-gray-900">
-                {restaurant.category || "Not specified"}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-gray-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-                Delivery
-              </p>
-              <p className="mt-2 text-lg font-semibold text-gray-900">
-                {restaurant.deliveryTime || "30-40 min"}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <aside className="space-y-6">
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900">Restaurant Info</h2>
-
-            <div className="mt-5 space-y-4 text-sm text-gray-600">
-              <div>
-                <p className="font-semibold text-gray-900">Owner</p>
-                <p>{restaurant.ownerId?.name || "Not available"}</p>
-                <p>{restaurant.ownerId?.email || "No email provided"}</p>
-              </div>
-
-              <div>
-                <p className="font-semibold text-gray-900">Status</p>
-                <p className="capitalize">{restaurant.status || "pending"}</p>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <MapPin size={16} className="mt-0.5 text-gray-400" />
-                <p>Location details are not available yet for this restaurant.</p>
-              </div>
-            </div>
+        {/* SEARCH */}
+        <div className="flex gap-3 mb-6">
+          <div className="flex items-center border rounded-xl px-3 w-full">
+            <Search size={18} className="text-gray-400" />
+            <input
+              className="w-full p-2 outline-none"
+              placeholder="Search food..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <div className="rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-6">
-            <h2 className="text-lg font-bold text-gray-900">Menu Status</h2>
-            <p className="mt-2 text-sm leading-6 text-gray-600">
-              This page now shows restaurant details reliably. Menu items can be added later once the
-              food module is connected to this restaurant.
-            </p>
+          <button
+            onClick={handleSearch}
+            className="bg-primary text-white px-4 rounded-xl"
+          >
+            Search
+          </button>
+        </div>
+
+        {/* FOOD LIST */}
+        {foodLoading ? (
+          <div className="flex justify-center">
+            <Loader2 className="animate-spin" />
           </div>
-        </aside>
+        ) : (foods || []).length === 0 ? (
+          <p className="text-gray-500">No food items yet</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(foods || []).map((food, i) => (
+              <FoodCard key={food?._id || i} food={food} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

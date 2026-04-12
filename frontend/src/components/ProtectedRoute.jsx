@@ -1,20 +1,20 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
-function ProtectedRoute({ role }) {
-  const location = useLocation();
-  const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("authUser");
-  const user = storedUser ? JSON.parse(storedUser) : null;
-
-  if (!token) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+const ProtectedRoute = ({ role }) => {
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("authUser"));
+  } catch {
+    user = null;
   }
 
-  if (role && user?.role !== role) {
-    return <Navigate to="/dashboard" replace state={{ from: location }} />;
+  if (!user) return <Navigate to="/login" />;
+
+  if (role) {
+    const allowed = Array.isArray(role) ? role : [role];
+    if (!allowed.includes(user.role)) return <Navigate to="/" />;
   }
 
   return <Outlet />;
-}
-
+};
 export default ProtectedRoute;

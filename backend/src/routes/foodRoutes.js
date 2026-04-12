@@ -7,14 +7,16 @@ import {
   deleteFood,
   searchFoods,
 } from "../controllers/foodController.js";
+import { optionalProtect, protect } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createFood);
-router.get("/restaurant/:id", getFoodsByRestaurant);
-router.get("/search", searchFoods);
-router.get("/:id", getFoodById);
-router.put("/:id", updateFood);
-router.delete("/:id", deleteFood);
+router.post("/", protect, authorizeRoles("seller", "admin"), createFood);
+router.get("/restaurant/:id", optionalProtect, getFoodsByRestaurant);
+router.get("/search", optionalProtect, searchFoods);
+router.get("/:id", optionalProtect, getFoodById);
+router.put("/:id", protect, authorizeRoles("seller", "admin"), updateFood);
+router.delete("/:id", protect, authorizeRoles("seller", "admin"), deleteFood);
 
 export default router;

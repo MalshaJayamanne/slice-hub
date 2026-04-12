@@ -1,14 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Package, MapPin, LogOut, ChevronRight, Settings } from "lucide-react";
+import {
+  User,
+  Package,
+  MapPin,
+  LogOut,
+  ChevronRight,
+  Settings,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
-
   const navigate = useNavigate();
 
-  const storedUser = localStorage.getItem("authUser");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  // ✅ Safe JSON parse (prevents crash)
+  let user = null;
+  try {
+    const storedUser = localStorage.getItem("authUser");
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error("Invalid user JSON:", error);
+    user = null;
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -18,15 +31,13 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
+        
         {/* Profile Card */}
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="bg-white rounded-3xl p-8 shadow border text-center"
         >
-
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <User size={40} className="text-red-500" />
           </div>
@@ -36,25 +47,23 @@ export default function Dashboard() {
           </h2>
 
           <p className="text-gray-500">
-            {user?.email}
+            {user?.email || "No email"}
           </p>
 
           <p className="text-sm text-gray-400 mt-2">
-            Role: {user?.role}
+            Role: {user?.role || "N/A"}
           </p>
 
           <button className="mt-6 w-full flex items-center justify-center gap-2 border p-3 rounded-xl hover:bg-gray-50">
             <Settings size={18} />
             Edit Profile
           </button>
-
         </motion.div>
 
         {/* Dashboard Menu */}
         <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow border space-y-4">
-
           <h1 className="text-3xl font-bold mb-6">
-            Welcome back {user?.name}
+            Welcome back {user?.name || ""}
           </h1>
 
           <button
@@ -115,11 +124,8 @@ export default function Dashboard() {
               <ChevronRight />
             </button>
           )}
-
         </div>
-
       </div>
-
     </div>
   );
 }
