@@ -66,14 +66,8 @@ const RestaurantMenu = () => {
 
     try {
       setFoodLoading(true);
-      const res = await foodAPI.search(search);
-      // FIX: filter results to current restaurant only, and use correct response shape
-      const all = Array.isArray(res?.data?.foods)
-        ? res.data.foods
-        : Array.isArray(res?.data)
-        ? res.data
-        : [];
-      setFoods(all.filter((f) => f.restaurant === id || f.restaurant?._id === id));
+      const res = await foodAPI.search({ q: search, restaurantId: id });
+      setFoods(Array.isArray(res?.data?.foods) ? res.data.foods : []);
     } catch (err) {
       console.error(err);
       setFoods([]);
