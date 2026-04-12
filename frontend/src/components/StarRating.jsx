@@ -1,7 +1,7 @@
 import React from "react";
 import { Star } from "lucide-react";
 
-const StarRating = ({ rating, size = 16 }) => {
+export const StarRating = ({ rating, size = 16 }) => {
   return (
     <div className="flex items-center gap-1">
       {[...Array(5)].map((_, i) => (
