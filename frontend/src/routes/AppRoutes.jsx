@@ -13,6 +13,9 @@ import RestaurantMenu from "../pages/RestaurantMenu";
 import SellerRestaurantForm from "../pages/SellerRestaurantForm";
 import AdminRestaurants from "../pages/AdminRestaurants";
 
+import FoodDetails from "../pages/FoodDetails";
+import SellerMenu from "../pages/SellerMenu";
+
 function AppRoutes() {
 
   return (
@@ -31,6 +34,7 @@ function AppRoutes() {
 
         <Route path="/restaurants" element={<RestaurantList />} />
         <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+        <Route path="/food/:id" element={<FoodDetails />} />
 
         {/* AUTHENTICATED USER */}
 
@@ -49,6 +53,8 @@ function AppRoutes() {
             element={<SellerRestaurantForm />}
           />
 
+          <Route path="/seller/menu/:id" element={<SellerMenu />} />
+
           <Route
             path="/seller/restaurant/edit/:id"
             element={<SellerRestaurantForm />}
@@ -58,7 +64,7 @@ function AppRoutes() {
 
         {/* ADMIN ROUTES */}
 
-        <Route element={<ProtectedRoute role="admin" />}>
+        <Route element={<ProtectedRoute role={["seller", "admin"]} />}>
 
           <Route
             path="/admin/restaurants"

@@ -19,24 +19,31 @@ const SellerRestaurantForm = () => {
     image: ""
   });
 
-  useEffect(() => {
-    if (isEditMode) {
-      fetchRestaurant();
-    }
-  }, [restaurantId, isEditMode]);
+useEffect(() => {
+  if (isEditMode) {
+    fetchRestaurant();
+  }
+}, [restaurantId]); // remove isEditMode
 
   const fetchRestaurant = async () => {
     try {
       setLoading(true);
 
       const res = await restaurantAPI.getRestaurantById(restaurantId);
-      const restaurant = res.data.restaurant;
+
+      // FIX: support multiple API formats safely
+      const restaurant =
+        res?.data?.restaurant || res?.data || null;
+
+      if (!restaurant) {
+        throw new Error("Restaurant not found");
+      }
 
       setFormData({
-        name: restaurant.name || "",
-        description: restaurant.description || "",
-        category: restaurant.category || "",
-        image: restaurant.image || ""
+        name: restaurant?.name || "",
+        description: restaurant?.description || "",
+        category: restaurant?.category || "",
+        image: restaurant?.image || ""
       });
 
     } catch (err) {

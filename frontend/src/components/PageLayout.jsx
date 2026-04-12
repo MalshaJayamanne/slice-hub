@@ -4,7 +4,7 @@ import Footer from "./Footer";
 
 function PageLayout() {
   return (
-    <>
+    <div>
       <Navbar />
 
       <main className="min-h-screen p-4">
@@ -12,7 +12,7 @@ function PageLayout() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }
 
