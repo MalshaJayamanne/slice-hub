@@ -64,7 +64,7 @@ function AppRoutes() {
 
         {/* ADMIN ROUTES */}
 
-        <Route element={<ProtectedRoute role={["seller", "admin"]} />}>
+        <Route element={<ProtectedRoute role="admin" />}>
 
           <Route
             path="/admin/restaurants"
