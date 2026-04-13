@@ -103,6 +103,19 @@ export default function Dashboard() {
         },
       ];
 
+  const adminQuickActions =
+    user?.role === "admin"
+      ? [
+          {
+            label: "Manage Restaurants",
+            description: "Review, approve, and reject restaurant submissions",
+            icon: Package,
+            action: () => navigate("/admin/restaurants"),
+            tone: "text-primary",
+          },
+        ]
+      : [];
+
   const commonActions = [
     {
       label: "Order History",
@@ -194,6 +207,37 @@ export default function Dashboard() {
               </p>
               <div className="space-y-3">
                 {sellerQuickActions.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={item.action}
+                      className="w-full flex items-center justify-between rounded-2xl border border-gray-100 p-4 hover:bg-gray-50 transition"
+                    >
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
+                          <Icon className={item.tone || "text-gray-700"} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          <p className="text-sm text-gray-500">{item.description}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="text-gray-400" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {user?.role === "admin" ? (
+            <div className="mb-8">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
+                Admin Actions
+              </p>
+              <div className="space-y-3">
+                {adminQuickActions.map((item) => {
                   const Icon = item.icon;
                   return (
                     <button
