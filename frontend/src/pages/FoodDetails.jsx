@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertCircle, ChevronLeft, Loader2, Minus, Plus } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  Loader2,
+  Minus,
+  Plus,
+  Store,
+} from "lucide-react";
 
 import foodAPI from "../api/foodAPI";
 
@@ -37,7 +44,7 @@ export default function FoodDetails() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin" />
+        <Loader2 className="animate-spin text-primary" />
       </div>
     );
   }
@@ -52,66 +59,88 @@ export default function FoodDetails() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <button
         onClick={() => navigate(-1)}
-        className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-2 hover:bg-gray-50"
+        className="mb-6 inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
       >
-        <ChevronLeft />
+        <ChevronLeft size={16} />
         Back
       </button>
 
-      <div className="grid md:grid-cols-2 gap-10">
-        <img
-          src={item?.image || "https://picsum.photos/400/300"}
-          alt={item?.name || "food"}
-          className="rounded-3xl w-full h-80 object-cover"
-        />
+      <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-start">
+        <div className="overflow-hidden rounded-[2rem] bg-white border shadow-sm">
+          <img
+            src={item?.image || "https://picsum.photos/900/700"}
+            alt={item?.name || "food"}
+            className="h-[22rem] sm:h-[30rem] w-full object-cover"
+          />
+        </div>
 
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary/80">
-            {item?.category}
-          </p>
-
-          <h1 className="text-4xl font-bold mt-2">{item?.name}</h1>
-
-          <div className="mt-4 inline-flex rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700">
-            {item?.availability ? "Available" : "Currently unavailable"}
+        <div className="rounded-[2rem] bg-white border shadow-sm p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-primary/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              {item?.category}
+            </span>
+            <span
+              className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${
+                item?.availability
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {item?.availability ? "Available" : "Unavailable"}
+            </span>
           </div>
 
-          <p className="mt-4 text-gray-500">
+          <h1 className="mt-5 text-4xl sm:text-5xl font-black text-gray-900">
+            {item?.name}
+          </h1>
+
+          <p className="mt-4 text-gray-600 leading-7">
             {item?.description || "No description available for this food item yet."}
           </p>
 
-          <h2 className="text-3xl font-bold text-primary mt-6">
-            Rs. {item?.price}
-          </h2>
+          <div className="mt-8 rounded-[1.5rem] bg-orange-50 border border-orange-100 px-5 py-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
+              Price
+            </p>
+            <p className="mt-2 text-4xl font-black text-primary">Rs. {item?.price}</p>
+          </div>
 
-          <div className="flex items-center gap-4 mt-6">
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="inline-flex items-center justify-between rounded-full border px-3 py-2 w-full sm:w-auto sm:min-w-44">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="rounded-full p-2 hover:bg-gray-50"
+              >
+                <Minus size={18} />
+              </button>
+              <span className="text-lg font-semibold min-w-12 text-center">{qty}</span>
+              <button
+                onClick={() => setQty((q) => q + 1)}
+                className="rounded-full p-2 hover:bg-gray-50"
+              >
+                <Plus size={18} />
+              </button>
+            </div>
+
             <button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="rounded-full border p-2"
+              disabled={!item?.availability}
+              className="w-full sm:w-auto sm:flex-1 rounded-2xl bg-primary disabled:bg-gray-300 text-white px-6 py-4 font-semibold"
             >
-              <Minus />
-            </button>
-            <span className="min-w-8 text-center font-semibold">{qty}</span>
-            <button
-              onClick={() => setQty((q) => q + 1)}
-              className="rounded-full border p-2"
-            >
-              <Plus />
+              {item?.availability ? `Add ${qty} to Cart` : "Currently Unavailable"}
             </button>
           </div>
 
-          <button
-            disabled={!item?.availability}
-            className="mt-6 bg-primary disabled:bg-gray-300 text-white px-6 py-3 rounded-xl"
-          >
-            {item?.availability ? "Add to Cart" : "Unavailable"}
-          </button>
-
           {item?.restaurant?.name ? (
-            <p className="mt-4 text-sm text-gray-500">From {item.restaurant.name}</p>
+            <button
+              onClick={() => navigate(`/restaurant/${item.restaurant._id || item.restaurant}`)}
+              className="mt-8 inline-flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-primary"
+            >
+              <Store size={18} />
+              More from {item.restaurant.name}
+            </button>
           ) : null}
         </div>
       </div>
