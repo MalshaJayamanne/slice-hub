@@ -270,8 +270,12 @@ export const searchFoods = async (req, res, next) => {
       throw error;
     }
 
+    const normalizedQuery = query.trim();
     const filter = {
-      name: { $regex: query.trim(), $options: "i" },
+      $or: [
+        { name: { $regex: normalizedQuery, $options: "i" } },
+        { category: { $regex: normalizedQuery, $options: "i" } },
+      ],
     };
 
     if (restaurantId) {
