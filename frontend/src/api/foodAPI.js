@@ -6,7 +6,10 @@ const foodAPI = {
   create: (data) => API.post("/foods", data),
   update: (id, data) => API.put(`/foods/${id}`, data),
   delete: (id) => API.delete(`/foods/${id}`),
-  search: (q) => API.get(`/foods/search?q=${encodeURIComponent(q)}`),
+  search: ({ q, restaurantId } = {}) =>
+    API.get("/foods/search", {
+      params: { q, restaurantId },
+    }),
 };
 
 export default foodAPI;
