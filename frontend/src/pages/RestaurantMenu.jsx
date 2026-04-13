@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
@@ -44,24 +44,26 @@ const RestaurantMenu = () => {
     fetchRestaurant();
   }, [id]);
 
-  const fetchFoods = async () => {
+  const fetchFoods = useCallback(async () => {
     if (!id) return;
 
     try {
       setFoodLoading(true);
       const res = await foodAPI.getByRestaurant(id);
       setFoods(Array.isArray(res?.data?.foods) ? res.data.foods : []);
+      setError(null);
     } catch (err) {
       console.error(err);
       setFoods([]);
+      setError(err?.response?.data?.message || "Failed to load menu items.");
     } finally {
       setFoodLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchFoods();
-  }, [id]);
+  }, [fetchFoods]);
 
   const handleSearch = async () => {
     if (!search.trim()) {
@@ -72,9 +74,11 @@ const RestaurantMenu = () => {
       setFoodLoading(true);
       const res = await foodAPI.search({ q: search, restaurantId: id });
       setFoods(Array.isArray(res?.data?.foods) ? res.data.foods : []);
+      setError(null);
     } catch (err) {
       console.error(err);
       setFoods([]);
+      setError(err?.response?.data?.message || "Failed to search menu items.");
     } finally {
       setFoodLoading(false);
     }
@@ -190,7 +194,11 @@ const RestaurantMenu = () => {
           </div>
         </div>
 
-        {foodLoading ? (
+        {error && !loading ? (
+          <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-10 text-center text-red-700">
+            {error}
+          </div>
+        ) : foodLoading ? (
           <div className="flex justify-center py-14">
             <Loader2 className="animate-spin text-primary" />
           </div>

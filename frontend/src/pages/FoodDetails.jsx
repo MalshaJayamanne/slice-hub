@@ -23,22 +23,34 @@ export default function FoodDetails() {
   useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
+    let isActive = true;
 
-    foodAPI
-      .getById(id)
-      .then((res) => {
+    const fetchFood = async () => {
+      try {
+        const res = await foodAPI.getById(id);
+        if (!isActive) return;
+
         setItem(res?.data?.food || null);
         setError("");
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch food:", err);
+        if (!isActive) return;
+
         setItem(null);
         setError(err?.response?.data?.message || "Failed to load food details.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    setLoading(true);
+    fetchFood();
+
+    return () => {
+      isActive = false;
+    };
   }, [id]);
 
   if (loading) {

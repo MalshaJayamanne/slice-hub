@@ -26,6 +26,14 @@ const initialForm = {
 const SellerMenu = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const currentUser = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("authUser");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const [restaurant, setRestaurant] = useState(null);
   const [foods, setFoods] = useState([]);
@@ -36,9 +44,26 @@ const SellerMenu = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [forbidden, setForbidden] = useState(false);
+
+  const canManageRestaurant = useCallback(
+    (restaurantData) => {
+      if (!restaurantData || !currentUser) return false;
+      if (currentUser.role === "admin") return true;
+
+      const ownerId =
+        restaurantData?.ownerId?._id ||
+        restaurantData?.ownerId ||
+        restaurantData?.owner?._id ||
+        restaurantData?.owner;
+
+      return ownerId?.toString?.() === currentUser?._id?.toString?.();
+    },
+    [currentUser]
+  );
 
   const fetchFoods = useCallback(async () => {
-    if (!id) return;
+    if (!id || forbidden) return;
 
     try {
       const res = await foodAPI.getByRestaurant(id);
@@ -49,7 +74,7 @@ const SellerMenu = () => {
       setFoods([]);
       setError(err?.response?.data?.message || "Failed to load foods.");
     }
-  }, [id]);
+  }, [forbidden, id]);
 
   useEffect(() => {
     if (!id) return;
@@ -62,13 +87,26 @@ const SellerMenu = () => {
           foodAPI.getByRestaurant(id),
         ]);
 
-        setRestaurant(restaurantRes?.data?.restaurant || null);
+        const restaurantData = restaurantRes?.data?.restaurant || null;
+        const hasAccess = canManageRestaurant(restaurantData);
+
+        if (!hasAccess) {
+          setRestaurant(null);
+          setFoods([]);
+          setForbidden(true);
+          setError("You can only manage food for your own restaurant.");
+          return;
+        }
+
+        setRestaurant(restaurantData);
         setFoods(Array.isArray(foodsRes?.data?.foods) ? foodsRes.data.foods : []);
+        setForbidden(false);
         setError("");
       } catch (err) {
         console.error("Seller menu load error:", err);
         setRestaurant(null);
         setFoods([]);
+        setForbidden(false);
         setError(err?.response?.data?.message || "Failed to load restaurant menu.");
       } finally {
         setLoading(false);
@@ -76,7 +114,7 @@ const SellerMenu = () => {
     };
 
     loadPageData();
-  }, [id]);
+  }, [canManageRestaurant, id]);
 
   const resetForm = () => {
     setForm(initialForm);
@@ -177,6 +215,38 @@ const SellerMenu = () => {
           <p className="text-sm uppercase tracking-[0.2em] text-gray-500">
             Loading seller menu
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (forbidden) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
+        <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-10 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">
+            Access Restricted
+          </p>
+          <h1 className="mt-3 text-3xl font-bold text-gray-900">
+            This restaurant is not in your seller workspace
+          </h1>
+          <p className="mt-3 text-gray-600">
+            You can only manage food items for restaurants that belong to your account.
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="rounded-2xl bg-primary px-5 py-3 font-semibold text-white"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={() => navigate("/restaurants")}
+              className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-white"
+            >
+              Browse Restaurants
+            </button>
+          </div>
         </div>
       </div>
     );
