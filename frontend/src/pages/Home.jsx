@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -21,9 +21,11 @@ import foodAPI from "../api/foodAPI";
 export default function Home() {
   const navigate = useNavigate();
 
+  // ✅ State
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
 
+  // ✅ Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -34,7 +36,17 @@ export default function Home() {
           ? resRestaurants
           : resRestaurants?.restaurants || [];
 
-        const safeFoods = resFoods?.data?.foods || [];
+        // ✅ FIXED (robust for any backend shape)
+        const safeFoods =
+          Array.isArray(resFoods)
+            ? resFoods
+            : Array.isArray(resFoods?.data)
+            ? resFoods.data
+            : Array.isArray(resFoods?.data?.foods)
+            ? resFoods.data.foods
+            : Array.isArray(resFoods?.foods)
+            ? resFoods.foods
+            : [];
 
         setRestaurants(safeRestaurants);
         setFoods(safeFoods);
@@ -46,16 +58,18 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // ✅ FIXED LINE ONLY (nothing else changed)
-  const recommendedFood =
-    Array.isArray(foods) && foods.length > 0
-      ? foods[Math.floor(Math.random() * foods.length)]
-      : null;
+  // ✅ AI Recommendation (unchanged)
+  const recommendedFood = useMemo(() => {
+    if (!Array.isArray(foods) || foods.length === 0) return null;
+
+    return foods[Math.floor(Math.random() * foods.length)];
+  }, [foods]);
 
   return (
     <div className="pb-20 space-y-16 bg-[#F8F9FB]">
 
-      {/* HERO */}
+      {/* ================= HERO SECTION ================= */}
+
       <section className="relative min-h-[600px] flex items-center overflow-hidden bg-black py-20">
         <div className="absolute inset-0 z-0">
           <img
@@ -90,7 +104,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* SEARCH */}
+          {/* SEARCH BAR */}
           <div className="mt-10 bg-white p-3 rounded-2xl shadow-xl flex items-center gap-3 max-w-2xl">
             <div className="flex items-center gap-2 flex-1 px-3">
               <Search size={20} className="text-gray-400" />
@@ -110,15 +124,42 @@ export default function Home() {
 
             <button
               onClick={() => navigate("/restaurants")}
-              className="bg-[#FF3B30] text-white px-6 py-3 rounded-xl font-semibold"
+              className="bg-[#FF3B30] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#e5322a] transition"
             >
               Find Food
             </button>
           </div>
+
+          {/* STATS */}
+          <div className="flex flex-wrap gap-10 mt-10">
+            <div className="flex items-center gap-3">
+              <Star className="text-yellow-400" />
+              <div>
+                <p className="font-bold">4.9 / 5</p>
+                <p className="text-xs text-gray-300">User Rating</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Clock className="text-green-400" />
+              <div>
+                <p className="font-bold">25 min</p>
+                <p className="text-xs text-gray-300">Avg Delivery</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <TrendingUp className="text-blue-400" />
+              <div>
+                <p className="font-bold">500+</p>
+                <p className="text-xs text-gray-300">Restaurants</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* RESTAURANTS */}
+      {/* ================= FEATURED RESTAURANTS ================= */}
       <section className="max-w-7xl mx-auto px-6">
         <h2 className="text-3xl font-bold mb-6">Featured Restaurants</h2>
 
@@ -129,7 +170,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOODS */}
+      {/* ================= POPULAR DISHES ================= */}
       <section className="max-w-7xl mx-auto px-6">
         <h2 className="text-3xl font-bold mb-6">Popular Dishes</h2>
 
@@ -144,34 +185,99 @@ export default function Home() {
         </div>
       </section>
 
-      {/* AI */}
+      {/* ================= AI RECOMMENDATION ================= */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-gradient-to-br from-[#FF3B30] to-orange-500 rounded-3xl p-10 text-white">
+        <div className="bg-gradient-to-br from-[#FF3B30] to-orange-500 rounded-3xl p-10 text-white relative overflow-hidden">
 
-          <h2 className="text-3xl font-extrabold mb-4">AI Chef Recommends</h2>
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
 
-          {recommendedFood ? (
-            <>
-              <h3 className="text-2xl font-bold">{recommendedFood.name}</h3>
-              <p>{recommendedFood.description}</p>
-            </>
-          ) : (
-            <p>No recommendation available.</p>
-          )}
+          <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-3 rounded-xl">
+                  <Sparkles size={20} />
+                </div>
+                <h2 className="text-3xl font-extrabold">
+                  AI Chef Recommends
+                </h2>
+              </div>
+
+              <p className="text-white/80 text-lg">
+                Based on trending dishes and user preferences, we think you’ll love this!
+              </p>
+
+              {recommendedFood ? (
+                <>
+                  <h3 className="text-2xl font-bold">
+                    {recommendedFood.name}
+                  </h3>
+
+                  <p className="text-white/80 max-w-md">
+                    {recommendedFood.description || "A delicious choice just for you."}
+                  </p>
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => navigate(`/food/${recommendedFood._id}`)}
+                      className="bg-white text-[#FF3B30] px-6 py-3 rounded-xl font-bold"
+                    >
+                      View Dish
+                    </button>
+
+                    <button
+                      onClick={() => console.log("AI Add:", recommendedFood)}
+                      className="border border-white px-6 py-3 rounded-xl font-bold"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p>No recommendation available.</p>
+              )}
+            </div>
+
+            {recommendedFood && (
+              <div>
+                <img
+                  src={recommendedFood.image || "https://picsum.photos/500/400"}
+                  alt={recommendedFood.name}
+                  className="rounded-2xl shadow-2xl w-full h-[300px] object-cover"
+                />
+              </div>
+            )}
+
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ================= CTA ================= */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-white rounded-3xl shadow-lg p-12 text-center">
-          <h2 className="text-4xl font-bold">Ready to explore?</h2>
+        <div className="bg-white rounded-3xl shadow-lg p-12 text-center space-y-6">
+          <h2 className="text-4xl font-bold text-gray-900">
+            Ready to explore restaurants?
+          </h2>
 
-          <Link
-            to="/restaurants"
-            className="bg-[#FF3B30] text-white px-8 py-3 rounded-xl"
-          >
-            Browse Restaurants
-          </Link>
+          <p className="text-gray-600">
+            Browse hundreds of restaurants and discover delicious meals.
+          </p>
+
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Link
+              to="/restaurants"
+              className="bg-[#FF3B30] text-white px-8 py-3 rounded-xl font-semibold"
+            >
+              Browse Restaurants
+            </Link>
+
+            <Link
+              to="/login"
+              className="border border-gray-300 px-8 py-3 rounded-xl font-semibold"
+            >
+              Login
+            </Link>
+          </div>
         </div>
       </section>
 
