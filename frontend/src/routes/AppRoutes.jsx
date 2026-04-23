@@ -15,6 +15,7 @@ import AdminRestaurants from "../pages/AdminRestaurants";
 
 import FoodDetails from "../pages/FoodDetails";
 import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
 import SellerMenu from "../pages/SellerMenu";
 
 function AppRoutes() {
@@ -43,6 +44,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute />}>
 
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/checkout" element={<Checkout />} />
 
         </Route>
 
