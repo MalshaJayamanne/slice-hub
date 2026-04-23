@@ -14,6 +14,7 @@ import SellerRestaurantForm from "../pages/SellerRestaurantForm";
 import AdminRestaurants from "../pages/AdminRestaurants";
 
 import FoodDetails from "../pages/FoodDetails";
+import Cart from "../pages/Cart";
 import SellerMenu from "../pages/SellerMenu";
 
 function AppRoutes() {
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/restaurants" element={<RestaurantList />} />
         <Route path="/restaurant/:id" element={<RestaurantMenu />} />
         <Route path="/food/:id" element={<FoodDetails />} />
+        <Route path="/cart" element={<Cart />} />
 
         {/* AUTHENTICATED USER */}
 
