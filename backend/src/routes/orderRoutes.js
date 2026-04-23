@@ -13,10 +13,13 @@ import { authorizeRoles } from "../middleware/roleMiddleware.js";
 const router = Router();
 
 // Place Order
-router.post("/", protect, placeOrder);
+router.post("/", protect, authorizeRoles("customer"), placeOrder);
 
 // Get logged-in user's orders
-router.get("/my-orders", protect, getMyOrders);
+router.get("/my-orders", protect, authorizeRoles("customer"), getMyOrders);
+
+// Get single order tracking details
+router.get("/:id/tracking", protect, getOrderById);
 
 // Get single order (tracking)
 router.get("/:id", protect, getOrderById);
