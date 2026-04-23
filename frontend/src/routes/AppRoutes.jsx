@@ -16,6 +16,8 @@ import AdminRestaurants from "../pages/AdminRestaurants";
 import FoodDetails from "../pages/FoodDetails";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
+import OrderHistory from "../pages/OrderHistory";
+import OrderTracking from "../pages/OrderTracking";
 import SellerMenu from "../pages/SellerMenu";
 
 function AppRoutes() {
@@ -45,6 +47,8 @@ function AppRoutes() {
 
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/orders" element={<OrderHistory />} />
+          <Route path="/orders/:id" element={<OrderTracking />} />
 
         </Route>
 

@@ -121,7 +121,8 @@ export default function Dashboard() {
       label: "Order History",
       description: "View your recent activity",
       icon: Clock3,
-      disabled: true,
+      action: () => navigate("/orders"),
+      hidden: user?.role !== "customer",
     },
     {
       label: "Saved Addresses",
@@ -267,7 +268,7 @@ export default function Dashboard() {
               Account
             </p>
             <div className="space-y-3">
-              {commonActions.map((item) => {
+              {commonActions.filter((item) => !item.hidden).map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
