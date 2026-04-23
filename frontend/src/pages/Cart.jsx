@@ -23,9 +23,7 @@ export default function Cart() {
     updateQuantity,
   } = useCart();
 
-  const deliveryFee = subtotal > 0 ? 299 : 0;
-  const tax = subtotal * 0.05;
-  const total = subtotal + deliveryFee + tax;
+  const total = subtotal;
 
   const handleNavigate = (target, item) => {
     if (target === "home") {
@@ -172,13 +170,8 @@ export default function Cart() {
               </div>
 
               <div className="flex justify-between text-white/60 font-bold text-sm sm:text-base">
-                <span>Delivery Fee</span>
-                <span className="text-white">Rs. {deliveryFee.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between text-white/60 font-bold text-sm sm:text-base">
-                <span>Tax (5%)</span>
-                <span className="text-white">Rs. {tax.toFixed(2)}</span>
+                <span>Validated Total</span>
+                <span className="text-white">Rs. {subtotal.toFixed(2)}</span>
               </div>
 
               <div className="h-px bg-white/10 my-6" />

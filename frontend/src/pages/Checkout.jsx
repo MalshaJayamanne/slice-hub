@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   MapPin,
   CreditCard,
@@ -19,12 +19,10 @@ import { useCart } from "../context/CartContext";
 const DELIVERY_OPTIONS = {
   standard: {
     label: "Standard Delivery",
-    price: 299,
     timing: "25-35 mins",
   },
   priority: {
     label: "Priority Delivery",
-    price: 499,
     timing: "15-20 mins",
   },
 };
@@ -54,9 +52,7 @@ export default function Checkout() {
     instructions: "",
   });
 
-  const deliveryFee = DELIVERY_OPTIONS[deliveryType].price;
-  const tax = subtotal * 0.05;
-  const total = subtotal + deliveryFee + tax;
+  const total = subtotal;
 
   const deliveryAddress = useMemo(() => {
     const parts = [
@@ -129,8 +125,7 @@ export default function Checkout() {
   };
 
   if (cartItems.length === 0 && !isOrdered) {
-    navigate("/cart");
-    return null;
+    return <Navigate to="/cart" replace />;
   }
 
   if (isOrdered) {
@@ -380,8 +375,7 @@ export default function Checkout() {
                     Standard Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.standard.timing} • Rs.{" "}
-                    {DELIVERY_OPTIONS.standard.price.toFixed(2)}
+                    {DELIVERY_OPTIONS.standard.timing} | Included in current total
                   </p>
                 </div>
               </label>
@@ -408,8 +402,7 @@ export default function Checkout() {
                     Priority Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.priority.timing} • Rs.{" "}
-                    {DELIVERY_OPTIONS.priority.price.toFixed(2)}
+                    {DELIVERY_OPTIONS.priority.timing} | UI option only for now
                   </p>
                 </div>
               </label>
@@ -444,12 +437,8 @@ export default function Checkout() {
                 <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-600 text-sm">
-                <span>Delivery</span>
-                <span>Rs. {deliveryFee.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600 text-sm">
-                <span>Tax</span>
-                <span>Rs. {tax.toFixed(2)}</span>
+                <span>Validated Total</span>
+                <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-xl font-bold text-contrast pt-2">
                 <span>Total</span>

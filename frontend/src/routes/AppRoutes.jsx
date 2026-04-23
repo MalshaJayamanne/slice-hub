@@ -46,6 +46,11 @@ function AppRoutes() {
         <Route element={<ProtectedRoute />}>
 
           <Route path="/dashboard" element={<Dashboard />} />
+
+        </Route>
+
+        <Route element={<ProtectedRoute role="customer" />}>
+
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<OrderHistory />} />
           <Route path="/orders/:id" element={<OrderTracking />} />
