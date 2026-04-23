@@ -36,9 +36,17 @@ export default function Home() {
           ? resRestaurants
           : resRestaurants?.restaurants || [];
 
-        const safeFoods = Array.isArray(resFoods)
-          ? resFoods
-          : resFoods?.data?.foods || [];
+        // ✅ FIXED (robust for any backend shape)
+        const safeFoods =
+          Array.isArray(resFoods)
+            ? resFoods
+            : Array.isArray(resFoods?.data)
+            ? resFoods.data
+            : Array.isArray(resFoods?.data?.foods)
+            ? resFoods.data.foods
+            : Array.isArray(resFoods?.foods)
+            ? resFoods.foods
+            : [];
 
         setRestaurants(safeRestaurants);
         setFoods(safeFoods);
@@ -50,7 +58,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // ✅ FIXED: Stable AI Recommendation
+  // ✅ AI Recommendation (unchanged)
   const recommendedFood = useMemo(() => {
     if (!Array.isArray(foods) || foods.length === 0) return null;
 
@@ -152,28 +160,19 @@ export default function Home() {
       </section>
 
       {/* ================= FEATURED RESTAURANTS ================= */}
-
       <section className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-6">
-          Featured Restaurants
-        </h2>
+        <h2 className="text-3xl font-bold mb-6">Featured Restaurants</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {restaurants.slice(0, 6).map((restaurant) => (
-            <RestaurantCard
-              key={restaurant?._id}
-              restaurant={restaurant}
-            />
+            <RestaurantCard key={restaurant?._id} restaurant={restaurant} />
           ))}
         </div>
       </section>
 
       {/* ================= POPULAR DISHES ================= */}
-
       <section className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-6">
-          Popular Dishes
-        </h2>
+        <h2 className="text-3xl font-bold mb-6">Popular Dishes</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {foods.slice(0, 8).map((food) => (
@@ -187,7 +186,6 @@ export default function Home() {
       </section>
 
       {/* ================= AI RECOMMENDATION ================= */}
-
       <section className="max-w-7xl mx-auto px-6">
         <div className="bg-gradient-to-br from-[#FF3B30] to-orange-500 rounded-3xl p-10 text-white relative overflow-hidden">
 
@@ -254,8 +252,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= CTA SECTION ================= */}
-
+      {/* ================= CTA ================= */}
       <section className="max-w-7xl mx-auto px-6">
         <div className="bg-white rounded-3xl shadow-lg p-12 text-center space-y-6">
           <h2 className="text-4xl font-bold text-gray-900">
