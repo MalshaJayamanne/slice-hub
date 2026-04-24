@@ -10,15 +10,18 @@ import {
 } from "lucide-react";
 
 import foodAPI from "../api/foodAPI";
+import { useCart } from "../context/CartContext";
 
 export default function FoodDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   const [item, setItem] = useState(null);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cartMessage, setCartMessage] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -69,6 +72,11 @@ export default function FoodDetails() {
       </div>
     );
   }
+
+  const handleAddToCart = () => {
+    const result = addItem(item, qty);
+    setCartMessage(result.message);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -138,12 +146,19 @@ export default function FoodDetails() {
             </div>
 
             <button
+              onClick={handleAddToCart}
               disabled={!item?.availability}
               className="w-full sm:w-auto sm:flex-1 rounded-2xl bg-primary disabled:bg-gray-300 text-white px-6 py-4 font-semibold"
             >
               {item?.availability ? `Add ${qty} to Cart` : "Currently Unavailable"}
             </button>
           </div>
+
+          {cartMessage ? (
+            <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+              {cartMessage}
+            </div>
+          ) : null}
 
           {item?.restaurant?.name ? (
             <button

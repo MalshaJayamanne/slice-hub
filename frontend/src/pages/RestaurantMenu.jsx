@@ -11,10 +11,12 @@ import {
 import { restaurantService } from "../services/restaurantService";
 import foodAPI from "../api/foodAPI";
 import FoodCard from "../components/FoodCard";
+import { useCart } from "../context/CartContext";
 
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [foods, setFoods] = useState([]);
@@ -22,6 +24,12 @@ const RestaurantMenu = () => {
   const [loading, setLoading] = useState(true);
   const [foodLoading, setFoodLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cartMessage, setCartMessage] = useState("");
+
+  const handleAddToCart = (food) => {
+    const result = addItem(food, 1);
+    setCartMessage(result.message);
+  };
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -192,6 +200,12 @@ const RestaurantMenu = () => {
               </button>
             ) : null}
           </div>
+
+          {cartMessage ? (
+            <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+              {cartMessage}
+            </div>
+          ) : null}
         </div>
 
         {error && !loading ? (
@@ -215,7 +229,11 @@ const RestaurantMenu = () => {
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {foods.map((food) => (
-              <FoodCard key={food?._id} food={food} />
+              <FoodCard
+                key={food?._id}
+                food={food}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         )}

@@ -4,6 +4,13 @@ import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("authUser"));
+  } catch (_error) {
+    user = null;
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -55,6 +62,15 @@ function Navbar({ cartCount = 0 }) {
             >
               Home
             </Link>
+
+            {token && user?.role === "customer" ? (
+              <Link
+                to="/orders"
+                className="hidden md:block px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 hover:text-black"
+              >
+                Orders
+              </Link>
+            ) : null}
 
             {/* Cart */}
             <Link
