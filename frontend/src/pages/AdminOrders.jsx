@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Clock3, Package, ShoppingBag, Store, User } from "lucide-react";
+import { Package, Receipt, Store, User } from "lucide-react";
 
-import orderAPI from "../api/orderAPI";
+import adminAPI from "../api/adminAPI";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -19,8 +19,9 @@ const statusClasses = {
 
 const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
 
-export default function SellerOrders() {
+export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,13 +29,15 @@ export default function SellerOrders() {
     try {
       setLoading(true);
       setError("");
-      const response = await orderAPI.getSellerOrders();
-      setOrders(Array.isArray(response?.data) ? response.data : []);
+      const response = await adminAPI.getOrders();
+      setOrders(Array.isArray(response?.data?.orders) ? response.data.orders : []);
+      setSummary(response?.data?.summary || null);
     } catch (fetchError) {
       setOrders([]);
+      setSummary(null);
       setError(
         fetchError?.response?.data?.message ||
-          "Failed to load seller orders."
+          "Failed to load platform orders."
       );
     } finally {
       setLoading(false);
@@ -45,54 +48,46 @@ export default function SellerOrders() {
     fetchOrders();
   }, []);
 
-  const pendingCount = orders.filter((order) => order.status === "Pending").length;
-  const preparingCount = orders.filter((order) => order.status === "Preparing").length;
-  const deliveredCount = orders.filter((order) => order.status === "Delivered").length;
-  const totalRevenue = orders.reduce(
-    (total, order) => total + Number(order.totalAmount || 0),
-    0
-  );
-
   const sidebarNote = loading
-    ? "Loading seller orders for your restaurant workspace."
+    ? "Loading order activity across the platform."
     : error
-    ? "Order data is unavailable right now. Retry from the main panel."
-    : orders.length > 0
-    ? `${pendingCount} pending orders and ${preparingCount} preparing orders are currently in your queue.`
-    : "Orders will appear here after customers place them for your restaurant.";
+    ? "Order monitoring is unavailable right now. Retry from the main panel."
+    : summary
+    ? `${summary.statusCounts.Pending} pending, ${summary.statusCounts.Preparing} preparing, and ${summary.statusCounts.Delivered} delivered orders are in the current view.`
+    : "Platform orders will appear here once customers start checking out.";
 
   return (
     <WorkspacePage
       sidebar={
         <WorkspaceSidebar
-          icon={ShoppingBag}
-          title="Seller Orders"
-          subtitle="A stable first pass for reviewing incoming orders before status actions are added."
+          icon={Receipt}
+          title="Platform Orders"
+          subtitle="A read-only order monitoring view for tracking throughput across restaurants."
           note={sidebarNote}
         >
-          {orders.length > 0 ? (
+          {summary ? (
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                Queue Revenue
+                Current Revenue
               </p>
               <p className="mt-3 text-2xl font-black tracking-tight text-primary">
-                {formatCurrency(totalRevenue)}
+                {formatCurrency(summary.totalRevenue)}
               </p>
               <p className="mt-2 text-sm text-gray-500">
-                Revenue across the orders currently visible in this queue.
+                Based on the orders returned in this monitoring view.
               </p>
             </div>
           ) : null}
         </WorkspaceSidebar>
       }
-      eyebrow="Seller workspace"
-      title="Order Queue"
-      description="Start by making the queue reliable and readable first, then connect status updates and deeper order actions."
+      eyebrow="Admin workspace"
+      title="Order Monitoring"
+      description="Start with dependable order visibility first, then add filters, status actions, and platform drill-downs."
     >
       {loading ? (
         <WorkspaceLoadingState
-          title="Loading seller orders"
-          message="Gathering customer, item, and restaurant data for your current order queue."
+          title="Loading platform orders"
+          message="Gathering restaurant, customer, and status data for the monitoring queue."
         />
       ) : error ? (
         <WorkspaceErrorState
@@ -102,39 +97,39 @@ export default function SellerOrders() {
         />
       ) : orders.length === 0 ? (
         <WorkspaceEmptyState
-          title="No seller orders yet"
-          message="New customer orders will appear here once your restaurant starts receiving them."
+          title="No orders yet"
+          message="Order monitoring cards will appear here once customers place orders."
         />
       ) : (
         <div className="space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <WorkspaceStat
               label="Visible Orders"
-              value={orders.length}
-              hint="Orders currently in your queue"
+              value={summary?.totalOrders || orders.length}
+              hint="Orders in the current monitoring view"
             />
             <WorkspaceStat
               label="Pending"
-              value={pendingCount}
-              hint="Waiting for seller action"
+              value={summary?.statusCounts?.Pending || 0}
+              hint="Waiting to be processed"
               tone="warning"
             />
             <WorkspaceStat
               label="Preparing"
-              value={preparingCount}
-              hint={`${deliveredCount} delivered so far`}
+              value={summary?.statusCounts?.Preparing || 0}
+              hint="Currently in progress"
             />
             <WorkspaceStat
-              label="Queue Revenue"
-              value={formatCurrency(totalRevenue)}
-              hint="Gross total across visible orders"
+              label="Revenue"
+              value={formatCurrency(summary?.totalRevenue || 0)}
+              hint="Gross total in the current list"
               tone="success"
             />
           </div>
 
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
-              Order List
+              Live Order List
             </p>
             <div className="space-y-4">
               {orders.map((order) => (
@@ -148,17 +143,19 @@ export default function SellerOrders() {
                         Order #{order._id.slice(-6).toUpperCase()}
                       </p>
                       <h2 className="mt-2 text-xl font-bold text-contrast">
-                        {order.restaurant?.name || "Restaurant order"}
+                        {order.restaurant?.name || "Unknown restaurant"}
                       </h2>
                     </div>
 
-                    <span
-                      className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
-                        statusClasses[order.status] || statusClasses.Pending
-                      }`}
-                    >
-                      {order.status}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
+                          statusClasses[order.status] || statusClasses.Pending
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -172,7 +169,7 @@ export default function SellerOrders() {
                     </div>
                     <div className="rounded-2xl bg-gray-50 px-4 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Total
+                        Amount
                       </p>
                       <p className="mt-2 text-sm font-semibold text-gray-900">
                         {formatCurrency(order.totalAmount)}
@@ -183,11 +180,7 @@ export default function SellerOrders() {
                         Items
                       </p>
                       <p className="mt-2 text-sm font-semibold text-gray-900">
-                        {order.items?.reduce(
-                          (total, item) => total + Number(item.quantity || 0),
-                          0
-                        ) || 0}{" "}
-                        items
+                        {order.metrics?.itemCount || 0} items
                       </p>
                     </div>
                     <div className="rounded-2xl bg-gray-50 px-4 py-3">
@@ -204,28 +197,20 @@ export default function SellerOrders() {
 
                   <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
                     <span className="inline-flex items-center gap-2">
+                      <Store size={16} />
+                      Seller: {order.restaurant?.owner?.name || "Unknown owner"}
+                    </span>
+                    <span className="inline-flex items-center gap-2">
                       <User size={16} />
                       {order.customer?.email || "No customer email"}
                     </span>
                     <span className="inline-flex items-center gap-2">
-                      <Store size={16} />
-                      Delivery: {order.deliveryAddress || "No address provided"}
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <Clock3 size={16} />
-                      Tracking and status updates can build on this scaffold next.
-                    </span>
-                  </div>
-
-                  <div className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                      Items Preview
-                    </p>
-                    <p className="mt-2 text-sm text-gray-700">
+                      <Package size={16} />
                       {order.items
-                        ?.map((item) => `${item.quantity}x ${item.name}`)
-                        .join(", ") || "No items recorded"}
-                    </p>
+                        ?.slice(0, 2)
+                        .map((item) => `${item.quantity}x ${item.name}`)
+                        .join(", ") || "No items"}
+                    </span>
                   </div>
                 </div>
               ))}

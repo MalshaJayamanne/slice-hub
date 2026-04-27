@@ -325,6 +325,74 @@ Finish management side and prepare final submission/demo.
 * Agree on one shared error message format
 * Agree on which pages are required for the final demo and which ones can stay minimal
 
+### Week 5 shared agreements
+
+#### Shared order status list
+
+* Use only these order statuses in Week 5:
+
+  * `Pending`
+  * `Preparing`
+  * `Delivered`
+* Meaning:
+
+  * `Pending` = customer placed the order and seller has not finished processing it yet
+  * `Preparing` = seller is actively working on the order
+  * `Delivered` = order is complete
+* Do not add extra statuses like `Cancelled`, `Rejected`, or `Ready` during Week 5 unless both developers update backend, frontend, and demo flow together
+
+#### Shared error message format
+
+* Backend API error shape for Week 5:
+
+```json
+{
+  "success": false,
+  "message": "Human-readable error message"
+}
+```
+
+* Frontend should always read `response.data.message` first
+* If no API message exists, use a short fallback such as:
+
+  * `Failed to load data.`
+  * `Failed to save changes.`
+  * `Something went wrong.`
+* Keep error messages short, clear, and user-facing
+* Do not mix multiple backend error keys like `error`, `msg`, and `message` in Week 5
+
+#### Final demo pages required
+
+These pages must work clearly enough to support the final end-to-end demo:
+
+* `Login`
+* `Register`
+* `RestaurantList`
+* `RestaurantMenu`
+* `Cart`
+* `Checkout`
+* `OrderHistory`
+* `OrderTracking`
+* `SellerOrders`
+* `AdminDashboard`
+* `AdminRestaurants`
+* `AdminOrders`
+
+#### Pages allowed to stay minimal
+
+These pages should load correctly, but they do not need deep polish for the final demo:
+
+* `AdminUsers` can stay read-only
+* `SellerMenu` can stay as a basic management page
+* `SellerRestaurantForm` only needs to work, not look perfect
+* `FoodDetails` can stay simple if `RestaurantMenu` already supports ordering well
+* `Dashboard` only needs to navigate correctly to the important flows
+
+#### Demo rule
+
+* Prioritize pages that prove the full customer -> seller -> admin flow
+* If time is short, polish the required demo pages first and keep the minimal pages stable but simple
+
 ### Day 2 - Seller order flow
 
 #### Developer 1

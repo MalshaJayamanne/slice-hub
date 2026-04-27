@@ -10,8 +10,12 @@ import Dashboard from "../pages/Dashboard";
 
 import RestaurantList from "../pages/RestaurantList";
 import RestaurantMenu from "../pages/RestaurantMenu";
+import SellerOrders from "../pages/SellerOrders";
 import SellerRestaurantForm from "../pages/SellerRestaurantForm";
+import AdminDashboard from "../pages/AdminDashboard";
+import AdminOrders from "../pages/AdminOrders";
 import AdminRestaurants from "../pages/AdminRestaurants";
+import AdminUsers from "../pages/AdminUsers";
 
 import FoodDetails from "../pages/FoodDetails";
 import Cart from "../pages/Cart";
@@ -61,6 +65,8 @@ function AppRoutes() {
 
         <Route element={<ProtectedRoute role="seller" />}>
 
+          <Route path="/seller/orders" element={<SellerOrders />} />
+
           <Route
             path="/seller/restaurant/create"
             element={<SellerRestaurantForm />}
@@ -80,8 +86,23 @@ function AppRoutes() {
         <Route element={<ProtectedRoute role="admin" />}>
 
           <Route
+            path="/admin/dashboard"
+            element={<AdminDashboard />}
+          />
+
+          <Route
+            path="/admin/users"
+            element={<AdminUsers />}
+          />
+
+          <Route
             path="/admin/restaurants"
             element={<AdminRestaurants />}
+          />
+
+          <Route
+            path="/admin/orders"
+            element={<AdminOrders />}
           />
 
         </Route>
