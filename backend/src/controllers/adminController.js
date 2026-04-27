@@ -9,6 +9,9 @@ const ORDER_STATUSES = ["Pending", "Preparing", "Delivered"];
 const RESTAURANT_STATUSES = ["pending", "approved", "rejected"];
 const USER_ROLES = ["customer", "seller", "admin"];
 
+const normalizeStringValue = (value) =>
+  typeof value === "string" ? value.trim() : "";
+
 const validateObjectId = (value, fieldName) => {
   if (!mongoose.Types.ObjectId.isValid(value)) {
     const error = new Error(`Invalid ${fieldName}.`);
@@ -17,12 +20,16 @@ const validateObjectId = (value, fieldName) => {
   }
 };
 
-const validateEnumValue = (value, allowedValues, fieldName) => {
-  if (!allowedValues.includes(value)) {
-    const error = new Error(`Invalid ${fieldName}.`);
-    error.statusCode = 400;
-    throw error;
+const findEnumValue = (value, allowedValues) => {
+  const normalizedValue = normalizeStringValue(value).toLowerCase();
+
+  if (!normalizedValue) {
+    return "";
   }
+
+  return allowedValues.find(
+    (allowedValue) => allowedValue.toLowerCase() === normalizedValue
+  );
 };
 
 const buildUserResponse = (user, restaurantCounts) => ({
@@ -226,15 +233,21 @@ export const getDashboardSummary = async (_req, res, next) => {
 
 export const getAdminUsers = async (req, res, next) => {
   try {
-    const search = req.query.search?.trim() || "";
-    const role = req.query.role?.trim() || "all";
-    const isActive = req.query.isActive?.trim() || "all";
+    const search = normalizeStringValue(req.query.search);
+    const requestedRole = normalizeStringValue(req.query.role) || "all";
+    const requestedIsActive = (normalizeStringValue(req.query.isActive) || "all").toLowerCase();
+    const role =
+      requestedRole.toLowerCase() === "all"
+        ? "all"
+        : findEnumValue(requestedRole, USER_ROLES);
 
-    if (role !== "all") {
-      validateEnumValue(role, USER_ROLES, "role");
+    if (!role) {
+      const error = new Error("Invalid role.");
+      error.statusCode = 400;
+      throw error;
     }
 
-    if (!["all", "true", "false"].includes(isActive)) {
+    if (!["all", "true", "false"].includes(requestedIsActive)) {
       const error = new Error("Invalid isActive filter.");
       error.statusCode = 400;
       throw error;
@@ -246,8 +259,8 @@ export const getAdminUsers = async (req, res, next) => {
       filter.role = role;
     }
 
-    if (isActive !== "all") {
-      filter.isActive = isActive === "true";
+    if (requestedIsActive !== "all") {
+      filter.isActive = requestedIsActive === "true";
     }
 
     if (search) {
@@ -284,7 +297,7 @@ export const getAdminUsers = async (req, res, next) => {
       filters: {
         search,
         role,
-        isActive,
+        isActive: requestedIsActive,
       },
       count: users.length,
       users: users.map((user) => buildUserResponse(user, restaurantCountMap)),
@@ -296,11 +309,17 @@ export const getAdminUsers = async (req, res, next) => {
 
 export const getAdminRestaurants = async (req, res, next) => {
   try {
-    const search = req.query.search?.trim() || "";
-    const status = req.query.status?.trim() || "all";
+    const search = normalizeStringValue(req.query.search);
+    const requestedStatus = normalizeStringValue(req.query.status) || "all";
+    const status =
+      requestedStatus.toLowerCase() === "all"
+        ? "all"
+        : findEnumValue(requestedStatus, RESTAURANT_STATUSES);
 
-    if (status !== "all") {
-      validateEnumValue(status, RESTAURANT_STATUSES, "restaurant status");
+    if (!status) {
+      const error = new Error("Invalid restaurant status.");
+      error.statusCode = 400;
+      throw error;
     }
 
     const filter = {};
@@ -342,15 +361,21 @@ export const updateAdminRestaurantStatus = async (req, res, next) => {
   try {
     validateObjectId(req.params.id, "restaurant id");
 
-    const { status } = req.body;
+    const requestedStatus = normalizeStringValue(req.body.status);
 
-    if (!status) {
+    if (!requestedStatus) {
       const error = new Error("Status is required.");
       error.statusCode = 400;
       throw error;
     }
 
-    validateEnumValue(status, RESTAURANT_STATUSES, "restaurant status");
+    const status = findEnumValue(requestedStatus, RESTAURANT_STATUSES);
+
+    if (!status) {
+      const error = new Error("Invalid restaurant status.");
+      error.statusCode = 400;
+      throw error;
+    }
 
     const restaurant = await Restaurant.findById(req.params.id).populate(
       "ownerId",
@@ -380,12 +405,18 @@ export const updateAdminRestaurantStatus = async (req, res, next) => {
 
 export const getPlatformOrders = async (req, res, next) => {
   try {
-    const search = req.query.search?.trim() || "";
-    const status = req.query.status?.trim() || "all";
-    const restaurantId = req.query.restaurantId?.trim() || "";
+    const search = normalizeStringValue(req.query.search);
+    const requestedStatus = normalizeStringValue(req.query.status) || "all";
+    const restaurantId = normalizeStringValue(req.query.restaurantId);
+    const status =
+      requestedStatus.toLowerCase() === "all"
+        ? "all"
+        : findEnumValue(requestedStatus, ORDER_STATUSES);
 
-    if (status !== "all") {
-      validateEnumValue(status, ORDER_STATUSES, "order status");
+    if (!status) {
+      const error = new Error("Invalid order status.");
+      error.statusCode = 400;
+      throw error;
     }
 
     if (restaurantId) {

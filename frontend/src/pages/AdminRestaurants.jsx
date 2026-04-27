@@ -14,21 +14,28 @@ const AdminRestaurants = () => {
   const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
-    fetchRestaurants();
-  }, []);
+    const timeoutId = setTimeout(() => {
+      fetchRestaurants();
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, statusFilter]);
 
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
 
-      const res = await adminAPI.getRestaurants();
+      const res = await adminAPI.getRestaurants({
+        search: searchTerm.trim(),
+        status: statusFilter === "All" ? "all" : statusFilter.toLowerCase(),
+      });
 
       setRestaurants(Array.isArray(res.data?.restaurants) ? res.data.restaurants : []);
       setError(null);
 
     } catch (err) {
       console.error(err);
-      setError("Failed to load restaurants");
+      setError(err.response?.data?.message || "Failed to load restaurants.");
     } finally {
       setLoading(false);
     }
@@ -40,9 +47,23 @@ const AdminRestaurants = () => {
       const updatedRestaurant = response?.data?.restaurant;
 
       setRestaurants((prev) =>
-        prev.map((r) =>
-          r._id === id && updatedRestaurant ? updatedRestaurant : r
-        )
+        prev.flatMap((r) => {
+          if (r._id !== id || !updatedRestaurant) {
+            return [r];
+          }
+
+          const activeStatusFilter =
+            statusFilter === "All" ? "all" : statusFilter.toLowerCase();
+
+          if (
+            activeStatusFilter !== "all" &&
+            updatedRestaurant.status !== activeStatusFilter
+          ) {
+            return [];
+          }
+
+          return [updatedRestaurant];
+        })
       );
 
     } catch (err) {
@@ -50,18 +71,6 @@ const AdminRestaurants = () => {
       setError(err.response?.data?.message || "Failed to update restaurant status.");
     }
   };
-
-  const filteredRestaurants = restaurants.filter((r) => {
-    const matchesSearch = r.name
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "All" ||
-      r.status === statusFilter.toLowerCase();
-
-    return matchesSearch && matchesStatus;
-  });
 
   if (loading) {
     return (
@@ -129,89 +138,97 @@ const AdminRestaurants = () => {
 
           <tbody>
 
-            {filteredRestaurants.map((res) => (
-              <motion.tr
-                key={res._id}
-                whileHover={{ backgroundColor: "#f9fafb" }}
-              >
-
-                <td className="p-4 flex items-center gap-3">
-                  <img
-                    src={res.image || "/default-restaurant.png"}
-                    alt={res.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-
-                  <div>
-                    <p className="font-semibold">
-                      {res.name}
-                    </p>
-
-                    <p className="text-xs text-gray-400">
-                      {res.category}
-                    </p>
-                  </div>
+            {restaurants.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="p-8 text-center text-gray-500">
+                  No restaurants matched the current filters.
                 </td>
+              </tr>
+            ) : (
+              restaurants.map((res) => (
+                <motion.tr
+                  key={res._id}
+                  whileHover={{ backgroundColor: "#f9fafb" }}
+                >
 
-                <td className="p-4">
-                  <div>
-                    <p className="font-medium">
-                      {res.owner?.name || "No owner"}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {res.owner?.email || "No email"}
-                    </p>
-                  </div>
-                </td>
+                  <td className="p-4 flex items-center gap-3">
+                    <img
+                      src={res.image || "/default-restaurant.png"}
+                      alt={res.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
 
-                <td className="p-4">
-                  <div className="flex items-center gap-1">
-                    <ShoppingBag size={14} />
-                    {res.metrics?.totalOrders || 0}
-                  </div>
-                </td>
+                    <div>
+                      <p className="font-semibold">
+                        {res.name}
+                      </p>
 
-                <td className="p-4 text-green-600 font-semibold">
-                  Rs {res.metrics?.totalRevenue || 0}
-                </td>
+                      <p className="text-xs text-gray-400">
+                        {res.category}
+                      </p>
+                    </div>
+                  </td>
 
-                <td className="p-4">
-                  <span className="px-3 py-1 rounded-full text-xs bg-gray-100">
-                    {res.status || "pending"}
-                  </span>
-                </td>
+                  <td className="p-4">
+                    <div>
+                      <p className="font-medium">
+                        {res.owner?.name || "No owner"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {res.owner?.email || "No email"}
+                      </p>
+                    </div>
+                  </td>
 
-                <td className="p-4 text-right space-x-2">
+                  <td className="p-4">
+                    <div className="flex items-center gap-1">
+                      <ShoppingBag size={14} />
+                      {res.metrics?.totalOrders || 0}
+                    </div>
+                  </td>
 
-                  <button
-                    className="p-2 hover:bg-green-50 rounded-lg"
-                    onClick={() =>
-                      updateStatus(res._id, "approved")
-                    }
-                  >
-                    <CheckCircle size={18} className="text-green-600" />
-                  </button>
+                  <td className="p-4 text-green-600 font-semibold">
+                    Rs {res.metrics?.totalRevenue || 0}
+                  </td>
 
-                  <button
-                    className="p-2 hover:bg-red-50 rounded-lg"
-                    onClick={() =>
-                      updateStatus(res._id, "rejected")
-                    }
-                  >
-                    <XCircle size={18} className="text-red-600" />
-                  </button>
+                  <td className="p-4">
+                    <span className="px-3 py-1 rounded-full text-xs bg-gray-100">
+                      {res.status || "pending"}
+                    </span>
+                  </td>
 
-                  <button
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                    onClick={() => navigate(`/restaurant/${res._id}`)}
-                  >
-                    <ExternalLink size={18} />
-                  </button>
+                  <td className="p-4 text-right space-x-2">
 
-                </td>
+                    <button
+                      className="p-2 hover:bg-green-50 rounded-lg"
+                      onClick={() =>
+                        updateStatus(res._id, "approved")
+                      }
+                    >
+                      <CheckCircle size={18} className="text-green-600" />
+                    </button>
 
-              </motion.tr>
-            ))}
+                    <button
+                      className="p-2 hover:bg-red-50 rounded-lg"
+                      onClick={() =>
+                        updateStatus(res._id, "rejected")
+                      }
+                    >
+                      <XCircle size={18} className="text-red-600" />
+                    </button>
+
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      onClick={() => navigate(`/restaurant/${res._id}`)}
+                    >
+                      <ExternalLink size={18} />
+                    </button>
+
+                  </td>
+
+                </motion.tr>
+              ))
+            )}
 
           </tbody>
 
