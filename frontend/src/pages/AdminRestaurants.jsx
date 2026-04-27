@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingBag, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle } from "lucide-react";
-import restaurantAPI from "../api/restaurantApi";
+import { ShoppingBag, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import adminAPI from "../api/adminAPI";
 import { motion } from "framer-motion";
 
 const AdminRestaurants = () => {
@@ -21,11 +21,9 @@ const AdminRestaurants = () => {
     try {
       setLoading(true);
 
-      const res = await restaurantAPI.getRestaurants();
+      const res = await adminAPI.getRestaurants();
 
-      const data = res.data.restaurants || res.data;
-
-      setRestaurants(data);
+      setRestaurants(Array.isArray(res.data?.restaurants) ? res.data.restaurants : []);
       setError(null);
 
     } catch (err) {
@@ -38,11 +36,12 @@ const AdminRestaurants = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await restaurantAPI.updateStatus(id, status);
+      const response = await adminAPI.updateRestaurantStatus(id, status);
+      const updatedRestaurant = response?.data?.restaurant;
 
       setRestaurants((prev) =>
         prev.map((r) =>
-          r._id === id ? { ...r, status } : r
+          r._id === id && updatedRestaurant ? updatedRestaurant : r
         )
       );
 
@@ -120,7 +119,7 @@ const AdminRestaurants = () => {
           <thead className="bg-gray-50 text-left text-sm">
             <tr>
               <th className="p-4">Restaurant</th>
-              <th className="p-4">Rating</th>
+              <th className="p-4">Owner</th>
               <th className="p-4">Orders</th>
               <th className="p-4">Revenue</th>
               <th className="p-4">Status</th>
@@ -154,20 +153,26 @@ const AdminRestaurants = () => {
                   </div>
                 </td>
 
-                <td className="p-4 flex items-center gap-1">
-                  <Star size={14} fill="orange" />
-                  {res.rating || 0}
+                <td className="p-4">
+                  <div>
+                    <p className="font-medium">
+                      {res.owner?.name || "No owner"}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {res.owner?.email || "No email"}
+                    </p>
+                  </div>
                 </td>
 
                 <td className="p-4">
                   <div className="flex items-center gap-1">
                     <ShoppingBag size={14} />
-                    {res.totalOrders || 0}
+                    {res.metrics?.totalOrders || 0}
                   </div>
                 </td>
 
                 <td className="p-4 text-green-600 font-semibold">
-                  Rs {res.revenue || 0}
+                  Rs {res.metrics?.totalRevenue || 0}
                 </td>
 
                 <td className="p-4">

@@ -35,6 +35,14 @@ const validateObjectId = (value, fieldName) => {
   }
 };
 
+const validateOrderStatus = (status) => {
+  if (!VALID_ORDER_STATUSES.includes(status)) {
+    const error = new Error("Invalid status.");
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
 const normalizeQuantity = (quantity) => Number(quantity);
 
 export const placeOrder = async (req, res, next) => {
@@ -154,6 +162,44 @@ export const getMyOrders = async (req, res, next) => {
   }
 };
 
+export const getSellerOrders = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+
+    if (status !== undefined) {
+      validateOrderStatus(status);
+    }
+
+    const restaurants = await Restaurant.find({ ownerId: req.user._id }).select("_id");
+    const restaurantIds = restaurants.map((restaurant) => restaurant._id);
+
+    if (restaurantIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const filter = {
+      restaurant: { $in: restaurantIds },
+    };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    const orders = await Order.find(filter)
+      .populate("customer", "name email")
+      .populate({
+        path: "restaurant",
+        select: "name ownerId status",
+      })
+      .populate("items.food", "name")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getOrderById = async (req, res, next) => {
   try {
     validateObjectId(req.params.id, "order id");
@@ -184,11 +230,7 @@ export const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
 
-    if (!VALID_ORDER_STATUSES.includes(status)) {
-      const error = new Error("Invalid status.");
-      error.statusCode = 400;
-      throw error;
-    }
+    validateOrderStatus(status);
 
     validateObjectId(req.params.id, "order id");
 

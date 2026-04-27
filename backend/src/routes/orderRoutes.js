@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   placeOrder,
   getMyOrders,
+  getSellerOrders,
   getOrderById,
   updateOrderStatus,
 } from "../controllers/orderController.js";
@@ -17,6 +18,9 @@ router.post("/", protect, authorizeRoles("customer"), placeOrder);
 
 // Get logged-in user's orders
 router.get("/my-orders", protect, authorizeRoles("customer"), getMyOrders);
+
+// Get seller orders for restaurants owned by the logged-in seller
+router.get("/seller", protect, authorizeRoles("seller"), getSellerOrders);
 
 // Get single order tracking details
 router.get("/:id/tracking", protect, getOrderById);
