@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import adminAPI from "../api/adminAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -260,21 +261,25 @@ export default function AdminRestaurants() {
           </div>
 
           {feedback ? (
-            <div
-              className={`rounded-[1.5rem] border px-5 py-4 text-sm font-medium ${
+            <FeedbackAlert
+              type={feedback.type}
+              title={
                 feedback.type === "success"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-red-200 bg-red-50 text-red-700"
-              }`}
-            >
-              {feedback.message}
-            </div>
+                  ? "Restaurant updated"
+                  : "Update failed"
+              }
+              message={feedback.message}
+              onClose={() => setFeedback(null)}
+            />
           ) : null}
 
           {error ? (
-            <div className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
-              {error}
-            </div>
+            <FeedbackAlert
+              type="error"
+              title="Restaurants unavailable"
+              message={error}
+              onClose={() => setError("")}
+            />
           ) : null}
 
           {restaurants.length === 0 ? (

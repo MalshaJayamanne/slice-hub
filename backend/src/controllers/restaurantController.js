@@ -1,81 +1,84 @@
-import mongoose from "mongoose";
-
 import Restaurant from "../models/Restaurant.js";
+import User from "../models/User.js";
+import {
+  buildRestaurantVisibilityFilter,
+  ensureOwnerAccess,
+  ensureRestaurantVisible,
+} from "../utils/restaurantAccess.js";
+import {
+  createHttpError,
+  findEnumValue,
+  normalizeStringValue,
+  validateObjectId,
+} from "../utils/validation.js";
 
-const validateRestaurantId = (restaurantId) => {
-  if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-    const error = new Error("Invalid restaurant id.");
-    error.statusCode = 400;
-    throw error;
+const RESTAURANT_STATUSES = ["pending", "approved", "rejected"];
+
+const validateRestaurantPayload = (
+  { name, category, description, image },
+  isPartial = false
+) => {
+  if (!isPartial || name !== undefined) {
+    if (!normalizeStringValue(name)) {
+      throw createHttpError("Name is required.", 400);
+    }
+  }
+
+  if (!isPartial || category !== undefined) {
+    if (!normalizeStringValue(category)) {
+      throw createHttpError("Category is required.", 400);
+    }
+  }
+
+  if (description !== undefined && typeof description !== "string") {
+    throw createHttpError("Description must be a string.", 400);
+  }
+
+  if (image !== undefined && typeof image !== "string") {
+    throw createHttpError("Image must be a string.", 400);
   }
 };
 
-const ensureRestaurantAccess = (restaurant, user) => {
-  if (user.role === "admin") {
-    return;
+const resolveRestaurantOwnerId = async (user, requestedOwnerId) => {
+  const ownerId = user.role === "admin" && requestedOwnerId !== undefined ? requestedOwnerId : user._id;
+
+  validateObjectId(ownerId, "owner id");
+
+  const owner = await User.findById(ownerId).select("role");
+
+  if (!owner) {
+    throw createHttpError("Restaurant owner not found.", 404);
   }
 
-  if (restaurant.ownerId.toString() !== user._id.toString()) {
-    const error = new Error("Forbidden. You can only manage your own restaurants.");
-    error.statusCode = 403;
-    throw error;
-  }
-};
-
-const ensureApprovedOrAuthorized = (restaurant, user) => {
-  if (restaurant.status === "approved") {
-    return;
+  if (!["seller", "admin"].includes(owner.role)) {
+    throw createHttpError("Restaurant owner must be a seller or admin.", 400);
   }
 
-  if (!user) {
-    const error = new Error("Restaurant not found.");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  if (user.role === "admin") {
-    return;
-  }
-
-  const ownerId =
-    typeof restaurant.ownerId === "object" && restaurant.ownerId !== null && "_id" in restaurant.ownerId
-      ? restaurant.ownerId._id.toString()
-      : restaurant.ownerId.toString();
-
-  if (ownerId === user._id.toString()) {
-    return;
-  }
-
-  const error = new Error("Restaurant not found.");
-  error.statusCode = 404;
-  throw error;
+  return owner._id;
 };
 
 export const createRestaurant = async (req, res, next) => {
   try {
     const { name, ownerId, description, category, image, status } = req.body;
+    validateRestaurantPayload({ name, category, description, image });
 
-    if (!name || !category) {
-      const error = new Error("Name and category are required.");
-      error.statusCode = 400;
-      throw error;
-    }
+    const restaurantOwnerId = await resolveRestaurantOwnerId(req.user, ownerId);
+    const restaurantStatus =
+      req.user.role === "admin" && status !== undefined
+        ? findEnumValue(status, RESTAURANT_STATUSES)
+        : "pending";
 
-    const restaurantOwnerId = req.user.role === "admin" && ownerId ? ownerId : req.user._id;
-
-    if (!mongoose.Types.ObjectId.isValid(restaurantOwnerId)) {
-      const error = new Error("A valid ownerId is required.");
-      error.statusCode = 400;
-      throw error;
+    if (!restaurantStatus) {
+      throw createHttpError("Invalid restaurant status.", 400);
     }
 
     const restaurant = await Restaurant.create({
-      name,
+      name: normalizeStringValue(name),
       ownerId: restaurantOwnerId,
-      description,
-      category,
-      image,
-      status: req.user.role === "admin" && status ? status : "pending",
+      description: description?.trim() || "",
+      category: normalizeStringValue(category),
+      image: image?.trim() || "",
+      status: restaurantStatus,
     });
 
     const populatedRestaurant = await Restaurant.findById(restaurant._id).populate(
@@ -95,9 +98,9 @@ export const createRestaurant = async (req, res, next) => {
 
 export const getRestaurants = async (req, res, next) => {
   try {
-    const search = req.query.search?.trim();
-    const category = req.query.category?.trim();
-    const cuisine = req.query.cuisine?.trim();
+    const search = normalizeStringValue(req.query.search);
+    const category = normalizeStringValue(req.query.category);
+    const cuisine = normalizeStringValue(req.query.cuisine);
     const filters = [];
 
     if (search) {
@@ -118,13 +121,7 @@ export const getRestaurants = async (req, res, next) => {
       });
     }
 
-    if (!req.user || req.user.role === "customer") {
-      filters.push({ status: "approved" });
-    } else if (req.user.role === "seller") {
-      filters.push({
-        $or: [{ status: "approved" }, { ownerId: req.user._id }],
-      });
-    }
+    filters.push(buildRestaurantVisibilityFilter(req.user));
 
     const filter =
       filters.length === 0 ? {} : filters.length === 1 ? filters[0] : { $and: filters };
@@ -156,7 +153,7 @@ export const getRestaurants = async (req, res, next) => {
 
 export const getRestaurantById = async (req, res, next) => {
   try {
-    validateRestaurantId(req.params.id);
+    validateObjectId(req.params.id, "restaurant id");
 
     const restaurant = await Restaurant.findById(req.params.id).populate(
       "ownerId",
@@ -164,12 +161,10 @@ export const getRestaurantById = async (req, res, next) => {
     );
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    ensureApprovedOrAuthorized(restaurant, req.user);
+    ensureRestaurantVisible(restaurant, req.user);
 
     res.status(200).json({
       success: true,
@@ -182,41 +177,45 @@ export const getRestaurantById = async (req, res, next) => {
 
 export const updateRestaurant = async (req, res, next) => {
   try {
-    validateRestaurantId(req.params.id);
+    validateObjectId(req.params.id, "restaurant id");
 
     const restaurant = await Restaurant.findById(req.params.id);
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    ensureRestaurantAccess(restaurant, req.user);
+    ensureOwnerAccess(
+      restaurant,
+      req.user,
+      "Forbidden. You can only manage your own restaurants."
+    );
 
     const { name, ownerId, description, category, image, status } = req.body;
+    validateRestaurantPayload({ name, category, description, image }, true);
 
-    if (name !== undefined) restaurant.name = name;
-    if (description !== undefined) restaurant.description = description;
-    if (category !== undefined) restaurant.category = category;
-    if (image !== undefined) restaurant.image = image;
+    if (name !== undefined) restaurant.name = normalizeStringValue(name);
+    if (description !== undefined) restaurant.description = description.trim();
+    if (category !== undefined) restaurant.category = normalizeStringValue(category);
+    if (image !== undefined) restaurant.image = image.trim();
 
     if (req.user.role === "admin" && ownerId !== undefined) {
-      if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-        const error = new Error("Invalid ownerId.");
-        error.statusCode = 400;
-        throw error;
-      }
-
-      restaurant.ownerId = ownerId;
+      restaurant.ownerId = await resolveRestaurantOwnerId(req.user, ownerId);
     }
 
     if (req.user.role === "admin" && status !== undefined) {
-      restaurant.status = status;
+      const normalizedStatus = findEnumValue(status, RESTAURANT_STATUSES);
+
+      if (!normalizedStatus) {
+        throw createHttpError("Invalid restaurant status.", 400);
+      }
+
+      restaurant.status = normalizedStatus;
     } else if (req.user.role === "seller" && status !== undefined) {
-      const error = new Error("Forbidden. Only admins can change restaurant approval status.");
-      error.statusCode = 403;
-      throw error;
+      throw createHttpError(
+        "Forbidden. Only admins can change restaurant approval status.",
+        403
+      );
     }
 
     const updatedRestaurant = await restaurant.save();
@@ -234,17 +233,19 @@ export const updateRestaurant = async (req, res, next) => {
 
 export const deleteRestaurant = async (req, res, next) => {
   try {
-    validateRestaurantId(req.params.id);
+    validateObjectId(req.params.id, "restaurant id");
 
     const restaurant = await Restaurant.findById(req.params.id);
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    ensureRestaurantAccess(restaurant, req.user);
+    ensureOwnerAccess(
+      restaurant,
+      req.user,
+      "Forbidden. You can only manage your own restaurants."
+    );
 
     await restaurant.deleteOne();
 
@@ -259,39 +260,28 @@ export const deleteRestaurant = async (req, res, next) => {
 
 export const updateRestaurantStatus = async (req, res, next) => {
   try {
-    validateRestaurantId(req.params.id);
+    validateObjectId(req.params.id, "restaurant id");
 
-    const { status } = req.body;
-    const allowedStatuses = ["pending", "approved", "rejected"];
+    const normalizedStatus = findEnumValue(req.body.status, RESTAURANT_STATUSES);
 
-    if (!status) {
-      const error = new Error("Status is required.");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    if (!allowedStatuses.includes(status)) {
-      const error = new Error("Status must be pending, approved, or rejected.");
-      error.statusCode = 400;
-      throw error;
+    if (!normalizedStatus) {
+      throw createHttpError("Status must be pending, approved, or rejected.", 400);
     }
 
     const restaurant = await Restaurant.findById(req.params.id);
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    restaurant.status = status;
+    restaurant.status = normalizedStatus;
 
     const updatedRestaurant = await restaurant.save();
     await updatedRestaurant.populate("ownerId", "name email role");
 
     res.status(200).json({
       success: true,
-      message: `Restaurant ${status} successfully.`,
+      message: `Restaurant ${normalizedStatus} successfully.`,
       restaurant: updatedRestaurant,
     });
   } catch (error) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Clock3, Loader2, ShoppingBag, Store, User } from "lucide-react";
 
 import orderAPI from "../api/orderAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -164,15 +165,16 @@ export default function SellerOrders() {
       ) : (
         <div className="space-y-8">
           {feedback ? (
-            <div
-              className={`rounded-[1.5rem] border px-5 py-4 text-sm font-medium ${
+            <FeedbackAlert
+              type={feedback.type}
+              title={
                 feedback.type === "success"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-red-200 bg-red-50 text-red-700"
-              }`}
-            >
-              {feedback.message}
-            </div>
+                  ? "Order updated"
+                  : "Update failed"
+              }
+              message={feedback.message}
+              onClose={() => setFeedback(null)}
+            />
           ) : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

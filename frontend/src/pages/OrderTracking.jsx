@@ -13,11 +13,13 @@ import {
   Star,
   Send,
   X,
-  Loader2,
-  AlertCircle,
 } from "lucide-react";
 
 import orderAPI from "../api/orderAPI";
+import {
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 
 const STATUS_ORDER = ["Pending", "Preparing", "Delivered"];
 
@@ -59,44 +61,27 @@ export default function OrderTracking() {
   const [feedback, setFeedback] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await orderAPI.getTracking(id);
+      setOrder(response?.data || null);
+      setError("");
+    } catch (fetchError) {
+      setOrder(null);
+      setError(
+        fetchError?.response?.data?.message ||
+          "Failed to load tracking details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        const response = await orderAPI.getTracking(id);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setOrder(response?.data || null);
-        setError("");
-      } catch (fetchError) {
-        if (!isMounted) {
-          return;
-        }
-
-        setOrder(null);
-        setError(
-          fetchError?.response?.data?.message ||
-            "Failed to load tracking details."
-        );
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
     if (id) {
       fetchOrder();
     }
-
-    return () => {
-      isMounted = false;
-    };
   }, [id]);
 
   const steps = useMemo(
@@ -113,11 +98,11 @@ export default function OrderTracking() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium uppercase tracking-widest text-gray-500">
-          Loading tracking details...
-        </p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+        <WorkspaceLoadingState
+          title="Loading tracking details"
+          message="Gathering the latest order status, route details, and delivery summary."
+        />
       </div>
     );
   }
@@ -125,10 +110,11 @@ export default function OrderTracking() {
   if (error || !order) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-10 text-center text-red-700">
-          <AlertCircle className="mx-auto mb-4" size={32} />
-          <p className="font-semibold">{error || "Order not found."}</p>
-        </div>
+        <WorkspaceErrorState
+          title="Tracking unavailable"
+          message={error || "Order not found."}
+          onAction={fetchOrder}
+        />
       </div>
     );
   }

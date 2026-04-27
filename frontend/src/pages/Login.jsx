@@ -1,19 +1,42 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Pizza,
+  Chrome,
+  Facebook,
+  Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 import API from "../api/axios";
+import FeedbackAlert from "../components/FeedbackAlert";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [pageFeedback, setPageFeedback] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.state?.feedback) {
+      setPageFeedback(location.state.feedback);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      setSubmitting(true);
+      setError("");
+
       const res = await API.post("/auth/login", {
         email,
         password,
@@ -22,10 +45,19 @@ const Login = () => {
       localStorage.setItem("token", res.data.user.token);
       localStorage.setItem("authUser", JSON.stringify(res.data.user));
 
-      alert("Login successful");
-      navigate("/dashboard");
-    } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+      navigate("/dashboard", {
+        state: {
+          feedback: {
+            type: "success",
+            title: "Signed in",
+            message: `Welcome back, ${res.data.user.name || "you're signed in"}.`,
+          },
+        },
+      });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -61,6 +93,24 @@ const Login = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {pageFeedback ? (
+            <FeedbackAlert
+              type={pageFeedback.type}
+              title={pageFeedback.title}
+              message={pageFeedback.message}
+              onClose={() => setPageFeedback(null)}
+            />
+          ) : null}
+
+          {error ? (
+            <FeedbackAlert
+              type="error"
+              title="Login failed"
+              message={error}
+              onClose={() => setError("")}
+            />
+          ) : null}
+
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
@@ -73,6 +123,7 @@ const Login = () => {
                 <input
                   type="email"
                   required
+                  disabled={submitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -101,6 +152,7 @@ const Login = () => {
                 <input
                   type="password"
                   required
+                  disabled={submitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -115,6 +167,7 @@ const Login = () => {
               id="remember-me"
               name="remember-me"
               type="checkbox"
+              disabled={submitting}
               className="h-4 w-4 text-[#FF3B30] focus:ring-[#FF3B30] border-gray-300 rounded"
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-500 font-medium">
@@ -124,10 +177,23 @@ const Login = () => {
 
           <button
             type="submit"
+            disabled={submitting}
             className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
           >
-            Sign In
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" size={18} />
+                Signing In...
+              </>
+            ) : (
+              <>
+                Sign In
+                <ArrowRight
+                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                  size={18}
+                />
+              </>
+            )}
           </button>
         </form>
 

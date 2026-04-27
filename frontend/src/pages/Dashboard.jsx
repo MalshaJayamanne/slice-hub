@@ -1,24 +1,29 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChefHat,
   Clock3,
+  LayoutDashboard,
   LogOut,
   MapPin,
   Package,
   PlusCircle,
+  ShoppingBag,
   Settings,
   Store,
   User,
+  Users,
   ChevronRight,
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import FeedbackAlert from "../components/FeedbackAlert";
 import restaurantAPI from "../api/restaurantApi";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   let user = null;
   try {
@@ -31,6 +36,14 @@ export default function Dashboard() {
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+  const [pageFeedback, setPageFeedback] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.feedback) {
+      setPageFeedback(location.state.feedback);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (user?.role !== "seller") return;
@@ -79,6 +92,13 @@ export default function Dashboard() {
   const sellerQuickActions = primarySellerRestaurant
     ? [
         {
+          label: "Seller Orders",
+          description: "Review incoming orders and update statuses",
+          icon: ShoppingBag,
+          action: () => navigate("/seller/orders"),
+          tone: "text-primary",
+        },
+        {
           label: "Manage Foods",
           description: "Add, edit, and remove menu items",
           icon: ChefHat,
@@ -93,7 +113,14 @@ export default function Dashboard() {
             navigate(`/seller/restaurant/edit/${primarySellerRestaurant._id}`),
         },
       ]
-    : [
+      : [
+        {
+          label: "Seller Orders",
+          description: "Open the seller queue even before orders start arriving",
+          icon: ShoppingBag,
+          action: () => navigate("/seller/orders"),
+          tone: "text-primary",
+        },
         {
           label: "Create Restaurant",
           description: "Set up your restaurant before adding foods",
@@ -107,10 +134,29 @@ export default function Dashboard() {
     user?.role === "admin"
       ? [
           {
+            label: "Platform Dashboard",
+            description: "View the live admin summary cards",
+            icon: LayoutDashboard,
+            action: () => navigate("/admin/dashboard"),
+            tone: "text-primary",
+          },
+          {
+            label: "Manage Users",
+            description: "Review customer, seller, and admin accounts",
+            icon: Users,
+            action: () => navigate("/admin/users"),
+          },
+          {
             label: "Manage Restaurants",
             description: "Review, approve, and reject restaurant submissions",
-            icon: Package,
+            icon: Store,
             action: () => navigate("/admin/restaurants"),
+          },
+          {
+            label: "Platform Orders",
+            description: "Monitor orders across all restaurants",
+            icon: Package,
+            action: () => navigate("/admin/orders"),
             tone: "text-primary",
           },
         ]
@@ -200,6 +246,17 @@ export default function Dashboard() {
           <p className="text-gray-500 mb-8">
             Pick up where you left off and jump straight into the next task.
           </p>
+
+          {pageFeedback ? (
+            <div className="mb-8">
+              <FeedbackAlert
+                type={pageFeedback.type}
+                title={pageFeedback.title}
+                message={pageFeedback.message}
+                onClose={() => setPageFeedback(null)}
+              />
+            </div>
+          ) : null}
 
           {user?.role === "seller" ? (
             <div className="mb-8">

@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 
 import orderAPI from "../api/orderAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
 import { useCart } from "../context/CartContext";
 
 const DELIVERY_OPTIONS = {
@@ -112,7 +113,15 @@ export default function Checkout() {
       setIsOrdered(true);
 
       window.setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/dashboard", {
+          state: {
+            feedback: {
+              type: "success",
+              title: "Order placed",
+              message: "Your order was placed successfully. You can review it from your account.",
+            },
+          },
+        });
       }, 2500);
     } catch (placeOrderError) {
       setError(
@@ -447,8 +456,13 @@ export default function Checkout() {
             </div>
 
             {error ? (
-              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+              <div className="mb-4">
+                <FeedbackAlert
+                  type="error"
+                  title="Checkout failed"
+                  message={error}
+                  onClose={() => setError("")}
+                />
               </div>
             ) : null}
 

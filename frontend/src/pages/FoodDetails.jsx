@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  AlertCircle,
   ChevronLeft,
-  Loader2,
   Minus,
   Plus,
   Store,
 } from "lucide-react";
 
 import foodAPI from "../api/foodAPI";
+import {
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
 export default function FoodDetails() {
@@ -58,17 +60,24 @@ export default function FoodDetails() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-primary" />
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <WorkspaceLoadingState
+          title="Loading food details"
+          message="Pulling the latest item details, availability, and restaurant information."
+        />
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <AlertCircle className="text-red-500" />
-        <p>{error || "Food not found."}</p>
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <WorkspaceErrorState
+          title="Food details unavailable"
+          message={error || "Food not found."}
+          actionLabel="Back to Restaurants"
+          onAction={() => navigate("/restaurants")}
+        />
       </div>
     );
   }

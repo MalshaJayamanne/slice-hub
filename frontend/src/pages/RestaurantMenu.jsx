@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  AlertCircle,
   ChevronLeft,
   Loader2,
   Search,
-  Store,
 } from "lucide-react";
 
 import { restaurantService } from "../services/restaurantService";
 import foodAPI from "../api/foodAPI";
 import FoodCard from "../components/FoodCard";
+import {
+  WorkspaceEmptyState,
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
 const RestaurantMenu = () => {
@@ -99,20 +102,24 @@ const RestaurantMenu = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium uppercase tracking-widest text-gray-500">
-          Loading restaurant...
-        </p>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+        <WorkspaceLoadingState
+          title="Loading restaurant"
+          message="Pulling the restaurant profile and live menu items for this customer page."
+        />
       </div>
     );
   }
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 text-center">
-        <AlertCircle className="h-10 w-10 text-red-500" />
-        <p>{error || "Restaurant not found"}</p>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+        <WorkspaceErrorState
+          title="Restaurant unavailable"
+          message={error || "Restaurant not found."}
+          actionLabel="Back to Restaurants"
+          onAction={() => navigate("/restaurants")}
+        />
       </div>
     );
   }
@@ -184,9 +191,17 @@ const RestaurantMenu = () => {
 
             <button
               onClick={handleSearch}
-              className="rounded-2xl bg-primary text-white px-5 py-3 font-semibold"
+              disabled={foodLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              Search
+              {foodLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Search"
+              )}
             </button>
             {search.trim() ? (
               <button
@@ -194,7 +209,8 @@ const RestaurantMenu = () => {
                   setSearch("");
                   fetchFoods();
                 }}
-                className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                disabled={foodLoading}
+                className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Clear
               </button>
@@ -209,23 +225,34 @@ const RestaurantMenu = () => {
         </div>
 
         {error && !loading ? (
-          <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-10 text-center text-red-700">
-            {error}
-          </div>
+          <WorkspaceErrorState
+            title="Menu unavailable"
+            message={error}
+            onAction={search.trim() ? handleSearch : fetchFoods}
+          />
         ) : foodLoading ? (
-          <div className="flex justify-center py-14">
-            <Loader2 className="animate-spin text-primary" />
-          </div>
+          <WorkspaceLoadingState
+            title="Loading menu items"
+            message="Refreshing the dishes available for this restaurant."
+          />
         ) : foods.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-gray-200 bg-gray-50 px-6 py-16 text-center">
-            <Store className="mx-auto text-gray-300" size={38} />
-            <p className="mt-4 text-xl font-semibold text-gray-700">No food items found</p>
-            <p className="mt-2 text-sm text-gray-500">
-              {search
+          <WorkspaceEmptyState
+            title="No food items found"
+            message={
+              search
                 ? "Try a different keyword or clear the search to see the full menu."
-                : "This restaurant has not added any menu items yet."}
-            </p>
-          </div>
+                : "This restaurant has not added any menu items yet."
+            }
+            actionLabel={search ? "Clear Search" : undefined}
+            onAction={
+              search
+                ? () => {
+                    setSearch("");
+                    fetchFoods();
+                  }
+                : undefined
+            }
+          />
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {foods.map((food) => (

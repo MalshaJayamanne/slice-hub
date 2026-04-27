@@ -1,9 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Pizza,
+  Chrome,
+  Facebook,
+  Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 import API from "../api/axios";
+import FeedbackAlert from "../components/FeedbackAlert";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -11,17 +20,22 @@ const Register = () => {
   const [role, setRole] = useState("customer");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirm) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match.");
       return;
     }
 
     try {
+      setSubmitting(true);
+      setError("");
+
       await API.post("/auth/register", {
         name,
         email,
@@ -29,10 +43,19 @@ const Register = () => {
         role,
       });
 
-      alert("Registration successful!");
-      navigate("/login");
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      navigate("/login", {
+        state: {
+          feedback: {
+            type: "success",
+            title: "Registration complete",
+            message: "Your account was created successfully. Sign in to continue.",
+          },
+        },
+      });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Registration failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -68,6 +91,15 @@ const Register = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error ? (
+            <FeedbackAlert
+              type="error"
+              title="Registration failed"
+              message={error}
+              onClose={() => setError("")}
+            />
+          ) : null}
+
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
@@ -76,6 +108,7 @@ const Register = () => {
               <input
                 type="text"
                 required
+                disabled={submitting}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full pl-4 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -92,6 +125,7 @@ const Register = () => {
                 <input
                   type="email"
                   required
+                  disabled={submitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -105,6 +139,7 @@ const Register = () => {
                 Account Type
               </label>
               <select
+                disabled={submitting}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -127,6 +162,7 @@ const Register = () => {
                 <input
                   type="password"
                   required
+                  disabled={submitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -144,6 +180,7 @@ const Register = () => {
                 <input
                   type="password"
                   required
+                  disabled={submitting}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
@@ -155,10 +192,23 @@ const Register = () => {
 
           <button
             type="submit"
+            disabled={submitting}
             className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
           >
-            Sign Up
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" size={18} />
+                Creating Account...
+              </>
+            ) : (
+              <>
+                Sign Up
+                <ArrowRight
+                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                  size={18}
+                />
+              </>
+            )}
           </button>
         </form>
 

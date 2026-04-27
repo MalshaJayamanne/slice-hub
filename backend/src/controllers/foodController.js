@@ -1,97 +1,49 @@
-import mongoose from "mongoose";
-
 import Food from "../models/Food.js";
 import Restaurant from "../models/Restaurant.js";
-
-const validateFoodId = (foodId) => {
-  if (!mongoose.Types.ObjectId.isValid(foodId)) {
-    const error = new Error("Invalid food id.");
-    error.statusCode = 400;
-    throw error;
-  }
-};
-
-const ensureFoodAccess = (restaurantOwnerId, user) => {
-  if (user.role === "admin") return;
-
-  if (restaurantOwnerId.toString() !== user._id.toString()) {
-    const error = new Error("Forbidden. You can only manage food in your own restaurant.");
-    error.statusCode = 403;
-    throw error;
-  }
-};
-
-const ensureRestaurantVisibleForFood = (restaurant, user) => {
-  if (restaurant.status === "approved") {
-    return;
-  }
-
-  if (!user) {
-    const error = new Error("Restaurant not found.");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  if (user.role === "admin") {
-    return;
-  }
-
-  if (restaurant.ownerId.toString() === user._id.toString()) {
-    return;
-  }
-
-  const error = new Error("Restaurant not found.");
-  error.statusCode = 404;
-  throw error;
-};
+import {
+  buildRestaurantVisibilityFilter,
+  ensureOwnerAccess,
+  ensureRestaurantVisible,
+} from "../utils/restaurantAccess.js";
+import {
+  createHttpError,
+  normalizeStringValue,
+  validateObjectId,
+} from "../utils/validation.js";
 
 const validateFoodPayload = ({ name, price, category, description, image, availability }, isPartial = false) => {
   if (!isPartial || name !== undefined) {
     if (!String(name || "").trim()) {
-      const error = new Error("Food name is required.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Food name is required.", 400);
     }
   }
 
   if (!isPartial || price !== undefined) {
     if (price === "" || price === null || Number.isNaN(Number(price))) {
-      const error = new Error("Food price must be a valid number.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Food price must be a valid number.", 400);
     }
 
     if (Number(price) < 0) {
-      const error = new Error("Food price must be 0 or greater.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Food price must be 0 or greater.", 400);
     }
   }
 
   if (!isPartial || category !== undefined) {
     if (!String(category || "").trim()) {
-      const error = new Error("Food category is required.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Food category is required.", 400);
     }
   }
 
   if (description !== undefined && typeof description !== "string") {
-    const error = new Error("Food description must be a string.");
-    error.statusCode = 400;
-    throw error;
+    throw createHttpError("Food description must be a string.", 400);
   }
 
   if (image !== undefined && typeof image !== "string") {
-    const error = new Error("Food image must be a string.");
-    error.statusCode = 400;
-    throw error;
+    throw createHttpError("Food image must be a string.", 400);
   }
 
   if (availability !== undefined && typeof availability !== "boolean") {
-    const error = new Error("Food availability must be true or false.");
-    error.statusCode = 400;
-    throw error;
+    throw createHttpError("Food availability must be true or false.", 400);
   }
 };
 
@@ -100,29 +52,23 @@ export const createFood = async (req, res, next) => {
     const { name, price, category, description, image, availability, restaurant } = req.body;
 
     if (!restaurant) {
-      const error = new Error("Name, price, category, and restaurant are required.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Name, price, category, and restaurant are required.", 400);
     }
 
     validateFoodPayload({ name, price, category, description, image, availability });
-
-    if (!mongoose.Types.ObjectId.isValid(restaurant)) {
-      const error = new Error("Invalid restaurant id.");
-      error.statusCode = 400;
-      throw error;
-    }
+    validateObjectId(restaurant, "restaurant id");
 
     const existingRestaurant = await Restaurant.findById(restaurant);
 
     if (!existingRestaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    // Sellers can only add food to their own restaurant
-    ensureFoodAccess(existingRestaurant.ownerId, req.user);
+    ensureOwnerAccess(
+      existingRestaurant.ownerId,
+      req.user,
+      "Forbidden. You can only manage food in your own restaurant."
+    );
 
     const food = await Food.create({
       name: name.trim(),
@@ -146,21 +92,15 @@ export const createFood = async (req, res, next) => {
 
 export const getFoodsByRestaurant = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      const error = new Error("Invalid restaurant id.");
-      error.statusCode = 400;
-      throw error;
-    }
+    validateObjectId(req.params.id, "restaurant id");
 
     const restaurant = await Restaurant.findById(req.params.id).select("ownerId status");
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
-    ensureRestaurantVisibleForFood(restaurant, req.user);
+    ensureRestaurantVisible(restaurant, req.user);
 
     const foods = await Food.find({ restaurant: req.params.id });
 
@@ -176,17 +116,15 @@ export const getFoodsByRestaurant = async (req, res, next) => {
 
 export const getFoodById = async (req, res, next) => {
   try {
-    validateFoodId(req.params.id);
+    validateObjectId(req.params.id, "food id");
 
     const food = await Food.findById(req.params.id).populate("restaurant");
 
     if (!food) {
-      const error = new Error("Food not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Food not found.", 404);
     }
 
-    ensureRestaurantVisibleForFood(food.restaurant, req.user);
+    ensureRestaurantVisible(food.restaurant, req.user);
 
     res.status(200).json({
       success: true,
@@ -199,17 +137,19 @@ export const getFoodById = async (req, res, next) => {
 
 export const updateFood = async (req, res, next) => {
   try {
-    validateFoodId(req.params.id);
+    validateObjectId(req.params.id, "food id");
 
     const food = await Food.findById(req.params.id).populate("restaurant");
 
     if (!food) {
-      const error = new Error("Food not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Food not found.", 404);
     }
 
-    ensureFoodAccess(food.restaurant.ownerId, req.user);
+    ensureOwnerAccess(
+      food.restaurant.ownerId,
+      req.user,
+      "Forbidden. You can only manage food in your own restaurant."
+    );
 
     const { name, price, category, description, image, availability } = req.body;
 
@@ -236,17 +176,19 @@ export const updateFood = async (req, res, next) => {
 
 export const deleteFood = async (req, res, next) => {
   try {
-    validateFoodId(req.params.id);
+    validateObjectId(req.params.id, "food id");
 
     const food = await Food.findById(req.params.id).populate("restaurant");
 
     if (!food) {
-      const error = new Error("Food not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Food not found.", 404);
     }
 
-    ensureFoodAccess(food.restaurant.ownerId, req.user);
+    ensureOwnerAccess(
+      food.restaurant.ownerId,
+      req.user,
+      "Forbidden. You can only manage food in your own restaurant."
+    );
 
     await food.deleteOne();
 
@@ -261,40 +203,47 @@ export const deleteFood = async (req, res, next) => {
 
 export const searchFoods = async (req, res, next) => {
   try {
-    const query = req.query.q;
-    const restaurantId = req.query.restaurantId;
+    const query = normalizeStringValue(req.query.q);
+    const restaurantId = normalizeStringValue(req.query.restaurantId);
 
-    if (!query || !query.trim()) {
-      const error = new Error("Query param 'q' is required.");
-      error.statusCode = 400;
-      throw error;
+    if (!query) {
+      throw createHttpError("Query param 'q' is required.", 400);
     }
 
-    const normalizedQuery = query.trim();
     const filter = {
       $or: [
-        { name: { $regex: normalizedQuery, $options: "i" } },
-        { category: { $regex: normalizedQuery, $options: "i" } },
+        { name: { $regex: query, $options: "i" } },
+        { category: { $regex: query, $options: "i" } },
       ],
     };
 
     if (restaurantId) {
-      if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
-        const error = new Error("Invalid restaurant id.");
-        error.statusCode = 400;
-        throw error;
-      }
+      validateObjectId(restaurantId, "restaurant id");
 
       const restaurant = await Restaurant.findById(restaurantId).select("ownerId status");
 
       if (!restaurant) {
-        const error = new Error("Restaurant not found.");
-        error.statusCode = 404;
-        throw error;
+        throw createHttpError("Restaurant not found.", 404);
       }
 
-      ensureRestaurantVisibleForFood(restaurant, req.user);
+      ensureRestaurantVisible(restaurant, req.user);
       filter.restaurant = restaurantId;
+    } else {
+      const visibleRestaurants = await Restaurant.find(
+        buildRestaurantVisibilityFilter(req.user)
+      ).select("_id");
+
+      if (visibleRestaurants.length === 0) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          foods: [],
+        });
+      }
+
+      filter.restaurant = {
+        $in: visibleRestaurants.map((restaurant) => restaurant._id),
+      };
     }
 
     const foods = await Food.find(filter);

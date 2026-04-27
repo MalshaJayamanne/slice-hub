@@ -1,7 +1,12 @@
-import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Food from "../models/Food.js";
 import Restaurant from "../models/Restaurant.js";
+import { getOwnerIdString } from "../utils/restaurantAccess.js";
+import {
+  createHttpError,
+  findEnumValue,
+  validateObjectId,
+} from "../utils/validation.js";
 
 const VALID_ORDER_STATUSES = ["Pending", "Preparing", "Delivered"];
 const SELLER_STATUS_TRANSITIONS = {
@@ -19,67 +24,50 @@ const populateOrderQuery = (query) =>
     })
     .populate("items.food", "name");
 
-const getRestaurantOwnerId = (restaurant) => {
-  const ownerId = restaurant?.ownerId;
-
-  if (!ownerId) {
-    const error = new Error("Order restaurant is missing ownership details.");
-    error.statusCode = 500;
-    throw error;
-  }
-
-  return typeof ownerId === "object" && ownerId !== null && "_id" in ownerId
-    ? ownerId._id.toString()
-    : ownerId.toString();
-};
-
 const ensureOrderAccess = (order, user) => {
   if (user.role === "admin") {
     return;
   }
 
   if (user.role === "seller") {
-    if (getRestaurantOwnerId(order.restaurant) !== user._id.toString()) {
-      const error = new Error("Forbidden. You can only access orders for your own restaurant.");
-      error.statusCode = 403;
-      throw error;
+    if (
+      getOwnerIdString(
+        order.restaurant,
+        "Order restaurant is missing ownership details."
+      ) !== user._id.toString()
+    ) {
+      throw createHttpError(
+        "Forbidden. You can only access orders for your own restaurant.",
+        403
+      );
     }
 
     return;
   }
 
   if (order.customer._id.toString() !== user._id.toString()) {
-    const error = new Error("Forbidden. You can only access your own orders.");
-    error.statusCode = 403;
-    throw error;
+    throw createHttpError("Forbidden. You can only access your own orders.", 403);
   }
 };
 
-const validateObjectId = (value, fieldName) => {
-  if (!mongoose.Types.ObjectId.isValid(value)) {
-    const error = new Error(`Invalid ${fieldName}.`);
-    error.statusCode = 400;
-    throw error;
-  }
-};
+const resolveOrderStatus = (status) => {
+  const resolvedStatus = findEnumValue(status, VALID_ORDER_STATUSES);
 
-const validateOrderStatus = (status) => {
-  if (!VALID_ORDER_STATUSES.includes(status)) {
-    const error = new Error("Invalid status.");
-    error.statusCode = 400;
-    throw error;
+  if (!resolvedStatus) {
+    throw createHttpError("Invalid status.", 400);
   }
+
+  return resolvedStatus;
 };
 
 const validateSellerStatusTransition = (currentStatus, nextStatus) => {
   const allowedTransitions = SELLER_STATUS_TRANSITIONS[currentStatus] || [currentStatus];
 
   if (!allowedTransitions.includes(nextStatus)) {
-    const error = new Error(
-      `Invalid status transition for sellers. Allowed next statuses from ${currentStatus} are: ${allowedTransitions.join(", ")}.`
+    throw createHttpError(
+      `Invalid status transition for sellers. Allowed next statuses from ${currentStatus} are: ${allowedTransitions.join(", ")}.`,
+      400
     );
-    error.statusCode = 400;
-    throw error;
   }
 };
 
@@ -90,37 +78,30 @@ export const placeOrder = async (req, res, next) => {
     const { restaurantId, items, deliveryAddress } = req.body;
 
     if (!restaurantId) {
-      const error = new Error("restaurantId is required.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("restaurantId is required.", 400);
     }
 
     validateObjectId(restaurantId, "restaurant id");
 
-    if (!items || items.length === 0) {
-      const error = new Error("Cart is empty.");
-      error.statusCode = 400;
-      throw error;
+    if (!Array.isArray(items) || items.length === 0) {
+      throw createHttpError("Cart is empty.", 400);
     }
 
     if (!String(deliveryAddress || "").trim()) {
-      const error = new Error("Delivery address is required.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError("Delivery address is required.", 400);
     }
 
     const restaurant = await Restaurant.findById(restaurantId).select("ownerId status name");
 
     if (!restaurant) {
-      const error = new Error("Restaurant not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Restaurant not found.", 404);
     }
 
     if (restaurant.status !== "approved") {
-      const error = new Error("Orders can only be placed for approved restaurants.");
-      error.statusCode = 400;
-      throw error;
+      throw createHttpError(
+        "Orders can only be placed for approved restaurants.",
+        400
+      );
     }
 
     let totalAmount = 0;
@@ -128,9 +109,7 @@ export const placeOrder = async (req, res, next) => {
 
     for (const item of items) {
       if (!item?.foodId) {
-        const error = new Error("Each item must include foodId.");
-        error.statusCode = 400;
-        throw error;
+        throw createHttpError("Each item must include foodId.", 400);
       }
 
       validateObjectId(item.foodId, "food id");
@@ -138,29 +117,30 @@ export const placeOrder = async (req, res, next) => {
       const quantity = normalizeQuantity(item.quantity);
 
       if (!Number.isInteger(quantity) || quantity < 1) {
-        const error = new Error("Each item quantity must be a positive integer.");
-        error.statusCode = 400;
-        throw error;
+        throw createHttpError(
+          "Each item quantity must be a positive integer.",
+          400
+        );
       }
 
       const food = await Food.findById(item.foodId).select("name price restaurant availability");
 
       if (!food) {
-        const error = new Error("Food not found.");
-        error.statusCode = 404;
-        throw error;
+        throw createHttpError("Food not found.", 404);
       }
 
       if (!food.availability) {
-        const error = new Error(`Food item '${food.name}' is currently unavailable.`);
-        error.statusCode = 400;
-        throw error;
+        throw createHttpError(
+          `Food item '${food.name}' is currently unavailable.`,
+          400
+        );
       }
 
       if (food.restaurant.toString() !== restaurantId) {
-        const error = new Error("All order items must belong to the selected restaurant.");
-        error.statusCode = 400;
-        throw error;
+        throw createHttpError(
+          "All order items must belong to the selected restaurant.",
+          400
+        );
       }
 
       const itemTotal = food.price * quantity;
@@ -175,7 +155,7 @@ export const placeOrder = async (req, res, next) => {
     }
 
     const order = new Order({
-      customer: req.user.id,
+      customer: req.user._id,
       restaurant: restaurantId,
       items: validatedItems,
       totalAmount,
@@ -192,7 +172,7 @@ export const placeOrder = async (req, res, next) => {
 
 export const getMyOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ customer: req.user.id })
+    const orders = await Order.find({ customer: req.user._id })
       .populate("restaurant", "name")
       .sort({ createdAt: -1 });
 
@@ -204,11 +184,8 @@ export const getMyOrders = async (req, res, next) => {
 
 export const getSellerOrders = async (req, res, next) => {
   try {
-    const { status } = req.query;
-
-    if (status !== undefined) {
-      validateOrderStatus(status);
-    }
+    const status =
+      req.query.status === undefined ? "" : resolveOrderStatus(req.query.status);
 
     const restaurants = await Restaurant.find({ ownerId: req.user._id }).select("_id");
     const restaurantIds = restaurants.map((restaurant) => restaurant._id);
@@ -240,9 +217,7 @@ export const getOrderById = async (req, res, next) => {
     const order = await populateOrderQuery(Order.findById(req.params.id));
 
     if (!order) {
-      const error = new Error("Order not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Order not found.", 404);
     }
 
     ensureOrderAccess(order, req.user);
@@ -255,27 +230,27 @@ export const getOrderById = async (req, res, next) => {
 
 export const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
-
-    validateOrderStatus(status);
+    const status = resolveOrderStatus(req.body.status);
 
     validateObjectId(req.params.id, "order id");
 
     const order = await populateOrderQuery(Order.findById(req.params.id));
 
     if (!order) {
-      const error = new Error("Order not found.");
-      error.statusCode = 404;
-      throw error;
+      throw createHttpError("Order not found.", 404);
     }
 
     if (
       req.user.role === "seller" &&
-      getRestaurantOwnerId(order.restaurant) !== req.user._id.toString()
+      getOwnerIdString(
+        order.restaurant,
+        "Order restaurant is missing ownership details."
+      ) !== req.user._id.toString()
     ) {
-      const error = new Error("Forbidden. You can only update orders for your own restaurant.");
-      error.statusCode = 403;
-      throw error;
+      throw createHttpError(
+        "Forbidden. You can only update orders for your own restaurant.",
+        403
+      );
     }
 
     if (req.user.role === "seller") {

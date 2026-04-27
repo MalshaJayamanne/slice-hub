@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  CheckCircle2,
   ChevronLeft,
+  Loader2,
   Pencil,
   Plus,
   Search,
@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import foodAPI from "../api/foodAPI";
 import restaurantAPI from "../api/restaurantApi";
+import FeedbackAlert from "../components/FeedbackAlert";
 
 const initialForm = {
   name: "",
@@ -42,6 +43,7 @@ const SellerMenu = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [forbidden, setForbidden] = useState(false);
@@ -168,6 +170,7 @@ const SellerMenu = () => {
 
   const handleDelete = async (foodId) => {
     try {
+      setDeletingId(foodId);
       await foodAPI.delete(foodId);
       if (editingId === foodId) {
         resetForm();
@@ -179,6 +182,8 @@ const SellerMenu = () => {
       console.error("Delete error:", err);
       setSuccess("");
       setError(err?.response?.data?.message || "Failed to delete food.");
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -303,16 +308,21 @@ const SellerMenu = () => {
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        <FeedbackAlert
+          type="error"
+          title="Action failed"
+          message={error}
+          onClose={() => setError("")}
+        />
       ) : null}
 
       {success ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
-          <CheckCircle2 size={18} />
-          {success}
-        </div>
+        <FeedbackAlert
+          type="success"
+          title="Saved"
+          message={success}
+          onClose={() => setSuccess("")}
+        />
       ) : null}
 
       <div className="grid xl:grid-cols-[1.1fr_1.4fr] gap-8">
@@ -344,7 +354,11 @@ const SellerMenu = () => {
               disabled={saving}
               className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:opacity-60"
             >
-              <Plus size={18} />
+              {saving ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Plus size={18} />
+              )}
               {saving ? "Saving..." : editingId ? "Update Food" : "Add Food"}
             </button>
 
@@ -488,10 +502,15 @@ const SellerMenu = () => {
                             </button>
                             <button
                               onClick={() => handleDelete(item?._id)}
-                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm text-red-500 hover:bg-red-50"
+                              disabled={deletingId === item?._id}
+                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              <Trash2 size={16} />
-                              Delete
+                              {deletingId === item?._id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                              {deletingId === item?._id ? "Deleting" : "Delete"}
                             </button>
                           </div>
                         </td>
@@ -550,10 +569,15 @@ const SellerMenu = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(item?._id)}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm text-red-500"
+                        disabled={deletingId === item?._id}
+                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        <Trash2 size={16} />
-                        Delete
+                        {deletingId === item?._id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                        {deletingId === item?._id ? "Deleting" : "Delete"}
                       </button>
                     </div>
                   </article>

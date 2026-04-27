@@ -1,253 +1,296 @@
-import React, { useState, useEffect } from "react";
-import { restaurantService } from "../services/restaurantService";
-import RestaurantCard from "../components/RestaurantCard";
-
+import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Search,
   Filter,
+  Search,
+  SlidersHorizontal,
   Star,
-  Loader2,
-  AlertCircle,
+  Store,
   X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
+import RestaurantCard from "../components/RestaurantCard";
+import {
+  WorkspaceEmptyState,
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+  WorkspacePage,
+  WorkspaceSidebar,
+  WorkspaceStat,
+} from "../components/WorkspaceScaffold";
 import { CATEGORIES } from "../constants";
+import { restaurantService } from "../services/restaurantService";
+
+const categoryOptions = [
+  "All",
+  ...new Set((CATEGORIES || []).map((category) => category?.name).filter(Boolean)),
+];
+
+const getSafeRestaurants = (data) =>
+  Array.isArray(data)
+    ? data
+    : Array.isArray(data?.restaurants)
+    ? data.restaurants
+    : [];
 
 const RestaurantList = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchRestaurants();
-  }, []);
-
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-
       const data = await restaurantService.getRestaurants();
-
-      // ✅ Safe API handling
-      const safeData = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.restaurants)
-        ? data.restaurants
-        : [];
-
-      setRestaurants(safeData);
-      setError(null);
-    } catch (err) {
-      console.error("Restaurant fetch error:", err);
+      setRestaurants(getSafeRestaurants(data));
+      setError("");
+    } catch (fetchError) {
+      console.error("Restaurant fetch error:", fetchError);
+      setRestaurants([]);
       setError("Failed to load restaurants. Please try again later.");
-      setRestaurants([]); // ✅ prevent stale/broken state
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Prevent crash if restaurants is not array
-  const filteredRestaurants = (restaurants || []).filter((r) => {
-    const matchesSearch = String(r?.name || "")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
 
-    const matchesCategory =
-      selectedCategory === "All" ||
-      String(r?.category || "").toLowerCase() ===
-        selectedCategory.toLowerCase();
+  const filteredRestaurants = useMemo(
+    () =>
+      (restaurants || []).filter((restaurant) => {
+        const matchesSearch = String(restaurant?.name || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-    const matchesRating = Number(r?.rating || 0) >= minRating;
+        const matchesCategory =
+          selectedCategory === "All" ||
+          String(restaurant?.category || "").toLowerCase() ===
+            selectedCategory.toLowerCase();
 
-    return matchesSearch && matchesCategory && matchesRating;
-  });
+        const matchesRating = Number(restaurant?.rating || 0) >= minRating;
 
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-        <p className="text-gray-500 font-bold animate-pulse text-xs uppercase tracking-widest">
-          Discovering the best slices...
-        </p>
-      </div>
-    );
-  }
+        return matchesSearch && matchesCategory && matchesRating;
+      }),
+    [minRating, restaurants, searchQuery, selectedCategory]
+  );
 
-  if (error) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
-        <AlertCircle size={40} className="text-red-500" />
-        <h2 className="text-2xl font-bold text-gray-800">
-          Something went wrong
-        </h2>
-        <p className="text-gray-500">{error}</p>
+  const activeFilterCount = [
+    Boolean(searchQuery.trim()),
+    selectedCategory !== "All",
+    minRating > 0,
+  ].filter(Boolean).length;
 
-        <button
-          onClick={fetchRestaurants}
-          className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl transition"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("All");
+    setMinRating(0);
+  };
+
+  const sidebarNote = loading
+    ? "Loading approved restaurants for the customer browsing workspace."
+    : error
+    ? "Restaurant data is unavailable right now. Retry from the main panel."
+    : filteredRestaurants.length > 0
+    ? `${filteredRestaurants.length} restaurants match your current filters.`
+    : "Adjust the filters or clear them to widen the restaurant list.";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
-        <h1 className="text-4xl font-bold text-gray-800">
-          Explore Restaurants
-        </h1>
+    <WorkspacePage
+      sidebar={
+        <WorkspaceSidebar
+          icon={Store}
+          title="Browse Restaurants"
+          subtitle="A cleaner customer workspace for exploring approved restaurants and narrowing the list quickly."
+          note={sidebarNote}
+        >
+          {!loading && !error ? (
+            <div className="grid grid-cols-1 gap-3">
+              <WorkspaceStat
+                label="Approved"
+                value={restaurants.length}
+                hint="Restaurants currently visible on the platform"
+              />
+              <WorkspaceStat
+                label="Matching"
+                value={filteredRestaurants.length}
+                hint={
+                  activeFilterCount > 0
+                    ? `${activeFilterCount} filters currently active`
+                    : "No filters applied"
+                }
+                tone="warning"
+              />
+            </div>
+          ) : null}
+        </WorkspaceSidebar>
+      }
+      eyebrow="Customer workspace"
+      title="Explore Restaurants"
+      description="Browse live restaurant listings, refine the results, and jump straight into the menus that fit what you want right now."
+    >
+      {loading ? (
+        <WorkspaceLoadingState
+          title="Loading restaurants"
+          message="Collecting approved restaurant listings for the customer browsing flow."
+        />
+      ) : error ? (
+        <WorkspaceErrorState
+          title="Restaurants unavailable"
+          message={error}
+          onAction={fetchRestaurants}
+        />
+      ) : (
+        <div className="space-y-6">
+          <div className="rounded-[1.75rem] border border-gray-100 bg-gray-50 p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative flex-1">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search restaurants..."
+                  className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:ring-2 focus:ring-primary/20"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+              </div>
 
-        {/* SEARCH */}
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-3 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search restaurants..."
-              className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary bg-white"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+              <button
+                type="button"
+                onClick={() => setShowFilters((current) => !current)}
+                className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 font-semibold transition ${
+                  showFilters
+                    ? "border-primary bg-primary text-white"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <SlidersHorizontal size={18} />
+                Filters
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              {categoryOptions.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => setSelectedCategory(category)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    selectedCategory === category
+                      ? "border border-primary bg-primary text-white"
+                      : "bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <button
-            onClick={() => setShowFilters((prev) => !prev)} // ✅ safer toggle
-            className="p-3 border border-gray-200 rounded-xl hover:bg-gray-100 transition"
-          >
-            <Filter size={20} className="text-gray-600" />
-          </button>
-        </div>
-      </div>
+          <AnimatePresence>
+            {showFilters ? (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm"
+              >
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+                      Minimum Rating
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {[3, 4, 4.5].map((rating) => (
+                        <button
+                          key={rating}
+                          type="button"
+                          onClick={() =>
+                            setMinRating((current) =>
+                              current === rating ? 0 : rating
+                            )
+                          }
+                          className={`inline-flex items-center gap-1 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                            minRating === rating
+                              ? "border-primary bg-primary text-white"
+                              : "border-gray-200 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                          }`}
+                        >
+                          {rating}+ <Star size={14} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-      {/* CATEGORY FILTER */}
-      <div className="flex gap-3 overflow-x-auto pb-4 mb-6">
-        <button
-          onClick={() => setSelectedCategory("All")}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
-            selectedCategory === "All"
-              ? "bg-orange-500 text-white shadow-md shadow-orange-200 border border-orange-500"
-              : "bg-gray-100 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-          }`}
-        >
-          All
-        </button>
-
-        {(CATEGORIES || []).map((cat) => (
-          <button
-            key={cat?.id || cat?.name} // ✅ safer key
-            onClick={() => setSelectedCategory(cat?.name)}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium ${
-              selectedCategory === cat?.name
-                ? "bg-orange-500 text-white shadow-md shadow-orange-200 border border-orange-500"
-                : "bg-gray-100 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-            }`}
-          >
-            {cat?.name}
-          </button>
-        ))}
-      </div>
-
-      {/* ADVANCED FILTER */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            className="overflow-hidden mb-8"
-          >
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 grid md:grid-cols-3 gap-6 shadow-sm">
-              <div>
-                <h4 className="font-bold mb-3 text-gray-700">
-                  Minimum Rating
-                </h4>
-
-                <div className="flex gap-2">
-                  {[3, 4, 4.5].map((rating) => (
+                  <div className="flex items-end">
                     <button
-                      key={rating}
-                      onClick={() =>
-                        setMinRating(minRating === rating ? 0 : rating)
-                      }
-                      className={`px-3 py-2 border rounded-lg flex items-center gap-1 transition ${
-                        minRating === rating
-                          ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-200"
-                          : "border-gray-200 hover:bg-orange-50 hover:text-orange-600"
-                      }`}
+                      type="button"
+                      onClick={clearFilters}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50"
                     >
-                      {rating}+ <Star size={14} />
+                      <X size={16} />
+                      Reset Filters
                     </button>
-                  ))}
+                  </div>
                 </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          {filteredRestaurants.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <WorkspaceStat
+                  label="Results"
+                  value={filteredRestaurants.length}
+                  hint="Restaurants currently matching your filters"
+                />
+                <WorkspaceStat
+                  label="Category"
+                  value={selectedCategory}
+                  hint="Current category scope"
+                  tone="dark"
+                />
+                <WorkspaceStat
+                  label="Rating Floor"
+                  value={minRating > 0 ? `${minRating}+` : "Any"}
+                  hint="Minimum rating filter"
+                  tone="warning"
+                />
               </div>
 
-              <div className="flex items-end">
-                <button
-                  onClick={() => {
-                    setMinRating(0);
-                    setSelectedCategory("All");
-                    setSearchQuery("");
-                  }}
-                  className="border border-red-200 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-red-50 transition"
-                >
-                  <X size={16} />
-                  Reset Filters
-                </button>
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredRestaurants.map((restaurant, index) => (
+                  <motion.div
+                    key={restaurant?._id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04 }}
+                  >
+                    <RestaurantCard restaurant={restaurant} />
+                  </motion.div>
+                ))}
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* RESULT COUNT */}
-      <h2 className="text-xl font-bold mb-6 text-gray-800">
-        {filteredRestaurants.length} Restaurants Found
-      </h2>
-
-      {/* GRID */}
-      {filteredRestaurants.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRestaurants.map((restaurant, i) => (
-            <motion.div
-              key={restaurant?._id || restaurant?.id || i} // ✅ safer key fallback
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <RestaurantCard restaurant={restaurant} />
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16">
-          <Search size={40} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500">No restaurants found.</p>
-
-          <button
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("All");
-              setMinRating(0);
-            }}
-            className="text-primary font-medium mt-3 hover:underline"
-          >
-            Clear Filters
-          </button>
+            </>
+          ) : (
+            <WorkspaceEmptyState
+              title="No restaurants match yet"
+              message="Try a different search, remove a filter, or reset the current filter set to see more approved restaurants."
+              actionLabel={activeFilterCount > 0 ? "Clear Filters" : undefined}
+              onAction={activeFilterCount > 0 ? clearFilters : undefined}
+            />
+          )}
         </div>
       )}
-    </div>
+    </WorkspacePage>
   );
 };
 
