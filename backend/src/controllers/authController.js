@@ -107,6 +107,12 @@ export const loginUser = async (req, res, next) => {
       throw error;
     }
 
+    if (!user.isActive) {
+      const error = new Error("Your account is inactive. Please contact support.");
+      error.statusCode = 403;
+      throw error;
+    }
+
     res.status(200).json({
       success: true,
       message: "Login successful.",

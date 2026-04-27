@@ -95,32 +95,50 @@ export const createRestaurant = async (req, res, next) => {
 
 export const getRestaurants = async (req, res, next) => {
   try {
-    const filter = {};
     const search = req.query.search?.trim();
     const category = req.query.category?.trim();
     const cuisine = req.query.cuisine?.trim();
+    const filters = [];
 
     if (search) {
-      filter.name = {
-        $regex: search,
-        $options: "i",
-      };
+      filters.push({
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      });
     }
 
     if (category || cuisine) {
-      filter.category = {
-        $regex: category || cuisine,
-        $options: "i",
-      };
+      filters.push({
+        category: {
+          $regex: category || cuisine,
+          $options: "i",
+        },
+      });
     }
 
     if (!req.user || req.user.role === "customer") {
-      filter.status = "approved";
+      filters.push({ status: "approved" });
+    } else if (req.user.role === "seller") {
+      filters.push({
+        $or: [{ status: "approved" }, { ownerId: req.user._id }],
+      });
     }
+
+    const filter =
+      filters.length === 0 ? {} : filters.length === 1 ? filters[0] : { $and: filters };
 
     const restaurants = await Restaurant.find(filter)
       .populate("ownerId", "name email role")
       .sort({ createdAt: -1 });
+
+    const statusScope =
+      !req.user || req.user.role === "customer"
+        ? "approved"
+        : req.user.role === "seller"
+        ? "seller-visible"
+        : "all";
 
     res.status(200).json({
       success: true,
@@ -128,7 +146,7 @@ export const getRestaurants = async (req, res, next) => {
       search: search || "",
       category: category || "",
       cuisine: cuisine || "",
-      status: filter.status || "all",
+      status: statusScope,
       restaurants,
     });
   } catch (error) {

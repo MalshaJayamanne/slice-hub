@@ -4,6 +4,34 @@ import Food from "../models/Food.js";
 import Restaurant from "../models/Restaurant.js";
 
 const VALID_ORDER_STATUSES = ["Pending", "Preparing", "Delivered"];
+const SELLER_STATUS_TRANSITIONS = {
+  Pending: ["Pending", "Preparing"],
+  Preparing: ["Preparing", "Delivered"],
+  Delivered: ["Delivered"],
+};
+
+const populateOrderQuery = (query) =>
+  query
+    .populate("customer", "name email")
+    .populate({
+      path: "restaurant",
+      select: "name ownerId status",
+    })
+    .populate("items.food", "name");
+
+const getRestaurantOwnerId = (restaurant) => {
+  const ownerId = restaurant?.ownerId;
+
+  if (!ownerId) {
+    const error = new Error("Order restaurant is missing ownership details.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return typeof ownerId === "object" && ownerId !== null && "_id" in ownerId
+    ? ownerId._id.toString()
+    : ownerId.toString();
+};
 
 const ensureOrderAccess = (order, user) => {
   if (user.role === "admin") {
@@ -11,7 +39,7 @@ const ensureOrderAccess = (order, user) => {
   }
 
   if (user.role === "seller") {
-    if (order.restaurant.ownerId.toString() !== user._id.toString()) {
+    if (getRestaurantOwnerId(order.restaurant) !== user._id.toString()) {
       const error = new Error("Forbidden. You can only access orders for your own restaurant.");
       error.statusCode = 403;
       throw error;
@@ -38,6 +66,18 @@ const validateObjectId = (value, fieldName) => {
 const validateOrderStatus = (status) => {
   if (!VALID_ORDER_STATUSES.includes(status)) {
     const error = new Error("Invalid status.");
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
+const validateSellerStatusTransition = (currentStatus, nextStatus) => {
+  const allowedTransitions = SELLER_STATUS_TRANSITIONS[currentStatus] || [currentStatus];
+
+  if (!allowedTransitions.includes(nextStatus)) {
+    const error = new Error(
+      `Invalid status transition for sellers. Allowed next statuses from ${currentStatus} are: ${allowedTransitions.join(", ")}.`
+    );
     error.statusCode = 400;
     throw error;
   }
@@ -185,14 +225,7 @@ export const getSellerOrders = async (req, res, next) => {
       filter.status = status;
     }
 
-    const orders = await Order.find(filter)
-      .populate("customer", "name email")
-      .populate({
-        path: "restaurant",
-        select: "name ownerId status",
-      })
-      .populate("items.food", "name")
-      .sort({ createdAt: -1 });
+    const orders = await populateOrderQuery(Order.find(filter)).sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (error) {
@@ -204,13 +237,7 @@ export const getOrderById = async (req, res, next) => {
   try {
     validateObjectId(req.params.id, "order id");
 
-    const order = await Order.findById(req.params.id)
-      .populate("customer", "name email")
-      .populate({
-        path: "restaurant",
-        select: "name ownerId",
-      })
-      .populate("items.food", "name");
+    const order = await populateOrderQuery(Order.findById(req.params.id));
 
     if (!order) {
       const error = new Error("Order not found.");
@@ -234,10 +261,7 @@ export const updateOrderStatus = async (req, res, next) => {
 
     validateObjectId(req.params.id, "order id");
 
-    const order = await Order.findById(req.params.id).populate({
-      path: "restaurant",
-      select: "ownerId name",
-    });
+    const order = await populateOrderQuery(Order.findById(req.params.id));
 
     if (!order) {
       const error = new Error("Order not found.");
@@ -247,11 +271,19 @@ export const updateOrderStatus = async (req, res, next) => {
 
     if (
       req.user.role === "seller" &&
-      order.restaurant.ownerId.toString() !== req.user._id.toString()
+      getRestaurantOwnerId(order.restaurant) !== req.user._id.toString()
     ) {
       const error = new Error("Forbidden. You can only update orders for your own restaurant.");
       error.statusCode = 403;
       throw error;
+    }
+
+    if (req.user.role === "seller") {
+      validateSellerStatusTransition(order.status, status);
+    }
+
+    if (order.status === status) {
+      return res.status(200).json(order);
     }
 
     order.status = status;

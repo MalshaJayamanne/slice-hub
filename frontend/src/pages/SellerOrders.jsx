@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Clock3, Package, ShoppingBag, Store, User } from "lucide-react";
+import { Clock3, Loader2, ShoppingBag, Store, User } from "lucide-react";
 
 import orderAPI from "../api/orderAPI";
 import {
@@ -17,12 +17,32 @@ const statusClasses = {
   Delivered: "bg-emerald-50 text-emerald-600 border border-emerald-100",
 };
 
+const sellerStatusActions = {
+  Pending: {
+    nextStatus: "Preparing",
+    label: "Mark as Preparing",
+  },
+  Preparing: {
+    nextStatus: "Delivered",
+    label: "Mark as Delivered",
+  },
+  Delivered: {
+    nextStatus: null,
+    label: "Delivered",
+  },
+};
+
 const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
+const formatOrderId = (value) => `#${String(value || "").slice(-6).toUpperCase()}`;
+const formatDateTime = (value) =>
+  value ? new Date(value).toLocaleString("en-LK") : "Unknown";
 
 export default function SellerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingOrderId, setUpdatingOrderId] = useState("");
+  const [feedback, setFeedback] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -38,6 +58,42 @@ export default function SellerOrders() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (order) => {
+    const action = sellerStatusActions[order.status];
+
+    if (!action?.nextStatus) {
+      return;
+    }
+
+    try {
+      setUpdatingOrderId(order._id);
+      setFeedback(null);
+
+      const response = await orderAPI.updateOrderStatus(order._id, action.nextStatus);
+      const updatedOrder = response?.data;
+
+      setOrders((currentOrders) =>
+        currentOrders.map((currentOrder) =>
+          currentOrder._id === order._id && updatedOrder ? updatedOrder : currentOrder
+        )
+      );
+
+      setFeedback({
+        type: "success",
+        message: `Order ${formatOrderId(order._id)} updated to ${action.nextStatus}.`,
+      });
+    } catch (updateError) {
+      setFeedback({
+        type: "error",
+        message:
+          updateError?.response?.data?.message ||
+          `Failed to update order ${formatOrderId(order._id)}.`,
+      });
+    } finally {
+      setUpdatingOrderId("");
     }
   };
 
@@ -107,6 +163,18 @@ export default function SellerOrders() {
         />
       ) : (
         <div className="space-y-8">
+          {feedback ? (
+            <div
+              className={`rounded-[1.5rem] border px-5 py-4 text-sm font-medium ${
+                feedback.type === "success"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <WorkspaceStat
               label="Visible Orders"
@@ -145,11 +213,14 @@ export default function SellerOrders() {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Order #{order._id.slice(-6).toUpperCase()}
+                        Order Id
                       </p>
                       <h2 className="mt-2 text-xl font-bold text-contrast">
-                        {order.restaurant?.name || "Restaurant order"}
+                        {formatOrderId(order._id)}
                       </h2>
+                      <p className="mt-2 text-sm text-gray-500">
+                        {order.restaurant?.name || "Restaurant order"}
+                      </p>
                     </div>
 
                     <span
@@ -161,10 +232,18 @@ export default function SellerOrders() {
                     </span>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div className="rounded-2xl bg-gray-50 px-4 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Customer
+                        Order Id
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-gray-900">
+                        {formatOrderId(order._id)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-gray-50 px-4 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
+                        Customer Name
                       </p>
                       <p className="mt-2 text-sm font-semibold text-gray-900">
                         {order.customer?.name || "Unknown customer"}
@@ -180,6 +259,22 @@ export default function SellerOrders() {
                     </div>
                     <div className="rounded-2xl bg-gray-50 px-4 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
+                        Created Time
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-gray-900">
+                        {formatDateTime(order.createdAt)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-gray-50 px-4 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
+                        Current Status
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-gray-900">
+                        {order.status}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-gray-50 px-4 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
                         Items
                       </p>
                       <p className="mt-2 text-sm font-semibold text-gray-900">
@@ -188,16 +283,6 @@ export default function SellerOrders() {
                           0
                         ) || 0}{" "}
                         items
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Created
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-gray-900">
-                        {order.createdAt
-                          ? new Date(order.createdAt).toLocaleString("en-LK")
-                          : "Unknown"}
                       </p>
                     </div>
                   </div>
@@ -213,19 +298,73 @@ export default function SellerOrders() {
                     </span>
                     <span className="inline-flex items-center gap-2">
                       <Clock3 size={16} />
-                      Tracking and status updates can build on this scaffold next.
+                      Customer tracking stays in sync with status updates from this queue.
                     </span>
                   </div>
 
                   <div className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                      Items Preview
+                      Order Items
                     </p>
-                    <p className="mt-2 text-sm text-gray-700">
-                      {order.items
-                        ?.map((item) => `${item.quantity}x ${item.name}`)
-                        .join(", ") || "No items recorded"}
-                    </p>
+                    <div className="mt-3 space-y-2">
+                      {order.items?.length ? (
+                        order.items.map((item, index) => (
+                          <div
+                            key={`${order._id}-${item.name}-${index}`}
+                            className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm"
+                          >
+                            <p className="font-medium text-gray-900">
+                              {item.quantity}x {item.name}
+                            </p>
+                            <p className="text-gray-500">
+                              {formatCurrency(Number(item.price || 0) * Number(item.quantity || 0))}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-700">No items recorded</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-gray-500">
+                      Seller flow: <span className="font-semibold text-gray-700">Pending</span>
+                      {" -> "}
+                      <span className="font-semibold text-gray-700">Preparing</span>
+                      {" -> "}
+                      <span className="font-semibold text-gray-700">Delivered</span>
+                    </div>
+
+                    {sellerStatusActions[order.status]?.nextStatus ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusUpdate(order)}
+                        disabled={updatingOrderId === order._id}
+                        className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+                          updatingOrderId === order._id
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-primary text-white hover:opacity-90"
+                        }`}
+                      >
+                        {updatingOrderId === order._id ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          sellerStatusActions[order.status].label
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 cursor-not-allowed"
+                      >
+                        Delivered
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
