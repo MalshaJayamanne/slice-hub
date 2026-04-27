@@ -96,6 +96,61 @@ export default function OrderTracking() {
     return "Confirming your order";
   }, [order]);
 
+  const statusVisual = useMemo(() => {
+    if (!order) {
+      return {
+        badgeClasses: "bg-gray-100 text-gray-600",
+        bubbleLabel: "Tracking order",
+        bubbleClasses: "bg-primary",
+        presenceClasses: "bg-green-500",
+        presenceLabel: "Courier Partner",
+      };
+    }
+
+    if (order.status === "Delivered") {
+      return {
+        badgeClasses: "bg-emerald-50 text-emerald-600",
+        bubbleLabel: "Delivered successfully",
+        bubbleClasses: "bg-emerald-500",
+        presenceClasses: "bg-emerald-500",
+        presenceLabel: "Delivery complete",
+      };
+    }
+
+    if (order.status === "Preparing") {
+      return {
+        badgeClasses: "bg-sky-50 text-sky-600",
+        bubbleLabel: "Courier en route",
+        bubbleClasses: "bg-primary",
+        presenceClasses: "bg-green-500",
+        presenceLabel: "Courier Partner",
+      };
+    }
+
+    return {
+      badgeClasses: "bg-amber-50 text-amber-600",
+      bubbleLabel: "Restaurant is preparing",
+      bubbleClasses: "bg-amber-500",
+      presenceClasses: "bg-amber-500",
+      presenceLabel: "Restaurant update",
+    };
+  }, [order]);
+
+  const courierMotion = useMemo(() => {
+    if (!order || order.status === "Pending") {
+      return { x: 0, y: 0 };
+    }
+
+    if (order.status === "Delivered") {
+      return { x: 450, y: -250 };
+    }
+
+    return {
+      x: [0, 150, 300, 450],
+      y: [0, -50, -120, -250],
+    };
+  }, [order]);
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
@@ -140,7 +195,9 @@ export default function OrderTracking() {
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-black">
+          <div
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-black ${statusVisual.badgeClasses}`}
+          >
             <Clock size={16} />
             {etaLabel}
           </div>
@@ -188,24 +245,25 @@ export default function OrderTracking() {
             </motion.div>
 
             <motion.div
-              animate={{
-                x: [0, 150, 300, 450],
-                y: [0, -50, -120, -250],
-              }}
+              animate={courierMotion}
               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
               className="absolute left-[120px] bottom-[400px] z-20"
             >
               <div className="relative">
-                <div className="bg-primary p-4 rounded-full shadow-2xl border-4 border-white text-white">
+                <div
+                  className={`${statusVisual.bubbleClasses} p-4 rounded-full shadow-2xl border-4 border-white text-white`}
+                >
                   <Bike size={32} />
                 </div>
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="absolute -top-16 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-2xl"
+                  className={`absolute -top-16 left-1/2 -translate-x-1/2 ${statusVisual.bubbleClasses} text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-2xl`}
                 >
-                  Courier en route
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rotate-45" />
+                  {statusVisual.bubbleLabel}
+                  <div
+                    className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 ${statusVisual.bubbleClasses} rotate-45`}
+                  />
                 </motion.div>
               </div>
             </motion.div>
@@ -237,7 +295,9 @@ export default function OrderTracking() {
                       alt="Driver"
                       className="w-20 h-20 rounded-[1.5rem] object-cover shadow-lg"
                     />
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full" />
+                    <div
+                      className={`absolute -bottom-1 -right-1 w-6 h-6 ${statusVisual.presenceClasses} border-4 border-white rounded-full`}
+                    />
                   </div>
                   <div>
                     <h4 className="text-2xl font-black text-contrast">
@@ -247,9 +307,9 @@ export default function OrderTracking() {
                       <div className="flex items-center gap-1 text-yellow-500 text-sm font-black">
                         <Star size={14} fill="currentColor" /> 4.9
                       </div>
-                      <span className="text-gray-300">•</span>
+                      <span className="text-gray-300">|</span>
                       <span className="text-xs font-bold text-gray-400">
-                        Courier Partner
+                        {statusVisual.presenceLabel}
                       </span>
                     </div>
                   </div>

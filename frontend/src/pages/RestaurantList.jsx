@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import {
   Filter,
   Search,
@@ -34,10 +35,13 @@ const getSafeRestaurants = (data) =>
     : [];
 
 const RestaurantList = () => {
+  const location = useLocation();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    location.state?.initialSearch || ""
+  );
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
@@ -61,6 +65,12 @@ const RestaurantList = () => {
     fetchRestaurants();
   }, []);
 
+  useEffect(() => {
+    if (location.state?.initialSearch) {
+      setSearchQuery(location.state.initialSearch);
+    }
+  }, [location.state]);
+
   const filteredRestaurants = useMemo(
     () =>
       (restaurants || []).filter((restaurant) => {
@@ -73,7 +83,9 @@ const RestaurantList = () => {
           String(restaurant?.category || "").toLowerCase() ===
             selectedCategory.toLowerCase();
 
-        const matchesRating = Number(restaurant?.rating || 0) >= minRating;
+        const matchesRating =
+          restaurant?.rating == null ||
+          Number(restaurant.rating) >= minRating;
 
         return matchesSearch && matchesCategory && matchesRating;
       }),
@@ -193,6 +205,16 @@ const RestaurantList = () => {
                 </button>
               ))}
             </div>
+
+            {searchQuery.trim() ? (
+              <p className="mt-4 text-sm text-gray-500">
+                Showing matches for{" "}
+                <span className="font-semibold text-gray-700">
+                  {searchQuery.trim()}
+                </span>
+                .
+              </p>
+            ) : null}
           </div>
 
           <AnimatePresence>

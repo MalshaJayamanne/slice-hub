@@ -90,6 +90,43 @@ export const createFood = async (req, res, next) => {
   }
 };
 
+export const getFoods = async (req, res, next) => {
+  try {
+    const visibleRestaurants = await Restaurant.find(
+      buildRestaurantVisibilityFilter(req.user)
+    ).select("_id");
+
+    if (visibleRestaurants.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        foods: [],
+      });
+    }
+
+    const filter = {
+      restaurant: {
+        $in: visibleRestaurants.map((restaurant) => restaurant._id),
+      },
+    };
+
+    // Keep the public home feed focused on dishes customers can actually order.
+    if (!req.user || req.user.role === "customer") {
+      filter.availability = true;
+    }
+
+    const foods = await Food.find(filter).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: foods.length,
+      foods,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getFoodsByRestaurant = async (req, res, next) => {
   try {
     validateObjectId(req.params.id, "restaurant id");

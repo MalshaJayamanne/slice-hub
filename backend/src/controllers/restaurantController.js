@@ -1,3 +1,5 @@
+import Food from "../models/Food.js";
+import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import User from "../models/User.js";
 import {
@@ -247,11 +249,22 @@ export const deleteRestaurant = async (req, res, next) => {
       "Forbidden. You can only manage your own restaurants."
     );
 
+    const hasOrders = await Order.exists({ restaurant: restaurant._id });
+
+    if (hasOrders) {
+      throw createHttpError(
+        "Restaurant cannot be deleted after receiving orders.",
+        400
+      );
+    }
+
+    await Food.deleteMany({ restaurant: restaurant._id });
+
     await restaurant.deleteOne();
 
     res.status(200).json({
       success: true,
-      message: "Restaurant deleted successfully.",
+      message: "Restaurant and related foods deleted successfully.",
     });
   } catch (error) {
     next(error);

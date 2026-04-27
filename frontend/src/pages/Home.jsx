@@ -12,6 +12,7 @@ import {
 import { motion } from "framer-motion";
 
 import FoodCard from "../components/FoodCard";
+import FeedbackAlert from "../components/FeedbackAlert";
 import RestaurantCard from "../components/RestaurantCard";
 import {
   WorkspaceEmptyState,
@@ -19,14 +20,19 @@ import {
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
 import foodAPI from "../api/foodAPI";
+import { useCart } from "../context/CartContext";
 import { restaurantService } from "../services/restaurantService";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { addItem } = useCart();
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [heroSearch, setHeroSearch] = useState("");
+  const [heroLocation, setHeroLocation] = useState("");
+  const [cartFeedback, setCartFeedback] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -34,21 +40,13 @@ export default function Home() {
       setError("");
 
       const resRestaurants = await restaurantService.getRestaurants();
-      const resFoods = await foodAPI.getAll?.();
+      const resFoods = await foodAPI.getAll();
 
       const safeRestaurants = Array.isArray(resRestaurants)
         ? resRestaurants
         : resRestaurants?.restaurants || [];
 
-      const safeFoods = Array.isArray(resFoods)
-        ? resFoods
-        : Array.isArray(resFoods?.data)
-        ? resFoods.data
-        : Array.isArray(resFoods?.data?.foods)
-        ? resFoods.data.foods
-        : Array.isArray(resFoods?.foods)
-        ? resFoods.foods
-        : [];
+      const safeFoods = Array.isArray(resFoods?.data?.foods) ? resFoods.data.foods : [];
 
       setRestaurants(safeRestaurants);
       setFoods(safeFoods);
@@ -70,6 +68,32 @@ export default function Home() {
     if (!Array.isArray(foods) || foods.length === 0) return null;
     return foods[Math.floor(Math.random() * foods.length)];
   }, [foods]);
+
+  const authUser = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("authUser");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (_error) {
+      return null;
+    }
+  }, []);
+
+  const handleBrowseRestaurants = () => {
+    navigate("/restaurants", {
+      state: {
+        initialSearch: heroSearch.trim(),
+      },
+    });
+  };
+
+  const handleAddToCart = (food) => {
+    const result = addItem(food, 1);
+    setCartFeedback({
+      type: result.success ? "success" : "error",
+      title: result.success ? "Added to cart" : "Cart update failed",
+      message: result.message,
+    });
+  };
 
   return (
     <div className="space-y-16 bg-[#F8F9FB] pb-20">
@@ -112,6 +136,13 @@ export default function Home() {
               <Search size={20} className="text-gray-400" />
               <input
                 placeholder="Search restaurants..."
+                value={heroSearch}
+                onChange={(event) => setHeroSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handleBrowseRestaurants();
+                  }
+                }}
                 className="w-full font-medium text-gray-700 outline-none"
               />
             </div>
@@ -120,12 +151,14 @@ export default function Home() {
               <MapPin size={20} className="text-gray-400" />
               <input
                 placeholder="Your location"
+                value={heroLocation}
+                onChange={(event) => setHeroLocation(event.target.value)}
                 className="w-full font-medium text-gray-700 outline-none"
               />
             </div>
 
             <button
-              onClick={() => navigate("/restaurants")}
+              onClick={handleBrowseRestaurants}
               className="rounded-xl bg-[#FF3B30] px-6 py-3 font-semibold text-white transition hover:bg-[#e5322a]"
             >
               Find Food
@@ -136,8 +169,8 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <Star className="text-yellow-400" />
               <div>
-                <p className="font-bold">4.9 / 5</p>
-                <p className="text-xs text-gray-300">User Rating</p>
+                <p className="font-bold">{foods.length || "Fresh"}</p>
+                <p className="text-xs text-gray-300">Visible Dishes</p>
               </div>
             </div>
 
@@ -152,13 +185,24 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <TrendingUp className="text-blue-400" />
               <div>
-                <p className="font-bold">500+</p>
-                <p className="text-xs text-gray-300">Restaurants</p>
+                <p className="font-bold">{restaurants.length || "Live"}</p>
+                <p className="text-xs text-gray-300">Approved Restaurants</p>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {cartFeedback ? (
+        <section className="mx-auto max-w-7xl px-6">
+          <FeedbackAlert
+            type={cartFeedback.type}
+            title={cartFeedback.title}
+            message={cartFeedback.message}
+            onClose={() => setCartFeedback(null)}
+          />
+        </section>
+      ) : null}
 
       {loading ? (
         <section className="mx-auto max-w-7xl px-6">
@@ -203,7 +247,7 @@ export default function Home() {
                   <FoodCard
                     key={food?._id}
                     food={food}
-                    onAddToCart={(item) => console.log("Added:", item)}
+                    onAddToCart={handleAddToCart}
                   />
                 ))}
               </div>
@@ -250,7 +294,7 @@ export default function Home() {
                         </button>
 
                         <button
-                          onClick={() => console.log("AI Add:", recommendedFood)}
+                          onClick={() => handleAddToCart(recommendedFood)}
                           className="rounded-xl border border-white px-6 py-3 font-bold"
                         >
                           Add to Cart
@@ -296,10 +340,10 @@ export default function Home() {
             </Link>
 
             <Link
-              to="/login"
+              to={authUser ? "/dashboard" : "/login"}
               className="rounded-xl border border-gray-300 px-8 py-3 font-semibold"
             >
-              Login
+              {authUser ? "Open Dashboard" : "Login"}
             </Link>
           </div>
         </div>
