@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  AlertCircle,
   ChevronLeft,
-  Loader2,
   Minus,
   Plus,
   Store,
 } from "lucide-react";
 
 import foodAPI from "../api/foodAPI";
+import {
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
 export default function FoodDetails() {
@@ -58,17 +60,24 @@ export default function FoodDetails() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-primary" />
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <WorkspaceLoadingState
+          title="Loading food details"
+          message="Pulling the latest item details, availability, and restaurant information."
+        />
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <AlertCircle className="text-red-500" />
-        <p>{error || "Food not found."}</p>
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <WorkspaceErrorState
+          title="Food details unavailable"
+          message={error || "Food not found."}
+          actionLabel="Back to Restaurants"
+          onAction={() => navigate("/restaurants")}
+        />
       </div>
     );
   }
@@ -79,17 +88,17 @@ export default function FoodDetails() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <div className="page-shell py-8 sm:py-10">
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        className="btn-secondary mb-6 rounded-full px-4 py-2"
       >
         <ChevronLeft size={16} />
         Back
       </button>
 
       <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-start">
-        <div className="overflow-hidden rounded-[2rem] bg-white border shadow-sm">
+        <div className="surface-panel overflow-hidden">
           <img
             src={item?.image || "https://picsum.photos/900/700"}
             alt={item?.name || "food"}
@@ -97,7 +106,7 @@ export default function FoodDetails() {
           />
         </div>
 
-        <div className="rounded-[2rem] bg-white border shadow-sm p-6 sm:p-8">
+        <div className="surface-panel-strong p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-primary/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
               {item?.category}
@@ -121,7 +130,7 @@ export default function FoodDetails() {
             {item?.description || "No description available for this food item yet."}
           </p>
 
-          <div className="mt-8 rounded-[1.5rem] bg-orange-50 border border-orange-100 px-5 py-5">
+          <div className="mt-8 rounded-[1.5rem] border border-orange-100 bg-orange-50 px-5 py-5">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
               Price
             </p>
@@ -129,7 +138,7 @@ export default function FoodDetails() {
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="inline-flex items-center justify-between rounded-full border px-3 py-2 w-full sm:w-auto sm:min-w-44">
+            <div className="inline-flex w-full items-center justify-between rounded-full border border-gray-200 bg-white px-3 py-2 shadow-sm sm:w-auto sm:min-w-44">
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
                 className="rounded-full p-2 hover:bg-gray-50"
@@ -148,7 +157,7 @@ export default function FoodDetails() {
             <button
               onClick={handleAddToCart}
               disabled={!item?.availability}
-              className="w-full sm:w-auto sm:flex-1 rounded-2xl bg-primary disabled:bg-gray-300 text-white px-6 py-4 font-semibold"
+              className="btn-primary w-full px-6 py-4 sm:w-auto sm:flex-1"
             >
               {item?.availability ? `Add ${qty} to Cart` : "Currently Unavailable"}
             </button>

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createFood,
+  getFoods,
   getFoodsByRestaurant,
   getFoodById,
   updateFood,
@@ -13,6 +14,7 @@ import { authorizeRoles } from "../middleware/roleMiddleware.js";
 const router = express.Router();
 
 router.post("/", protect, authorizeRoles("seller", "admin"), createFood);
+router.get("/", optionalProtect, getFoods);
 router.get("/restaurant/:id", optionalProtect, getFoodsByRestaurant);
 router.get("/search", optionalProtect, searchFoods);
 router.get("/:id", optionalProtect, getFoodById);

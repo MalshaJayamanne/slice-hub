@@ -1,23 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   MapPin,
   Package,
-  Bike,
   CheckCircle2,
   Clock,
-  Phone,
-  MessageCircle,
   Star,
-  Send,
-  X,
-  Loader2,
-  AlertCircle,
 } from "lucide-react";
 
 import orderAPI from "../api/orderAPI";
+import {
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 
 const STATUS_ORDER = ["Pending", "Preparing", "Delivered"];
 
@@ -53,50 +50,31 @@ export default function OrderTracking() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  const [chatMessage, setChatMessage] = useState("");
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await orderAPI.getTracking(id);
+      setOrder(response?.data || null);
+      setError("");
+    } catch (fetchError) {
+      setOrder(null);
+      setError(
+        fetchError?.response?.data?.message ||
+          "Failed to load tracking details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        const response = await orderAPI.getTracking(id);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setOrder(response?.data || null);
-        setError("");
-      } catch (fetchError) {
-        if (!isMounted) {
-          return;
-        }
-
-        setOrder(null);
-        setError(
-          fetchError?.response?.data?.message ||
-            "Failed to load tracking details."
-        );
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
     if (id) {
       fetchOrder();
     }
-
-    return () => {
-      isMounted = false;
-    };
   }, [id]);
 
   const steps = useMemo(
@@ -107,17 +85,85 @@ export default function OrderTracking() {
   const etaLabel = useMemo(() => {
     if (!order) return "";
     if (order.status === "Delivered") return "Delivered";
-    if (order.status === "Preparing") return "Arriving in 15-25 mins";
-    return "Confirming your order";
+    if (order.status === "Preparing") return "Preparing now";
+    return "Order received";
+  }, [order]);
+
+  const statusVisual = useMemo(() => {
+    if (!order) {
+      return {
+        badgeClasses: "bg-gray-100 text-gray-600",
+        bubbleLabel: "Tracking order",
+        bubbleClasses: "bg-gray-500",
+        panelWrapClasses: "bg-gray-100 text-gray-600",
+        presenceClasses: "bg-gray-500",
+        presenceLabel: "Order update",
+        summaryTitle: "Checking order details",
+        summaryCopy: "We are syncing the latest order state from the restaurant workflow.",
+        icon: Clock,
+      };
+    }
+
+    if (order.status === "Delivered") {
+      return {
+        badgeClasses: "bg-emerald-50 text-emerald-600",
+        bubbleLabel: "Delivered",
+        bubbleClasses: "bg-emerald-500",
+        panelWrapClasses: "bg-emerald-50 text-emerald-600",
+        presenceClasses: "bg-emerald-500",
+        presenceLabel: "Delivery complete",
+        summaryTitle: "Order delivered",
+        summaryCopy: "This order has been marked as delivered in the seller workflow.",
+        icon: CheckCircle2,
+      };
+    }
+
+    if (order.status === "Preparing") {
+      return {
+        badgeClasses: "bg-sky-50 text-sky-600",
+        bubbleLabel: "Preparing your order",
+        bubbleClasses: "bg-sky-500",
+        panelWrapClasses: "bg-sky-50 text-sky-600",
+        presenceClasses: "bg-sky-500",
+        presenceLabel: "Kitchen in progress",
+        summaryTitle: "Restaurant is preparing your order",
+        summaryCopy: "The seller moved this order to Preparing. Tracking stays in sync with each seller update.",
+        icon: Package,
+      };
+    }
+
+    return {
+      badgeClasses: "bg-amber-50 text-amber-700",
+      bubbleLabel: "Order received",
+      bubbleClasses: "bg-amber-500",
+      panelWrapClasses: "bg-amber-50 text-amber-700",
+      presenceClasses: "bg-amber-500",
+      presenceLabel: "Waiting for kitchen",
+      summaryTitle: "Waiting for the restaurant to begin",
+      summaryCopy: "The order is placed and ready for the seller to move into preparation.",
+      icon: Clock,
+    };
+  }, [order]);
+
+  const progressMotion = useMemo(() => {
+    if (!order || order.status === "Pending") {
+      return { x: 0, y: 0 };
+    }
+
+    if (order.status === "Delivered") {
+      return { x: 450, y: -250 };
+    }
+
+    return { x: 230, y: -120 };
   }, [order]);
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium uppercase tracking-widest text-gray-500">
-          Loading tracking details...
-        </p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+        <WorkspaceLoadingState
+          title="Loading tracking details"
+          message="Gathering the latest order status, route details, and delivery summary."
+        />
       </div>
     );
   }
@@ -125,21 +171,23 @@ export default function OrderTracking() {
   if (error || !order) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-10 text-center text-red-700">
-          <AlertCircle className="mx-auto mb-4" size={32} />
-          <p className="font-semibold">{error || "Order not found."}</p>
-        </div>
+        <WorkspaceErrorState
+          title="Tracking unavailable"
+          message={error || "Order not found."}
+          onAction={fetchOrder}
+        />
       </div>
     );
   }
 
   const isDelivered = order.status === "Delivered";
   const deliveryAddress = order.deliveryAddress || "Delivery address unavailable";
+  const StatusBubbleIcon = statusVisual.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+    <div className="min-h-screen pb-20">
+      <div className="sticky top-0 z-30 border-b border-white/60 bg-[#f7f8fa]/85 backdrop-blur-xl">
+        <div className="page-shell flex h-20 items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/orders")}
@@ -154,16 +202,18 @@ export default function OrderTracking() {
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-black">
+          <div
+            className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-black ${statusVisual.badgeClasses}`}
+          >
             <Clock size={16} />
             {etaLabel}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="page-shell grid grid-cols-1 gap-8 py-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-12">
-          <div className="relative h-[550px] bg-blue-50 rounded-[4rem] overflow-hidden border-8 border-white shadow-2xl group">
+          <div className="relative h-[550px] overflow-hidden rounded-[4rem] border-8 border-white bg-blue-50 shadow-2xl group">
             <div
               className="absolute inset-0 opacity-30"
               style={{
@@ -202,24 +252,25 @@ export default function OrderTracking() {
             </motion.div>
 
             <motion.div
-              animate={{
-                x: [0, 150, 300, 450],
-                y: [0, -50, -120, -250],
-              }}
-              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              animate={progressMotion}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
               className="absolute left-[120px] bottom-[400px] z-20"
             >
               <div className="relative">
-                <div className="bg-primary p-4 rounded-full shadow-2xl border-4 border-white text-white">
-                  <Bike size={32} />
+                <div
+                  className={`${statusVisual.bubbleClasses} p-4 rounded-full shadow-2xl border-4 border-white text-white`}
+                >
+                  <StatusBubbleIcon size={32} />
                 </div>
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="absolute -top-16 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-2xl"
+                  className={`absolute -top-16 left-1/2 -translate-x-1/2 ${statusVisual.bubbleClasses} text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-2xl`}
                 >
-                  Courier en route
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rotate-45" />
+                  {statusVisual.bubbleLabel}
+                  <div
+                    className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 ${statusVisual.bubbleClasses} rotate-45`}
+                  />
                 </motion.div>
               </div>
             </motion.div>
@@ -242,48 +293,38 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-2xl border border-white/20 flex items-center justify-between"
+                className="surface-panel-strong p-8"
               >
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <img
-                      src="https://i.pravatar.cc/150?u=driver"
-                      alt="Driver"
-                      className="w-20 h-20 rounded-[1.5rem] object-cover shadow-lg"
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full" />
+                <div className="flex items-start gap-6">
+                  <div
+                    className={`flex h-20 w-20 items-center justify-center rounded-[1.5rem] ${statusVisual.panelWrapClasses}`}
+                  >
+                    <StatusBubbleIcon size={34} />
                   </div>
+
                   <div>
-                    <h4 className="text-2xl font-black text-contrast">
-                      Michael Scott
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
+                      Live status
+                    </p>
+                    <h4 className="mt-2 text-2xl font-black text-contrast">
+                      {statusVisual.summaryTitle}
                     </h4>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex items-center gap-1 text-yellow-500 text-sm font-black">
-                        <Star size={14} fill="currentColor" /> 4.9
-                      </div>
-                      <span className="text-gray-300">•</span>
-                      <span className="text-xs font-bold text-gray-400">
-                        Courier Partner
-                      </span>
+                    <p className="mt-3 max-w-xl text-sm font-medium text-gray-500">
+                      {statusVisual.summaryCopy}
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${statusVisual.presenceClasses}`}
+                      />
+                      {statusVisual.presenceLabel}
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setShowChat(true)}
-                    className="p-5 bg-gray-50 hover:bg-gray-100 rounded-[1.5rem] transition-all text-contrast border border-gray-100"
-                  >
-                    <MessageCircle size={28} />
-                  </button>
-                  <button className="p-5 bg-primary text-white rounded-[1.5rem] shadow-xl shadow-primary/20 hover:scale-105 transition-all">
-                    <Phone size={28} />
-                  </button>
                 </div>
               </motion.div>
             </div>
           </div>
 
-          <div className="bg-white p-10 rounded-[4rem] shadow-soft border border-gray-100">
+          <div className="surface-panel-strong rounded-[4rem] p-10">
             <h3 className="text-2xl font-black text-contrast tracking-tight mb-10">
               Delivery Details
             </h3>
@@ -322,7 +363,7 @@ export default function OrderTracking() {
         </div>
 
         <div className="space-y-12">
-          <div className="bg-white p-10 rounded-[4rem] shadow-soft border border-gray-100">
+          <div className="surface-panel-strong rounded-[4rem] p-10">
             <h3 className="text-2xl font-black text-contrast tracking-tight mb-12">
               Order Status
             </h3>
@@ -363,7 +404,7 @@ export default function OrderTracking() {
                             animate={{ scale: [1, 1.1, 1] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                           >
-                            <Bike size={32} />
+                            <Package size={32} />
                           </motion.div>
                         ) : (
                           <div className="w-4 h-4 bg-current rounded-full" />
@@ -402,7 +443,7 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          <div className="bg-contrast text-white p-10 rounded-[4rem] shadow-2xl relative overflow-hidden">
+          <div className="relative overflow-hidden rounded-[4rem] bg-contrast p-10 text-white shadow-2xl">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <Package size={120} />
             </div>
@@ -435,16 +476,16 @@ export default function OrderTracking() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-12 bg-white rounded-[2.5rem] p-10 shadow-soft border border-gray-100 text-center max-w-2xl mx-auto lg:col-span-3"
+            className="surface-panel-strong mx-auto mt-12 max-w-2xl rounded-[2.5rem] p-10 text-center lg:col-span-3"
           >
             <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Star size={40} className="text-yellow-500 fill-yellow-500" />
             </div>
             <h2 className="text-3xl font-extrabold text-contrast mb-4">
-              How was your food?
+              How was your order?
             </h2>
             <p className="text-gray-500 mb-8 font-medium">
-              Your feedback helps us improve and rewards the restaurant!
+              This note stays on your device for the current demo review.
             </p>
 
             <div className="flex justify-center gap-3 mb-8">
@@ -477,7 +518,7 @@ export default function OrderTracking() {
               onClick={() => setIsSubmitted(true)}
               className="w-full bg-primary hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all"
             >
-              Submit Feedback
+              Save Local Note
             </button>
           </motion.div>
         )}
@@ -486,119 +527,17 @@ export default function OrderTracking() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mt-12 bg-green-50 rounded-[2.5rem] p-10 border border-green-100 text-center max-w-2xl mx-auto lg:col-span-3"
+            className="mx-auto mt-12 max-w-2xl rounded-[2.5rem] border border-green-100 bg-green-50 p-10 text-center lg:col-span-3"
           >
             <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-green-800 mb-2">
               Thank you for your feedback!
             </h2>
             <p className="text-green-600 font-medium">
-              We&apos;ve shared your thoughts with the restaurant.
+              Your note was saved locally for this demo review.
             </p>
           </motion.div>
         )}
-      </div>
-
-      <div className="fixed bottom-24 right-8 z-40">
-        <AnimatePresence>
-          {showChat && (
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 40,
-                scale: 0.9,
-                transformOrigin: "bottom right",
-              }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 40, scale: 0.9 }}
-              className="bg-white rounded-[3rem] shadow-2xl border border-gray-100 w-96 mb-6 overflow-hidden flex flex-col h-[500px]"
-            >
-              <div className="bg-contrast p-6 flex items-center justify-between text-white">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-primary/30">
-                    <img
-                      src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200"
-                      alt="Courier"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-black tracking-tight">
-                      Michael (Courier)
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                        Online
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowChat(false)}
-                  className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar bg-gray-50">
-                <div className="flex justify-start">
-                  <div className="bg-white p-4 rounded-[1.5rem] rounded-tl-none text-xs font-medium text-gray-600 max-w-[85%] shadow-sm border border-gray-100">
-                    Hi! I&apos;m Michael, your courier. I&apos;ve just picked up
-                    your order and I&apos;m on my way!
-                    <p className="text-[9px] mt-2 font-black text-gray-400 uppercase tracking-widest">
-                      Live courier chat mock
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="bg-primary p-4 rounded-[1.5rem] rounded-tr-none text-xs font-medium text-white max-w-[85%] shadow-lg shadow-primary/10">
-                    Great, thanks Michael! Please leave it at the front door.
-                    <p className="text-[9px] mt-2 font-black text-white/60 uppercase tracking-widest">
-                      Customer message
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 bg-white border-t border-gray-100">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setChatMessage("");
-                  }}
-                  className="flex items-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100"
-                >
-                  <input
-                    type="text"
-                    placeholder="Type a message..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-4 font-medium outline-none"
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                  />
-                  <button className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 transition-all">
-                    <Send size={18} />
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <button
-          onClick={() => setShowChat(!showChat)}
-          className="bg-contrast text-white w-16 h-16 rounded-[2rem] flex items-center justify-center shadow-2xl hover:scale-110 hover:rotate-12 transition-all group relative"
-        >
-          <MessageCircle
-            size={28}
-            className="group-hover:scale-110 transition-transform"
-          />
-          {!showChat && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
-              1
-            </span>
-          )}
-        </button>
       </div>
     </div>
   );

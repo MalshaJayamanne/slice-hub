@@ -1,286 +1,389 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Search,
-  MapPin,
-  Star,
   Clock,
-  TrendingUp,
+  MapPin,
+  Search,
   Sparkles,
+  Star,
+  Store,
+  TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-// ✅ Existing components
-import RestaurantCard from "../components/RestaurantCard";
 import FoodCard from "../components/FoodCard";
-
-// ✅ APIs
-import { restaurantService } from "../services/restaurantService";
+import FeedbackAlert from "../components/FeedbackAlert";
+import RestaurantCard from "../components/RestaurantCard";
+import {
+  WorkspaceEmptyState,
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from "../components/WorkspaceScaffold";
 import foodAPI from "../api/foodAPI";
+import { useCart } from "../context/CartContext";
+import { restaurantService } from "../services/restaurantService";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  // ✅ State
+  const { addItem } = useCart();
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [heroSearch, setHeroSearch] = useState("");
+  const [heroLocation, setHeroLocation] = useState("");
+  const [cartFeedback, setCartFeedback] = useState(null);
 
-  // ✅ Fetch data
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const resRestaurants = await restaurantService.getRestaurants();
+      const resFoods = await foodAPI.getAll();
+
+      const safeRestaurants = Array.isArray(resRestaurants)
+        ? resRestaurants
+        : resRestaurants?.restaurants || [];
+
+      const safeFoods = Array.isArray(resFoods?.data?.foods) ? resFoods.data.foods : [];
+
+      setRestaurants(safeRestaurants);
+      setFoods(safeFoods);
+    } catch (fetchError) {
+      console.error("Home fetch error:", fetchError);
+      setRestaurants([]);
+      setFoods([]);
+      setError("Failed to load featured restaurants and dishes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resRestaurants = await restaurantService.getRestaurants();
-        const resFoods = await foodAPI.getAll?.();
-
-        const safeRestaurants = Array.isArray(resRestaurants)
-          ? resRestaurants
-          : resRestaurants?.restaurants || [];
-
-        // ✅ FIXED (robust for any backend shape)
-        const safeFoods =
-          Array.isArray(resFoods)
-            ? resFoods
-            : Array.isArray(resFoods?.data)
-            ? resFoods.data
-            : Array.isArray(resFoods?.data?.foods)
-            ? resFoods.data.foods
-            : Array.isArray(resFoods?.foods)
-            ? resFoods.foods
-            : [];
-
-        setRestaurants(safeRestaurants);
-        setFoods(safeFoods);
-      } catch (err) {
-        console.error("Home fetch error:", err);
-      }
-    };
-
     fetchData();
   }, []);
 
-  // ✅ AI Recommendation (unchanged)
   const recommendedFood = useMemo(() => {
     if (!Array.isArray(foods) || foods.length === 0) return null;
-
     return foods[Math.floor(Math.random() * foods.length)];
   }, [foods]);
 
+  const authUser = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("authUser");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (_error) {
+      return null;
+    }
+  }, []);
+
+  const handleBrowseRestaurants = () => {
+    navigate("/restaurants", {
+      state: {
+        initialSearch: heroSearch.trim(),
+      },
+    });
+  };
+
+  const handleAddToCart = (food) => {
+    const result = addItem(food, 1);
+    setCartFeedback({
+      type: result.success ? "success" : "error",
+      title: result.success ? "Added to cart" : "Cart update failed",
+      message: result.message,
+    });
+  };
+
   return (
-    <div className="pb-20 space-y-16 bg-[#F8F9FB]">
-
-      {/* ================= HERO SECTION ================= */}
-
-      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-black py-20">
+    <div className="space-y-20 pb-24">
+      <section className="relative flex min-h-[760px] items-center overflow-hidden bg-black py-24">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=1920"
             alt="Food background"
-            className="w-full h-full object-cover opacity-60"
+            className="h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/68" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-white">
+        <div className="page-shell relative z-10 pt-6 text-white">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="space-y-6 max-w-3xl"
+            className="max-w-[58rem] space-y-8"
           >
-            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl w-fit backdrop-blur">
+            <div className="glass-panel flex w-fit items-center gap-2 px-4 py-2.5 text-white">
               <Sparkles size={16} />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                SliceHub Food Delivery
+              <span className="text-xs font-extrabold uppercase tracking-[0.22em]">
+                SliceHub Delivery Workspace
               </span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight">
-              Discover the <span className="text-[#FF3B30]">Best Food</span> Near You
+            <h1 className="max-w-[56rem] text-[4.25rem] font-extrabold leading-[0.92] tracking-[-0.065em] text-white sm:text-[5.2rem] lg:text-[6.3rem]">
+              <span className="block">Discover better</span>
+              <span className="block text-[#FF3B30]">restaurant experiences</span>
+              <span className="block">near you</span>
             </h1>
 
-            <p className="text-lg text-gray-200">
-              Browse restaurants, explore menus, and order your favorite meals
-              with fast delivery.
+            <p className="max-w-3xl text-[1.15rem] leading-9 text-slate-200">
+              Browse approved restaurants, explore menus, and move from
+              discovery to checkout in a cleaner, faster customer flow.
             </p>
           </motion.div>
 
-          {/* SEARCH BAR */}
-          <div className="mt-10 bg-white p-3 rounded-2xl shadow-xl flex items-center gap-3 max-w-2xl">
-            <div className="flex items-center gap-2 flex-1 px-3">
-              <Search size={20} className="text-gray-400" />
-              <input
-                placeholder="Search restaurants..."
-                className="w-full outline-none font-medium text-gray-700"
-              />
-            </div>
+          <div className="surface-panel-strong mt-12 max-w-[66rem] bg-white/96 p-4 sm:p-5">
+            <div className="grid gap-3 lg:grid-cols-[1.25fr_0.95fr_auto] lg:gap-4">
+              <label className="flex items-center gap-3 rounded-[1.65rem] bg-[#f7f8fa] px-5 py-4">
+                <Search size={20} className="text-gray-400" />
+                <input
+                  placeholder="Search restaurants..."
+                  value={heroSearch}
+                  onChange={(event) => setHeroSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleBrowseRestaurants();
+                    }
+                  }}
+                  className="w-full bg-transparent text-[15px] font-semibold text-gray-700 outline-none placeholder:text-gray-400"
+                />
+              </label>
 
-            <div className="flex items-center gap-2 flex-1 px-3 border-l">
-              <MapPin size={20} className="text-gray-400" />
-              <input
-                placeholder="Your location"
-                className="w-full outline-none font-medium text-gray-700"
-              />
-            </div>
+              <label className="flex items-center gap-3 rounded-[1.65rem] bg-[#f7f8fa] px-5 py-4">
+                <MapPin size={20} className="text-gray-400" />
+                <input
+                  placeholder="Your location"
+                  value={heroLocation}
+                  onChange={(event) => setHeroLocation(event.target.value)}
+                  className="w-full bg-transparent text-[15px] font-semibold text-gray-700 outline-none placeholder:text-gray-400"
+                />
+              </label>
 
-            <button
-              onClick={() => navigate("/restaurants")}
-              className="bg-[#FF3B30] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#e5322a] transition"
-            >
-              Find Food
-            </button>
+              <button
+                onClick={handleBrowseRestaurants}
+                className="btn-primary min-h-[62px] rounded-[1.65rem] px-8 text-base"
+              >
+                Find Food
+              </button>
+            </div>
           </div>
 
-          {/* STATS */}
-          <div className="flex flex-wrap gap-10 mt-10">
-            <div className="flex items-center gap-3">
+          <div className="mt-12 grid max-w-[56rem] gap-4 sm:grid-cols-3 sm:gap-5">
+            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
               <Star className="text-yellow-400" />
               <div>
-                <p className="font-bold">4.9 / 5</p>
-                <p className="text-xs text-gray-300">User Rating</p>
+                <p className="text-lg font-extrabold">{foods.length || "Fresh"}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
+                  Visible Dishes
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
               <Clock className="text-green-400" />
               <div>
-                <p className="font-bold">25 min</p>
-                <p className="text-xs text-gray-300">Avg Delivery</p>
+                <p className="text-lg font-extrabold">25 min</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
+                  Avg Delivery
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
               <TrendingUp className="text-blue-400" />
               <div>
-                <p className="font-bold">500+</p>
-                <p className="text-xs text-gray-300">Restaurants</p>
+                <p className="text-lg font-extrabold">{restaurants.length || "Live"}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
+                  Approved Restaurants
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= FEATURED RESTAURANTS ================= */}
-      <section className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-6">Featured Restaurants</h2>
+      {cartFeedback ? (
+        <section className="page-shell">
+          <FeedbackAlert
+            type={cartFeedback.type}
+            title={cartFeedback.title}
+            message={cartFeedback.message}
+            onClose={() => setCartFeedback(null)}
+          />
+        </section>
+      ) : null}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {restaurants.slice(0, 6).map((restaurant) => (
-            <RestaurantCard key={restaurant?._id} restaurant={restaurant} />
-          ))}
-        </div>
-      </section>
-
-      {/* ================= POPULAR DISHES ================= */}
-      <section className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl font-bold mb-6">Popular Dishes</h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {foods.slice(0, 8).map((food) => (
-            <FoodCard
-              key={food?._id}
-              food={food}
-              onAddToCart={(item) => console.log("Added:", item)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* ================= AI RECOMMENDATION ================= */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-gradient-to-br from-[#FF3B30] to-orange-500 rounded-3xl p-10 text-white relative overflow-hidden">
-
-          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-
-          <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-3 rounded-xl">
-                  <Sparkles size={20} />
-                </div>
-                <h2 className="text-3xl font-extrabold">
-                  AI Chef Recommends
+      {loading ? (
+        <section className="page-shell">
+          <WorkspaceLoadingState
+            title="Loading featured food"
+            message="Pulling the latest restaurant and dish highlights for the customer landing page."
+          />
+        </section>
+      ) : error ? (
+        <section className="page-shell">
+          <WorkspaceErrorState
+            title="Home feed unavailable"
+            message={error}
+            onAction={fetchData}
+          />
+        </section>
+      ) : (
+        <>
+          <section className="page-shell">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="section-kicker">Customer picks</p>
+                <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-contrast">
+                  Featured Restaurants
                 </h2>
               </div>
-
-              <p className="text-white/80 text-lg">
-                Based on trending dishes and user preferences, we think you’ll love this!
-              </p>
-
-              {recommendedFood ? (
-                <>
-                  <h3 className="text-2xl font-bold">
-                    {recommendedFood.name}
-                  </h3>
-
-                  <p className="text-white/80 max-w-md">
-                    {recommendedFood.description || "A delicious choice just for you."}
-                  </p>
-
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => navigate(`/food/${recommendedFood._id}`)}
-                      className="bg-white text-[#FF3B30] px-6 py-3 rounded-xl font-bold"
-                    >
-                      View Dish
-                    </button>
-
-                    <button
-                      onClick={() => console.log("AI Add:", recommendedFood)}
-                      className="border border-white px-6 py-3 rounded-xl font-bold"
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p>No recommendation available.</p>
-              )}
+              <Link
+                to="/restaurants"
+                className="btn-secondary w-full sm:w-auto"
+              >
+                View All Restaurants
+              </Link>
             </div>
 
-            {recommendedFood && (
-              <div>
-                <img
-                  src={recommendedFood.image || "https://picsum.photos/500/400"}
-                  alt={recommendedFood.name}
-                  className="rounded-2xl shadow-2xl w-full h-[300px] object-cover"
-                />
+            {restaurants.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {restaurants.slice(0, 6).map((restaurant) => (
+                  <RestaurantCard key={restaurant?._id} restaurant={restaurant} />
+                ))}
               </div>
+            ) : (
+              <WorkspaceEmptyState
+                title="No featured restaurants yet"
+                message="Approved restaurants will appear here once the marketplace has active listings."
+              />
             )}
+          </section>
 
-          </div>
-        </div>
-      </section>
+          <section className="page-shell">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="section-kicker">Menu highlights</p>
+                <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-contrast">
+                  Popular Dishes
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-6 text-gray-500">
+                Fresh items pulled from currently visible restaurants.
+              </p>
+            </div>
 
-      {/* ================= CTA ================= */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-white rounded-3xl shadow-lg p-12 text-center space-y-6">
-          <h2 className="text-4xl font-bold text-gray-900">
+            {foods.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {foods.slice(0, 8).map((food) => (
+                  <FoodCard
+                    key={food?._id}
+                    food={food}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            ) : (
+              <WorkspaceEmptyState
+                icon={Store}
+                title="No popular dishes yet"
+                message="Featured dishes will appear here once restaurants have visible menu items."
+              />
+            )}
+          </section>
+
+          <section className="page-shell">
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#FF3B30] via-[#ff5b33] to-orange-500 p-8 text-white shadow-[0_28px_70px_rgba(255,59,48,0.25)] sm:p-10">
+              <div className="absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+
+              <div className="relative z-10 grid items-center gap-10 md:grid-cols-2">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-white/20 p-3">
+                      <Sparkles size={20} />
+                    </div>
+                    <h2 className="text-3xl font-extrabold tracking-[-0.04em]">
+                      AI Chef Recommends
+                    </h2>
+                  </div>
+
+                  <p className="text-lg leading-8 text-white/80">
+                    Based on trending dishes and user preferences, we think you&apos;ll love this!
+                  </p>
+
+                  {recommendedFood ? (
+                    <>
+                      <h3 className="text-2xl font-bold">{recommendedFood.name}</h3>
+
+                      <p className="max-w-md text-white/80">
+                        {recommendedFood.description || "A delicious choice just for you."}
+                      </p>
+
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => navigate(`/food/${recommendedFood._id}`)}
+                          className="rounded-2xl bg-white px-6 py-3 font-bold text-[#FF3B30]"
+                        >
+                          View Dish
+                        </button>
+
+                        <button
+                          onClick={() => handleAddToCart(recommendedFood)}
+                          className="rounded-2xl border border-white px-6 py-3 font-bold"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p>No recommendation available.</p>
+                  )}
+                </div>
+
+                {recommendedFood ? (
+                  <div>
+                    <img
+                      src={recommendedFood.image || "https://picsum.photos/500/400"}
+                      alt={recommendedFood.name}
+                      className="h-[320px] w-full rounded-[2rem] object-cover shadow-2xl"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      <section className="page-shell">
+        <div className="surface-panel-strong space-y-6 p-10 text-center sm:p-12">
+          <p className="section-kicker">Ready when you are</p>
+          <h2 className="text-4xl font-extrabold tracking-[-0.05em] text-gray-900">
             Ready to explore restaurants?
           </h2>
 
-          <p className="text-gray-600">
+          <p className="mx-auto max-w-2xl text-gray-600">
             Browse hundreds of restaurants and discover delicious meals.
           </p>
 
-          <div className="flex justify-center gap-4 flex-wrap">
+          <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/restaurants"
-              className="bg-[#FF3B30] text-white px-8 py-3 rounded-xl font-semibold"
+              className="btn-primary px-8"
             >
               Browse Restaurants
             </Link>
 
             <Link
-              to="/login"
-              className="border border-gray-300 px-8 py-3 rounded-xl font-semibold"
+              to={authUser ? "/dashboard" : "/login"}
+              className="btn-secondary px-8"
             >
-              Login
+              {authUser ? "Open Dashboard" : "Login"}
             </Link>
           </div>
         </div>
       </section>
-
     </div>
   );
 }

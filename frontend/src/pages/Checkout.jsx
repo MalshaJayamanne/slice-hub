@@ -7,13 +7,13 @@ import {
   CheckCircle2,
   Clock,
   Package,
-  TrendingUp,
   Navigation,
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import orderAPI from "../api/orderAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
 import { useCart } from "../context/CartContext";
 
 const DELIVERY_OPTIONS = {
@@ -64,12 +64,13 @@ export default function Checkout() {
     const contactBits = [];
     if (form.fullName.trim()) contactBits.push(`Name: ${form.fullName.trim()}`);
     if (form.phone.trim()) contactBits.push(`Phone: ${form.phone.trim()}`);
+    contactBits.push(`Delivery: ${DELIVERY_OPTIONS[deliveryType].label}`);
     if (form.instructions.trim()) {
       contactBits.push(`Instructions: ${form.instructions.trim()}`);
     }
 
     return [...parts, ...contactBits].join(", ");
-  }, [form]);
+  }, [deliveryType, form]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -112,7 +113,15 @@ export default function Checkout() {
       setIsOrdered(true);
 
       window.setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/dashboard", {
+          state: {
+            feedback: {
+              type: "success",
+              title: "Order placed",
+              message: "Your order was placed successfully. You can review it from your account.",
+            },
+          },
+        });
       }, 2500);
     } catch (placeOrderError) {
       setError(
@@ -130,11 +139,11 @@ export default function Checkout() {
 
   if (isOrdered) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <div className="page-shell py-20 text-center">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="bg-green-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"
+          className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-50"
         >
           <CheckCircle2 size={48} className="text-green-500" />
         </motion.div>
@@ -152,12 +161,12 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="page-shell py-8 sm:py-12">
       <button
         onClick={() => navigate("/cart")}
-        className="mb-6 sm:mb-8 flex items-center gap-2 text-gray-400 hover:text-primary font-black transition-all group"
+        className="group mb-6 flex items-center gap-2 font-black text-gray-400 transition-all hover:text-primary sm:mb-8"
       >
-        <div className="p-2 bg-white rounded-xl shadow-soft group-hover:bg-primary group-hover:text-white transition-all">
+        <div className="rounded-xl bg-white p-2 shadow-soft transition-all group-hover:bg-primary group-hover:text-white">
           <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
         </div>
         <span className="text-sm sm:text-base">Back to Cart</span>
@@ -169,7 +178,7 @@ export default function Checkout() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-          <section className="bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-soft border border-gray-100 space-y-6 sm:space-y-8">
+          <section className="surface-panel-strong space-y-6 p-6 sm:space-y-8 sm:rounded-[3rem] sm:p-10">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-blue-600">
                 <MapPin size={20} className="sm:w-7 sm:h-7" />
@@ -190,7 +199,7 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="Your name"
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-sm sm:text-base"
+                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
                 />
               </div>
 
@@ -204,7 +213,7 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="071 234 5678"
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-sm sm:text-base"
+                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
                 />
               </div>
 
@@ -219,7 +228,7 @@ export default function Checkout() {
                     onChange={handleChange}
                     type="text"
                     placeholder="123 Foodie St"
-                    className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-sm sm:text-base"
+                    className="input-surface w-full pl-12 pr-4 py-3 sm:pl-14 sm:pr-6 sm:py-4 sm:text-base"
                   />
                   <Navigation
                     size={18}
@@ -238,7 +247,7 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="Colombo"
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-sm sm:text-base"
+                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
                 />
               </div>
 
@@ -252,7 +261,7 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="10001"
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium text-sm sm:text-base"
+                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
                 />
               </div>
 
@@ -265,13 +274,13 @@ export default function Checkout() {
                   value={form.instructions}
                   onChange={handleChange}
                   placeholder="e.g. Ring the bell, leave at the front door, gate code is 1234..."
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium h-24 sm:h-32 resize-none text-sm sm:text-base"
+                  className="textarea-surface h-24 px-4 py-3 sm:h-32 sm:px-6 sm:py-4 sm:text-base"
                 />
               </div>
             </form>
           </section>
 
-          <section className="bg-white rounded-[2rem] sm:rounded-3xl p-6 sm:p-8 shadow-soft border border-gray-100">
+          <section className="surface-panel p-6 sm:rounded-3xl sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-primary/10 p-2 rounded-lg text-primary">
                 <CreditCard size={20} className="sm:w-6 sm:h-6" />
@@ -342,13 +351,13 @@ export default function Checkout() {
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl p-8 shadow-soft border border-gray-100">
+          <section className="surface-panel p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-primary/10 p-2 rounded-lg text-primary">
                 <Clock size={24} />
               </div>
               <h2 className="text-2xl font-bold text-contrast">
-                Delivery Options
+                Delivery Preference
               </h2>
             </div>
 
@@ -375,7 +384,7 @@ export default function Checkout() {
                     Standard Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.standard.timing} | Included in current total
+                    {DELIVERY_OPTIONS.standard.timing} | Shared with the restaurant
                   </p>
                 </div>
               </label>
@@ -395,23 +404,29 @@ export default function Checkout() {
                   onChange={() => setDeliveryType("priority")}
                 />
                 <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
-                  <TrendingUp size={20} />
+                  <Clock size={20} />
                 </div>
                 <div>
                   <p className="font-black text-contrast text-sm">
                     Priority Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.priority.timing} | UI option only for now
+                    {DELIVERY_OPTIONS.priority.timing} | Shared as a faster delivery preference
                   </p>
                 </div>
               </label>
             </div>
+
+            <p className="mt-4 text-sm text-gray-500">
+              Your delivery preference is included in the order details so the
+              restaurant can see it. No extra delivery fee is applied in this
+              demo.
+            </p>
           </section>
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-3xl p-8 shadow-soft border border-gray-100 sticky top-24">
+          <div className="surface-panel sticky top-24 p-8">
             <h2 className="text-2xl font-bold text-contrast mb-6">
               Order Summary
             </h2>
@@ -440,6 +455,10 @@ export default function Checkout() {
                 <span>Validated Total</span>
                 <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Delivery Preference</span>
+                <span>{DELIVERY_OPTIONS[deliveryType].label}</span>
+              </div>
               <div className="flex justify-between text-xl font-bold text-contrast pt-2">
                 <span>Total</span>
                 <span className="text-primary">Rs. {total.toFixed(2)}</span>
@@ -447,15 +466,20 @@ export default function Checkout() {
             </div>
 
             {error ? (
-              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+              <div className="mb-4">
+                <FeedbackAlert
+                  type="error"
+                  title="Checkout failed"
+                  message={error}
+                  onClose={() => setError("")}
+                />
               </div>
             ) : null}
 
             <button
               onClick={handlePlaceOrder}
               disabled={placingOrder}
-              className="w-full bg-primary hover:bg-red-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
+              className="btn-primary w-full py-4 font-bold"
             >
               {placingOrder ? (
                 <>

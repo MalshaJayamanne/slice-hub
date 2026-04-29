@@ -2,21 +2,18 @@
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
+import { createHttpError } from "../utils/validation.js";
 
 export const protect = async (req, _res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      const error = new Error("Not authorized. Token is missing.");
-      error.statusCode = 401;
-      throw error;
+      throw createHttpError("Not authorized. Token is missing.", 401);
     }
 
     if (!process.env.JWT_SECRET) {
-      const error = new Error("JWT_SECRET is not configured.");
-      error.statusCode = 500;
-      throw error;
+      throw createHttpError("JWT_SECRET is not configured.", 500);
     }
 
     const token = authHeader.split(" ")[1];
@@ -25,9 +22,7 @@ export const protect = async (req, _res, next) => {
     const user = await User.findById(decoded.userId).select("-passwordHash");
 
     if (!user || !user.isActive) {
-      const error = new Error("Not authorized. User not found or inactive.");
-      error.statusCode = 401;
-      throw error;
+      throw createHttpError("Not authorized. User not found or inactive.", 401);
     }
 
     req.user = user;
@@ -51,9 +46,7 @@ export const optionalProtect = async (req, _res, next) => {
     }
 
     if (!process.env.JWT_SECRET) {
-      const error = new Error("JWT_SECRET is not configured.");
-      error.statusCode = 500;
-      throw error;
+      throw createHttpError("JWT_SECRET is not configured.", 500);
     }
 
     const token = authHeader.split(" ")[1];

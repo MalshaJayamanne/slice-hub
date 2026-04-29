@@ -1,6 +1,7 @@
 import API from "./axios";
 
 const foodAPI = {
+  getAll: () => API.get("/foods"),
   getByRestaurant: (id) => API.get(`/foods/restaurant/${id}`),
   getById: (id) => API.get(`/foods/${id}`),
   create: (data) => API.post("/foods", data),

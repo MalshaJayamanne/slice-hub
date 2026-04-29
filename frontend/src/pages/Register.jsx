@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Pizza, Chrome, Facebook } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Pizza,
+  Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 import API from "../api/axios";
+import FeedbackAlert from "../components/FeedbackAlert";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -11,17 +18,22 @@ const Register = () => {
   const [role, setRole] = useState("customer");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirm) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match.");
       return;
     }
 
     try {
+      setSubmitting(true);
+      setError("");
+
       await API.post("/auth/register", {
         name,
         email,
@@ -29,24 +41,61 @@ const Register = () => {
         role,
       });
 
-      alert("Registration successful!");
-      navigate("/login");
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      navigate("/login", {
+        state: {
+          feedback: {
+            type: "success",
+            title: "Registration complete",
+            message: "Your account was created successfully. Sign in to continue.",
+          },
+        },
+      });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Registration failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5] px-4 py-12 font-inter">
+    <div className="min-h-screen px-4 py-12">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-8 bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100"
+        className="surface-panel-strong grid w-full max-w-5xl overflow-hidden lg:grid-cols-[0.95fr_1.05fr]"
       >
-        <div className="text-center">
+        <div className="hidden bg-gradient-to-br from-contrast via-slate-900 to-slate-800 px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em]">
+              <Pizza size={16} />
+              Create Account
+            </div>
+            <h1 className="mt-8 max-w-sm text-5xl font-extrabold leading-[1.02] tracking-[-0.05em] text-white">
+              Join the platform with a cleaner start
+            </h1>
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
+              Register as a customer or seller, then continue into the same
+              polished dashboards, browsing flows, and order tools.
+            </p>
+          </div>
+
+          <div className="glass-panel p-5 text-left">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/70">
+              Seller note
+            </p>
+            <p className="mt-3 text-sm leading-6 text-white/80">
+              Sellers can create a restaurant after sign-in, then move into menu
+              and order management from the dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-8 p-8 sm:p-10 lg:p-12">
+        <div className="text-center lg:text-left">
           <button
             type="button"
-            className="mx-auto flex items-center justify-center cursor-pointer group mb-6"
+            className="mx-auto mb-6 flex cursor-pointer items-center justify-center group lg:mx-0"
             onClick={() => navigate("/")}
           >
             <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
@@ -57,7 +106,10 @@ const Register = () => {
             </span>
           </button>
 
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Create Account</h2>
+          <p className="section-kicker">Create account</p>
+          <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[#1A1A1A]">
+            Register
+          </h2>
 
           <p className="mt-2 text-sm text-gray-500 font-medium">
             Already have an account?{" "}
@@ -68,6 +120,15 @@ const Register = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error ? (
+            <FeedbackAlert
+              type="error"
+              title="Registration failed"
+              message={error}
+              onClose={() => setError("")}
+            />
+          ) : null}
+
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
@@ -76,9 +137,10 @@ const Register = () => {
               <input
                 type="text"
                 required
+                disabled={submitting}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-4 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                className="input-surface py-4"
                 placeholder="John Doe"
               />
             </div>
@@ -92,9 +154,10 @@ const Register = () => {
                 <input
                   type="email"
                   required
+                  disabled={submitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                  className="input-surface pl-12 py-4"
                   placeholder="name@example.com"
                 />
               </div>
@@ -105,16 +168,17 @@ const Register = () => {
                 Account Type
               </label>
               <select
+                disabled={submitting}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                className="select-surface py-4"
               >
                 <option value="customer">Customer</option>
                 <option value="seller">Seller</option>
               </select>
             </div>
 
-            <div className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-gray-600">
+            <div className="soft-panel border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-gray-600">
               Sellers can create and manage restaurants after signing in. Admin accounts are created separately by the backend.
             </div>
 
@@ -127,9 +191,10 @@ const Register = () => {
                 <input
                   type="password"
                   required
+                  disabled={submitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                  className="input-surface pl-12 py-4"
                   placeholder="........"
                 />
               </div>
@@ -144,9 +209,10 @@ const Register = () => {
                 <input
                   type="password"
                   required
+                  disabled={submitting}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                  className="input-surface pl-12 py-4"
                   placeholder="........"
                 />
               </div>
@@ -155,33 +221,32 @@ const Register = () => {
 
           <button
             type="submit"
-            className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
+            disabled={submitting}
+            className="btn-primary group relative w-full py-4 text-sm font-bold"
           >
-            Sign Up
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" size={18} />
+                Creating Account...
+              </>
+            ) : (
+              <>
+                Sign Up
+                <ArrowRight
+                  className="ml-2 group-hover:translate-x-1 transition-transform"
+                  size={18}
+                />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              Or continue with
-            </span>
-          </div>
+        <div className="soft-panel px-4 py-4 text-sm text-gray-600">
+          Email registration is the supported sign-up flow in this demo.
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18} /> Google
-          </button>
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18} /> Facebook
-          </button>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };

@@ -1,7 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  Save,
+  Image as ImageIcon,
+  Loader2,
+  AlertCircle,
+  ArrowLeft,
+} from "lucide-react";
+
 import restaurantAPI from "../api/restaurantApi";
-import { Save, Image as ImageIcon, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+
+const initialFormData = {
+  name: "",
+  description: "",
+  category: "",
+  image: "",
+};
 
 const SellerRestaurantForm = () => {
   const navigate = useNavigate();
@@ -10,30 +24,20 @@ const SellerRestaurantForm = () => {
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category: "",
-    image: ""
-  });
-
-useEffect(() => {
-  if (isEditMode) {
-    fetchRestaurant();
-  }
-}, [restaurantId]); // remove isEditMode
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState(initialFormData);
 
   const fetchRestaurant = async () => {
+    if (!restaurantId) {
+      return;
+    }
+
     try {
       setLoading(true);
+      setError("");
 
       const res = await restaurantAPI.getRestaurantById(restaurantId);
-
-      // FIX: support multiple API formats safely
-      const restaurant =
-        res?.data?.restaurant || res?.data || null;
+      const restaurant = res?.data?.restaurant || res?.data || null;
 
       if (!restaurant) {
         throw new Error("Restaurant not found");
@@ -43,22 +47,31 @@ useEffect(() => {
         name: restaurant?.name || "",
         description: restaurant?.description || "",
         category: restaurant?.category || "",
-        image: restaurant?.image || ""
+        image: restaurant?.image || "",
       });
-
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load restaurant data.");
+    } catch (fetchError) {
+      console.error(fetchError);
+      setError(
+        fetchError?.response?.data?.message ||
+          "Failed to load restaurant data."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (isEditMode) {
+      fetchRestaurant();
+    }
+  }, [restaurantId]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     try {
       setSaving(true);
+      setError("");
 
       if (restaurantId) {
         await restaurantAPI.updateRestaurant(restaurantId, formData);
@@ -66,12 +79,23 @@ useEffect(() => {
         await restaurantAPI.createRestaurant(formData);
       }
 
-      setError(null);
-      navigate("/dashboard");
-
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to save restaurant.");
+      navigate("/dashboard", {
+        state: {
+          feedback: {
+            type: "success",
+            title: isEditMode ? "Restaurant updated" : "Restaurant created",
+            message: isEditMode
+              ? "Restaurant details were saved successfully."
+              : "Restaurant profile created successfully. You can continue with menu and order setup.",
+          },
+        },
+      });
+    } catch (submitError) {
+      console.error(submitError);
+      setError(
+        submitError?.response?.data?.message ||
+          "Failed to save restaurant."
+      );
     } finally {
       setSaving(false);
     }
@@ -79,142 +103,155 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={40} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
-
-      {/* Header */}
+    <div className="page-shell py-10 sm:py-12">
+      <div className="mx-auto max-w-4xl space-y-8">
+      <div className="surface-panel-strong p-6 sm:p-8">
       <div className="flex items-center gap-4">
-
         <button
+          type="button"
           onClick={() => navigate("/dashboard")}
-          className="p-2 border rounded-lg hover:bg-gray-50"
+          className="btn-secondary rounded-xl px-3 py-3"
         >
           <ArrowLeft size={20} />
         </button>
 
         <div>
-          <h1 className="text-2xl font-bold">
+          <p className="section-kicker">Seller workspace</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
             {isEditMode ? "Edit Restaurant" : "Create Restaurant"}
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500">
             Manage your restaurant profile
           </p>
         </div>
-
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg">
+      {error ? (
+        <div className="mt-6 flex items-center gap-2 rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-red-600">
           <AlertCircle size={18} />
-          {error}
+          <span>{error}</span>
         </div>
-      )}
+      ) : null}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl border">
-
-        {/* Image */}
+      <form
+        onSubmit={handleSubmit}
+        className="mt-8 space-y-6"
+      >
         <div className="space-y-2">
-
-          <label className="font-semibold text-sm">Restaurant Image URL</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Restaurant Image URL
+          </label>
 
           <div className="flex items-center gap-2">
-
             <ImageIcon size={20} className="text-gray-400" />
 
             <input
               type="text"
               placeholder="https://example.com/image.jpg"
-              className="w-full border rounded-lg px-4 py-2"
+              className="input-surface"
               value={formData.image}
-              onChange={(e) =>
-                setFormData({ ...formData, image: e.target.value })
+              onChange={(event) =>
+                setFormData((current) => ({
+                  ...current,
+                  image: event.target.value,
+                }))
               }
             />
-
           </div>
-
         </div>
 
-        {/* Name */}
         <div className="space-y-2">
-
-          <label className="font-semibold text-sm">Restaurant Name</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Restaurant Name
+          </label>
 
           <input
             type="text"
             required
             placeholder="Pizza Palace"
-            className="w-full border rounded-lg px-4 py-2"
+            className="input-surface"
             value={formData.name}
-            onChange={(e) =>
-              setFormData({ ...formData, name: e.target.value })
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                name: event.target.value,
+              }))
             }
           />
-
         </div>
 
-        {/* Category */}
         <div className="space-y-2">
-
-          <label className="font-semibold text-sm">Category</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Category
+          </label>
 
           <input
             type="text"
             required
             placeholder="Pizza, Burgers, Asian"
-            className="w-full border rounded-lg px-4 py-2"
+            className="input-surface"
             value={formData.category}
-            onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                category: event.target.value,
+              }))
             }
           />
-
         </div>
 
-        {/* Description */}
         <div className="space-y-2">
-
-          <label className="font-semibold text-sm">Description</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Description
+          </label>
 
           <textarea
             rows={4}
             placeholder="Tell customers about your restaurant..."
-            className="w-full border rounded-lg px-4 py-2"
+            className="textarea-surface"
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
             }
           />
-
         </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg hover:opacity-90"
-        >
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-primary"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
 
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
+            {isEditMode ? "Update Restaurant" : "Create Restaurant"}
+          </button>
 
-          {isEditMode ? "Update Restaurant" : "Create Restaurant"}
-
-        </button>
-
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="btn-secondary"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </form>
-
+      </div>
+      </div>
     </div>
   );
 };

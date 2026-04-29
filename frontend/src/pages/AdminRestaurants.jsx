@@ -1,220 +1,827 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  DollarSign,
+  ExternalLink,
+  Loader2,
+  Pencil,
+  Search,
+  ShoppingBag,
+  Store,
+  Trash2,
+  User,
+  X,
+  XCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingBag, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle } from "lucide-react";
-import restaurantAPI from "../api/restaurantApi";
-import { motion } from "framer-motion";
 
-const AdminRestaurants = () => {
+import adminAPI from "../api/adminAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
+
+const statusClasses = {
+  approved: "bg-green-100 text-green-600",
+  pending: "bg-orange-100 text-orange-600",
+  rejected: "bg-red-100 text-red-600",
+};
+
+const initialRestaurantForm = {
+  name: "",
+  ownerId: "",
+  category: "",
+  description: "",
+  image: "",
+  status: "pending",
+};
+
+const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
+
+export default function AdminRestaurants() {
   const navigate = useNavigate();
-
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [updatingRestaurantId, setUpdatingRestaurantId] = useState("");
+  const [deletingRestaurantId, setDeletingRestaurantId] = useState("");
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [ownerOptions, setOwnerOptions] = useState([]);
+  const [ownersLoading, setOwnersLoading] = useState(false);
+  const [isRestaurantFormOpen, setIsRestaurantFormOpen] = useState(false);
+  const [editingRestaurantId, setEditingRestaurantId] = useState("");
+  const [restaurantForm, setRestaurantForm] = useState(initialRestaurantForm);
+  const [submittingRestaurant, setSubmittingRestaurant] = useState(false);
+
+  const fetchRestaurants = async (initialLoad) => {
+    try {
+      if (initialLoad) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+
+      setError("");
+
+      const response = await adminAPI.getRestaurants({
+        search: searchTerm.trim(),
+        status: statusFilter,
+      });
+
+      setRestaurants(
+        Array.isArray(response?.data?.restaurants) ? response.data.restaurants : []
+      );
+    } catch (fetchError) {
+      setRestaurants([]);
+      setError(
+        fetchError?.response?.data?.message || "Failed to load restaurants."
+      );
+    } finally {
+      if (initialLoad) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
+
+      if (!hasLoadedOnce) {
+        setHasLoadedOnce(true);
+      }
+    }
+  };
+
+  const fetchOwnerOptions = async () => {
+    try {
+      setOwnersLoading(true);
+
+      const response = await adminAPI.getUsers({ role: "all", isActive: "all" });
+      const users = Array.isArray(response?.data?.users) ? response.data.users : [];
+
+      setOwnerOptions(
+        users.filter((user) => ["seller", "admin"].includes(user.role))
+      );
+    } catch (ownerError) {
+      setOwnerOptions([]);
+      setFeedback({
+        type: "error",
+        message:
+          ownerError?.response?.data?.message ||
+          "Failed to load restaurant owner options.",
+      });
+    } finally {
+      setOwnersLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchRestaurants();
-  }, []);
+    const timeoutId = setTimeout(() => {
+      fetchRestaurants(!hasLoadedOnce);
+    }, 250);
 
-  const fetchRestaurants = async () => {
-    try {
-      setLoading(true);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, statusFilter]);
 
-      const res = await restaurantAPI.getRestaurants();
+  const resetRestaurantForm = () => {
+    setRestaurantForm(initialRestaurantForm);
+    setEditingRestaurantId("");
+  };
 
-      const data = res.data.restaurants || res.data;
+  const openCreateRestaurantForm = async () => {
+    resetRestaurantForm();
+    setIsRestaurantFormOpen(true);
+    setFeedback(null);
 
-      setRestaurants(data);
-      setError(null);
-
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load restaurants");
-    } finally {
-      setLoading(false);
+    if (ownerOptions.length === 0) {
+      await fetchOwnerOptions();
     }
   };
 
-  const updateStatus = async (id, status) => {
-    try {
-      await restaurantAPI.updateStatus(id, status);
+  const openEditRestaurantForm = async (restaurant) => {
+    const ownerId =
+      restaurant?.owner?._id ||
+      restaurant?.ownerId?._id ||
+      restaurant?.ownerId ||
+      "";
 
-      setRestaurants((prev) =>
-        prev.map((r) =>
-          r._id === id ? { ...r, status } : r
-        )
+    setEditingRestaurantId(restaurant._id);
+    setRestaurantForm({
+      name: restaurant?.name || "",
+      ownerId: ownerId?.toString?.() || "",
+      category: restaurant?.category || "",
+      description: restaurant?.description || "",
+      image: restaurant?.image || "",
+      status: restaurant?.status || "pending",
+    });
+    setIsRestaurantFormOpen(true);
+    setFeedback(null);
+
+    if (ownerOptions.length === 0) {
+      await fetchOwnerOptions();
+    }
+  };
+
+  const closeRestaurantForm = () => {
+    setIsRestaurantFormOpen(false);
+    resetRestaurantForm();
+  };
+
+  const handleStatusUpdate = async (restaurant, nextStatus) => {
+    try {
+      setUpdatingRestaurantId(restaurant._id);
+      setFeedback(null);
+
+      const response = await adminAPI.updateRestaurantStatus(
+        restaurant._id,
+        nextStatus
+      );
+      const updatedRestaurant = response?.data?.restaurant;
+
+      setRestaurants((currentRestaurants) =>
+        currentRestaurants.flatMap((currentRestaurant) => {
+          if (
+            currentRestaurant._id !== restaurant._id ||
+            !updatedRestaurant
+          ) {
+            return [currentRestaurant];
+          }
+
+          if (statusFilter !== "all" && updatedRestaurant.status !== statusFilter) {
+            return [];
+          }
+
+          return [updatedRestaurant];
+        })
       );
 
-    } catch (err) {
-      console.error("Failed to update status", err);
-      setError(err.response?.data?.message || "Failed to update restaurant status.");
+      setFeedback({
+        type: "success",
+        message: `${restaurant.name} marked as ${nextStatus}.`,
+      });
+    } catch (updateError) {
+      setFeedback({
+        type: "error",
+        message:
+          updateError?.response?.data?.message ||
+          `Failed to update ${restaurant.name}.`,
+      });
+    } finally {
+      setUpdatingRestaurantId("");
     }
   };
 
-  const filteredRestaurants = restaurants.filter((r) => {
-    const matchesSearch = r.name
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  const handleRestaurantFormChange = (field, value) => {
+    setRestaurantForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
 
-    const matchesStatus =
-      statusFilter === "All" ||
-      r.status === statusFilter.toLowerCase();
+  const handleSubmitRestaurant = async (event) => {
+    event.preventDefault();
 
-    return matchesSearch && matchesStatus;
-  });
+    if (
+      !restaurantForm.name.trim() ||
+      !restaurantForm.category.trim() ||
+      !restaurantForm.ownerId
+    ) {
+      setFeedback({
+        type: "error",
+        message: "Name, owner, and category are required.",
+      });
+      return;
+    }
+
+    try {
+      setSubmittingRestaurant(true);
+      setFeedback(null);
+
+      const payload = {
+        name: restaurantForm.name.trim(),
+        ownerId: restaurantForm.ownerId,
+        category: restaurantForm.category.trim(),
+        description: restaurantForm.description.trim(),
+        image: restaurantForm.image.trim(),
+        status: restaurantForm.status,
+      };
+
+      if (editingRestaurantId) {
+        await adminAPI.updateRestaurant(editingRestaurantId, payload);
+      } else {
+        await adminAPI.createRestaurant(payload);
+      }
+
+      await fetchRestaurants(false);
+      setFeedback({
+        type: "success",
+        message: editingRestaurantId
+          ? "Restaurant updated successfully."
+          : "Restaurant created successfully.",
+      });
+      closeRestaurantForm();
+    } catch (submitError) {
+      setFeedback({
+        type: "error",
+        message:
+          submitError?.response?.data?.message ||
+          "Failed to save restaurant.",
+      });
+    } finally {
+      setSubmittingRestaurant(false);
+    }
+  };
+
+  const handleDeleteRestaurant = async (restaurant) => {
+    if (
+      !window.confirm(
+        `Delete ${restaurant.name}? Restaurants with existing orders cannot be removed.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setDeletingRestaurantId(restaurant._id);
+      setFeedback(null);
+
+      await adminAPI.deleteRestaurant(restaurant._id);
+      await fetchRestaurants(false);
+      setFeedback({
+        type: "success",
+        message: `${restaurant.name} deleted successfully.`,
+      });
+    } catch (deleteError) {
+      setFeedback({
+        type: "error",
+        message:
+          deleteError?.response?.data?.message ||
+          `Failed to delete ${restaurant.name}.`,
+      });
+    } finally {
+      setDeletingRestaurantId("");
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin" size={40} />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-500 animate-pulse">
+          Loading management console...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-8">
-
-      <h1 className="text-3xl font-bold">
-        Restaurant Management
-      </h1>
-
-      {error && (
-        <div className="bg-red-50 p-4 rounded-xl flex gap-2 items-center">
-          <AlertCircle />
-          {error}
+    <div className="page-shell space-y-8 py-6 sm:py-8">
+      <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-contrast">
+            Restaurant Management
+          </h1>
+          <p className="font-medium text-gray-500">
+            Approve, monitor, and manage platform vendors
+          </p>
         </div>
-      )}
 
-      {/* Search */}
-      <div className="flex gap-4">
-        <input
-          type="text"
-          placeholder="Search restaurants"
-          className="border p-3 rounded-xl w-80"
-          value={searchTerm}
-          onChange={(e) =>
-            setSearchTerm(e.target.value)
-          }
-        />
-
-        <select
-          className="border p-3 rounded-xl"
-          value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value)
-          }
+        <button
+          type="button"
+          onClick={openCreateRestaurantForm}
+          className="w-full rounded-2xl bg-primary px-8 py-4 font-black text-white shadow-xl shadow-primary/20 transition-all hover:scale-105 sm:w-auto"
         >
-          <option>All</option>
-          <option>Pending</option>
-          <option>Approved</option>
-          <option>Rejected</option>
-        </select>
-      </div>
+          <span className="flex items-center justify-center gap-2">
+            <Store size={20} />
+            Register New Restaurant
+          </span>
+        </button>
+      </header>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {feedback ? (
+        <FeedbackAlert
+          type={feedback.type}
+          title={
+            feedback.type === "success"
+              ? "Restaurant updated"
+              : feedback.type === "info"
+              ? "Notice"
+              : "Update failed"
+          }
+          message={feedback.message}
+          onClose={() => setFeedback(null)}
+        />
+      ) : null}
 
-        <table className="w-full">
+      {error ? (
+        <div className="flex items-center gap-4 rounded-3xl border border-red-100 bg-red-50 p-6 text-red-600">
+          <AlertCircle size={24} />
+          <div className="flex-1">
+            <p className="font-black">Error</p>
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => fetchRestaurants(true)}
+            className="rounded-xl bg-white px-4 py-2 font-bold shadow-sm"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
 
-          <thead className="bg-gray-50 text-left text-sm">
-            <tr>
-              <th className="p-4">Restaurant</th>
-              <th className="p-4">Rating</th>
-              <th className="p-4">Orders</th>
-              <th className="p-4">Revenue</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Actions</th>
-            </tr>
-          </thead>
+      {isRestaurantFormOpen ? (
+        <form
+          onSubmit={handleSubmitRestaurant}
+          className="surface-panel p-6 sm:p-8"
+        >
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
+                {editingRestaurantId ? "Edit Restaurant" : "Create Restaurant"}
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-contrast">
+                {editingRestaurantId
+                  ? "Update Restaurant Record"
+                  : "Register Platform Restaurant"}
+              </h2>
+            </div>
 
-          <tbody>
+            <button
+              type="button"
+              onClick={closeRestaurantForm}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            >
+              <X size={16} />
+              Cancel
+            </button>
+          </div>
 
-            {filteredRestaurants.map((res) => (
-              <motion.tr
-                key={res._id}
-                whileHover={{ backgroundColor: "#f9fafb" }}
-              >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <input
+              placeholder="Restaurant name"
+              value={restaurantForm.name}
+              onChange={(event) =>
+                handleRestaurantFormChange("name", event.target.value)
+              }
+              className="input-surface"
+            />
 
-                <td className="p-4 flex items-center gap-3">
-                  <img
-                    src={res.image || "/default-restaurant.png"}
-                    alt={res.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
+            <select
+              value={restaurantForm.ownerId}
+              onChange={(event) =>
+                handleRestaurantFormChange("ownerId", event.target.value)
+              }
+              className="select-surface"
+              disabled={ownersLoading}
+            >
+              <option value="">
+                {ownersLoading ? "Loading owners..." : "Select owner"}
+              </option>
+              {ownerOptions.map((owner) => (
+                <option key={owner._id} value={owner._id}>
+                  {owner.name} ({owner.role})
+                </option>
+              ))}
+            </select>
 
-                  <div>
-                    <p className="font-semibold">
-                      {res.name}
-                    </p>
+            <input
+              placeholder="Category"
+              value={restaurantForm.category}
+              onChange={(event) =>
+                handleRestaurantFormChange("category", event.target.value)
+              }
+              className="input-surface"
+            />
 
-                    <p className="text-xs text-gray-400">
-                      {res.category}
-                    </p>
-                  </div>
-                </td>
+            <select
+              value={restaurantForm.status}
+              onChange={(event) =>
+                handleRestaurantFormChange("status", event.target.value)
+              }
+              className="select-surface"
+            >
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
 
-                <td className="p-4 flex items-center gap-1">
-                  <Star size={14} fill="orange" />
-                  {res.rating || 0}
-                </td>
+            <input
+              placeholder="Image URL"
+              value={restaurantForm.image}
+              onChange={(event) =>
+                handleRestaurantFormChange("image", event.target.value)
+              }
+              className="input-surface md:col-span-2"
+            />
 
-                <td className="p-4">
-                  <div className="flex items-center gap-1">
-                    <ShoppingBag size={14} />
-                    {res.totalOrders || 0}
-                  </div>
-                </td>
+            <textarea
+              placeholder="Description"
+              value={restaurantForm.description}
+              onChange={(event) =>
+                handleRestaurantFormChange("description", event.target.value)
+              }
+              className="textarea-surface min-h-32 md:col-span-2"
+            />
+          </div>
 
-                <td className="p-4 text-green-600 font-semibold">
-                  Rs {res.revenue || 0}
-                </td>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="submit"
+              disabled={submittingRestaurant}
+              className="btn-primary"
+            >
+              {submittingRestaurant ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Store size={18} />
+              )}
+              {submittingRestaurant
+                ? "Saving..."
+                : editingRestaurantId
+                ? "Update Restaurant"
+                : "Create Restaurant"}
+            </button>
 
-                <td className="p-4">
-                  <span className="px-3 py-1 rounded-full text-xs bg-gray-100">
-                    {res.status || "pending"}
-                  </span>
-                </td>
+            <button
+              type="button"
+              onClick={closeRestaurantForm}
+              disabled={submittingRestaurant}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
 
-                <td className="p-4 text-right space-x-2">
+      <div className="table-shell rounded-[2.5rem]">
+        <div className="flex flex-col items-center justify-between gap-4 border-b border-gray-100 p-6 sm:flex-row">
+          <div className="group relative w-full sm:w-96">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-primary"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search restaurants..."
+              className="input-surface w-full py-3 pl-12 text-sm font-bold text-contrast"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </div>
 
-                  <button
-                    className="p-2 hover:bg-green-50 rounded-lg"
-                    onClick={() =>
-                      updateStatus(res._id, "approved")
-                    }
+          <div className="flex w-full gap-2 sm:w-auto">
+            <select
+              className="select-surface w-full px-6 py-3 text-sm font-black text-contrast sm:w-auto"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="border-b border-gray-100 bg-gray-50/40 px-6 py-3 text-sm text-gray-500">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span>{restaurants.length} restaurants in the current view</span>
+            <span className="inline-flex items-center gap-2">
+              {refreshing ? <Loader2 size={14} className="animate-spin" /> : null}
+              {refreshing ? "Refreshing list..." : "Live admin restaurant data"}
+            </span>
+          </div>
+        </div>
+
+        {restaurants.length === 0 ? (
+          <div className="px-6 py-14 text-center">
+            <Store className="mx-auto text-gray-300" size={36} />
+            <p className="mt-4 text-lg font-semibold text-gray-700">
+              No restaurants found
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Try a different search or change the current status filter.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                    <th className="px-8 py-5">Restaurant</th>
+                    <th className="px-8 py-5">Owner</th>
+                    <th className="px-8 py-5">Total Orders</th>
+                    <th className="px-8 py-5">Revenue</th>
+                    <th className="px-8 py-5">Status</th>
+                    <th className="px-8 py-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-100">
+                  {restaurants.map((restaurant) => {
+                    const isUpdating = updatingRestaurantId === restaurant._id;
+                    const isDeleting = deletingRestaurantId === restaurant._id;
+
+                    return (
+                      <tr
+                        key={restaurant._id}
+                        className="transition-colors hover:bg-gray-50/50"
+                      >
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="h-14 w-14 overflow-hidden rounded-2xl border border-gray-100 shadow-soft">
+                              {restaurant.image ? (
+                                <img
+                                  src={restaurant.image}
+                                  alt={restaurant.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm font-black text-primary">
+                                  {restaurant.name?.slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-black text-contrast">
+                                {restaurant.name}
+                              </p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                {restaurant.category || "Uncategorized"}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
+                            <User size={14} />
+                            {restaurant.owner?.name || restaurant.owner?.email || "No owner"}
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
+                            <ShoppingBag size={14} />
+                            {restaurant.metrics?.totalOrders || 0}
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-1 text-sm font-black text-green-600">
+                            <DollarSign size={14} />
+                            {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
+                          </div>
+                        </td>
+
+                        <td className="px-8 py-5">
+                          <span
+                            className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${
+                              statusClasses[restaurant.status] || statusClasses.pending
+                            }`}
+                          >
+                            {restaurant.status}
+                          </span>
+                        </td>
+
+                        <td className="px-8 py-5 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/restaurant/${restaurant._id}`)}
+                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-primary/5 hover:text-primary"
+                              title="View Storefront"
+                            >
+                              <ExternalLink size={20} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openEditRestaurantForm(restaurant)}
+                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+                              title="Edit Restaurant"
+                            >
+                              <Pencil size={20} />
+                            </button>
+
+                            {restaurant.status !== "approved" ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleStatusUpdate(restaurant, "approved")
+                                }
+                                disabled={isUpdating}
+                                className="rounded-xl p-3 text-gray-400 transition-all hover:bg-green-50 hover:text-green-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Approve"
+                              >
+                                {isUpdating ? (
+                                  <Loader2 size={20} className="animate-spin" />
+                                ) : (
+                                  <CheckCircle2 size={20} />
+                                )}
+                              </button>
+                            ) : null}
+
+                            {restaurant.status !== "rejected" ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleStatusUpdate(restaurant, "rejected")
+                                }
+                                disabled={isUpdating}
+                                className="rounded-xl p-3 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Reject"
+                              >
+                                {isUpdating ? (
+                                  <Loader2 size={20} className="animate-spin" />
+                                ) : (
+                                  <XCircle size={20} />
+                                )}
+                              </button>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRestaurant(restaurant)}
+                              disabled={isDeleting}
+                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              title="Delete Restaurant"
+                            >
+                              {isDeleting ? (
+                                <Loader2 size={20} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={20} />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid gap-4 p-4 lg:hidden">
+              {restaurants.map((restaurant) => {
+                const isUpdating = updatingRestaurantId === restaurant._id;
+                const isDeleting = deletingRestaurantId === restaurant._id;
+
+                return (
+                  <article
+                    key={restaurant._id}
+                    className="rounded-[1.5rem] border border-gray-100 p-4 shadow-sm"
                   >
-                    <CheckCircle size={18} className="text-green-600" />
-                  </button>
+                    <div className="flex gap-4">
+                      <div className="h-20 w-20 overflow-hidden rounded-2xl border border-gray-100">
+                        {restaurant.image ? (
+                          <img
+                            src={restaurant.image}
+                            alt={restaurant.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm font-black text-primary">
+                            {restaurant.name?.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
 
-                  <button
-                    className="p-2 hover:bg-red-50 rounded-lg"
-                    onClick={() =>
-                      updateStatus(res._id, "rejected")
-                    }
-                  >
-                    <XCircle size={18} className="text-red-600" />
-                  </button>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-black text-contrast">
+                              {restaurant.name}
+                            </p>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                              {restaurant.category || "Uncategorized"}
+                            </p>
+                          </div>
 
-                  <button
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                    onClick={() => navigate(`/restaurant/${res._id}`)}
-                  >
-                    <ExternalLink size={18} />
-                  </button>
+                          <span
+                            className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${
+                              statusClasses[restaurant.status] || statusClasses.pending
+                            }`}
+                          >
+                            {restaurant.status}
+                          </span>
+                        </div>
 
-                </td>
+                        <div className="mt-3 space-y-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <User size={14} />
+                            {restaurant.owner?.name || restaurant.owner?.email || "No owner"}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <ShoppingBag size={14} />
+                            {restaurant.metrics?.totalOrders || 0} orders
+                          </div>
+                          <div className="flex items-center gap-1 font-bold text-green-600">
+                            <DollarSign size={14} />
+                            {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-              </motion.tr>
-            ))}
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/restaurant/${restaurant._id}`)}
+                        className="rounded-2xl border px-4 py-3 text-sm text-primary"
+                      >
+                        View
+                      </button>
 
-          </tbody>
+                      <button
+                        type="button"
+                        onClick={() => openEditRestaurantForm(restaurant)}
+                        className="rounded-2xl border px-4 py-3 text-sm text-orange-500"
+                      >
+                        Edit
+                      </button>
 
-        </table>
+                      {restaurant.status !== "approved" ? (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(restaurant, "approved")}
+                          disabled={isUpdating}
+                          className="rounded-2xl border px-4 py-3 text-sm text-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isUpdating ? "Updating..." : "Approve"}
+                        </button>
+                      ) : null}
 
+                      {restaurant.status !== "rejected" ? (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(restaurant, "rejected")}
+                          disabled={isUpdating}
+                          className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isUpdating ? "Updating..." : "Reject"}
+                        </button>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRestaurant(restaurant)}
+                        disabled={isDeleting}
+                        className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
-};
-
-export default AdminRestaurants;
+}

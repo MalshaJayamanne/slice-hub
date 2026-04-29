@@ -1,181 +1,176 @@
-/* src/index.css */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap");
 
-/* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
-  --primary-red: #FF3B30;
-  --secondary-orange: #FF9F1C;
-  --contrast-dark: #1A1A1A;
-  --bg-light: #F5F5F5;
+  --primary-red: #ff3b30;
+  --secondary-orange: #ff9f1c;
+  --contrast-dark: #1a1a1a;
+  --surface-base: #f4f5f7;
+  --surface-soft: #f8fafc;
+  --surface-muted: #eef2f6;
+  --font-body: "Manrope", "Segoe UI", sans-serif;
+  --font-display: "Sora", "Manrope", "Segoe UI", sans-serif;
 }
 
-/* Optional: Override Tailwind colors if needed */
-.bg-primary-red {
-  background-color: var(--primary-red);
-}
-.hover\:bg-secondary-orange:hover {
-  background-color: var(--secondary-orange);
-}
-.text-contrast-dark {
-  color: var(--contrast-dark);
-}
-.bg-bg-light {
-  background-color: var(--bg-light);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-/* ===== Restaurant Page ===== */
+  body {
+    font-family: var(--font-body);
+    @apply min-h-screen bg-[#f4f5f7] text-slate-800 antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(255, 159, 28, 0.1), transparent 28%),
+      radial-gradient(circle at top right, rgba(255, 59, 48, 0.08), transparent 24%),
+      linear-gradient(180deg, #fbfbfc 0%, #f4f5f7 38%, #edf1f5 100%);
+    background-attachment: fixed;
+  }
 
-.restaurant-page{
-padding:40px;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    @apply tracking-[-0.03em];
+  }
 
-.section-title{
-font-size:28px;
-font-weight:700;
-margin-bottom:25px;
-}
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
 
-/* ===== Grid ===== */
+  ::selection {
+    background: rgba(255, 59, 48, 0.16);
+    color: #111827;
+  }
 
-.restaurant-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-gap:25px;
-}
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+  }
 
-/* ===== Card ===== */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
 
-.restaurant-card{
-background:white;
-border-radius:16px;
-overflow:hidden;
-cursor:pointer;
-border:1px solid #eee;
-transition:0.3s;
-}
+  *::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+    background-color: rgba(148, 163, 184, 0.75);
+  }
 
-.restaurant-card:hover{
-transform:translateY(-5px);
-box-shadow:0 10px 25px rgba(0,0,0,0.08);
-}
-
-/* ===== Image ===== */
-
-.restaurant-image{
-position:relative;
-height:170px;
-overflow:hidden;
-}
-
-.restaurant-image img{
-width:100%;
-height:100%;
-object-fit:cover;
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
-/* ===== Tags ===== */
+@layer components {
+  .app-main {
+    @apply min-h-screen;
+  }
 
-.restaurant-tags{
-position:absolute;
-bottom:10px;
-left:10px;
-display:flex;
-gap:6px;
-}
+  .page-shell {
+    @apply mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8;
+  }
 
-.restaurant-tags span{
-background:white;
-padding:4px 8px;
-font-size:11px;
-font-weight:600;
-border-radius:6px;
-}
+  .surface-panel {
+    @apply rounded-[2rem] border backdrop-blur-sm;
+    background-color: rgba(255, 255, 255, 0.88);
+    border-color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+  }
 
-/* ===== Info ===== */
+  .surface-panel-strong {
+    @apply rounded-[2.5rem] border backdrop-blur;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 28px 64px rgba(15, 23, 42, 0.1);
+  }
 
-.restaurant-info{
-padding:14px;
-}
+  .soft-panel {
+    @apply rounded-[1.75rem] border border-gray-100 bg-[#f7f8fa];
+  }
 
-.restaurant-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+  .glass-panel {
+    @apply rounded-[2rem] border backdrop-blur-xl;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
 
-.restaurant-header h3{
-font-size:18px;
-font-weight:600;
-}
+  .kpi-card {
+    @apply relative overflow-hidden rounded-[1.75rem] border bg-white px-5 py-5;
+    border-color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  }
 
-/* ===== Rating ===== */
+  .section-kicker {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.22em];
+    color: rgba(255, 59, 48, 0.72);
+  }
 
-.rating{
-display:flex;
-align-items:center;
-gap:4px;
-background:#fff3e6;
-color:#ff7a00;
-padding:3px 7px;
-border-radius:6px;
-font-size:13px;
-}
+  .section-title {
+    @apply mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast sm:text-5xl;
+  }
 
-/* ===== Meta ===== */
+  .section-copy {
+    @apply mt-3 max-w-2xl text-[15px] leading-7 text-gray-500;
+  }
 
-.restaurant-meta{
-margin-top:8px;
-display:flex;
-align-items:center;
-gap:6px;
-color:#777;
-font-size:13px;
-}
+  .input-surface {
+    @apply w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 text-sm text-slate-700 transition placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-red-100;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
 
-.admin-container{
-padding:40px;
-}
+  .textarea-surface {
+    @apply input-surface min-h-[120px] resize-none;
+  }
 
-.admin-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
+  .select-surface {
+    @apply input-surface appearance-none pr-10;
+  }
 
-.admin-table th,
-.admin-table td{
-padding:12px;
-border:1px solid #ddd;
-text-align:left;
-}
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-[#e5322a] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60;
+  }
 
-.admin-table th{
-background:#f5f5f5;
-}
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60;
+  }
 
-.admin-btn{
-margin-right:6px;
-padding:6px 10px;
-border:none;
-border-radius:5px;
-cursor:pointer;
-}
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-600 transition hover:bg-white hover:text-slate-900;
+  }
 
-.btn-delete{
-background:#ff4d4d;
-color:white;
-}
+  .stat-tile {
+    @apply rounded-[1.5rem] border border-gray-100 bg-[#f8fafb] p-5;
+  }
 
-.btn-approve{
-background:#28a745;
-color:white;
-}
+  .table-shell {
+    @apply overflow-hidden rounded-[2rem] border bg-white;
+    border-color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  }
 
-.btn-reject{
-background:#ff9800;
-color:white;
+  .table-header {
+    @apply bg-[#f7f8fa] text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400;
+  }
+
+  .hairline-divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent;
+  }
+
+  .floating-orb {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
+  }
 }

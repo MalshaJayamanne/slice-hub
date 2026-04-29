@@ -267,6 +267,271 @@ Finish management side and prepare final submission/demo.
 * Admin can manage platform basics
 * Full end-to-end demo is ready
 
+## Detailed Week 5 execution plan
+
+### Current starting point in this repo
+
+* Customer checkout, order history, and tracking already exist
+* `frontend/src/pages/SellerOrders.jsx` is still empty
+* `frontend/src/pages/AdminUsers.jsx` is still empty
+* `frontend/src/pages/AdminDashboard.jsx` is only a placeholder
+* `backend/src/controllers/adminController.js` and `backend/src/routes/adminRoutes.js` are still placeholders
+* `frontend/src/api/orderAPI.js` only covers customer order calls
+* `frontend/src/routes/AppRoutes.jsx` does not yet expose seller orders, admin dashboard, admin users, or platform order monitoring routes
+* `frontend/src/pages/AdminRestaurants.jsx` already exists, but it expects metrics like total orders and revenue that are not clearly provided by the current backend response
+
+### Priority order for Week 5
+
+1. Freeze seller and admin API contract first
+2. Complete seller order processing flow
+3. Complete admin management pages and backend endpoints
+4. Run full cross-role integration testing
+5. Polish UX, documentation, and demo assets
+
+### Day 1 - API contract + scaffolding
+
+#### Developer 1
+
+* Review all existing order, restaurant, auth, and role middleware flows
+* Finalize the seller order API contract:
+
+  * get seller orders
+  * get single seller-accessible order
+  * update order status
+* Finalize the admin API contract:
+
+  * dashboard summary
+  * users list
+  * restaurants list/approval support
+  * platform order monitoring list
+* Confirm exact response shapes so frontend pages do not guess field names
+* Add missing backend route/controller scaffolding for admin APIs
+
+#### Developer 2
+
+* Add route placeholders in `AppRoutes.jsx` for:
+
+  * seller orders
+  * admin dashboard
+  * admin users
+  * admin restaurants
+  * admin platform orders
+* Scaffold the missing pages with loading, empty, and error states first
+* Reuse existing dashboard styling so Week 5 pages feel consistent from the start
+
+#### Both
+
+* Agree on one shared status list: `Pending`, `Preparing`, `Delivered`
+* Agree on one shared error message format
+* Agree on which pages are required for the final demo and which ones can stay minimal
+
+### Week 5 shared agreements
+
+#### Shared order status list
+
+* Use only these order statuses in Week 5:
+
+  * `Pending`
+  * `Preparing`
+  * `Delivered`
+* Meaning:
+
+  * `Pending` = customer placed the order and seller has not finished processing it yet
+  * `Preparing` = seller is actively working on the order
+  * `Delivered` = order is complete
+* Do not add extra statuses like `Cancelled`, `Rejected`, or `Ready` during Week 5 unless both developers update backend, frontend, and demo flow together
+
+#### Shared error message format
+
+* Backend API error shape for Week 5:
+
+```json
+{
+  "success": false,
+  "message": "Human-readable error message"
+}
+```
+
+* Frontend should always read `response.data.message` first
+* If no API message exists, use a short fallback such as:
+
+  * `Failed to load data.`
+  * `Failed to save changes.`
+  * `Something went wrong.`
+* Keep error messages short, clear, and user-facing
+* Do not mix multiple backend error keys like `error`, `msg`, and `message` in Week 5
+
+#### Final demo pages required
+
+These pages must work clearly enough to support the final end-to-end demo:
+
+* `Login`
+* `Register`
+* `RestaurantList`
+* `RestaurantMenu`
+* `Cart`
+* `Checkout`
+* `OrderHistory`
+* `OrderTracking`
+* `SellerOrders`
+* `AdminDashboard`
+* `AdminRestaurants`
+* `AdminOrders`
+
+#### Pages allowed to stay minimal
+
+These pages should load correctly, but they do not need deep polish for the final demo:
+
+* `AdminUsers` can stay read-only
+* `SellerMenu` can stay as a basic management page
+* `SellerRestaurantForm` only needs to work, not look perfect
+* `FoodDetails` can stay simple if `RestaurantMenu` already supports ordering well
+* `Dashboard` only needs to navigate correctly to the important flows
+
+#### Demo rule
+
+* Prioritize pages that prove the full customer -> seller -> admin flow
+* If time is short, polish the required demo pages first and keep the minimal pages stable but simple
+
+### Day 2 - Seller order flow
+
+#### Developer 1
+
+* Finish seller order fetch endpoint if missing
+* Tighten seller access checks so sellers only see their own restaurant orders
+* Review order status update validation
+* Make sure tracking and seller update flow stay in sync
+* Fix any backend issues affecting auth, restaurant ownership, or order access
+
+#### Developer 2
+
+* Build `SellerOrders.jsx`
+* Show seller order list with:
+
+  * order id
+  * customer name
+  * items
+  * total
+  * created time
+  * current status
+* Build seller status update UI using the backend status flow
+* Add success and error feedback after status changes
+* Add disabled/loading states while updates are in progress
+
+#### Both
+
+* Test the full seller journey:
+
+  * seller logs in
+  * seller opens orders
+  * seller updates order status
+  * customer sees updated tracking status
+
+### Day 3 - Admin management flow
+
+#### Developer 1
+
+* Implement admin endpoints for:
+
+  * dashboard summary counts
+  * users list
+  * order monitoring list
+* Recheck role protection on all admin routes
+* Validate admin-side filters and query params
+* Support any missing restaurant metrics needed by admin pages, or simplify the frontend expectations
+
+#### Developer 2
+
+* Build `AdminDashboard.jsx` with summary cards only first
+* Build `AdminUsers.jsx`
+* Finish/improve `AdminRestaurants.jsx`
+* Build platform order monitoring page
+* Connect all admin pages to live APIs
+
+#### Both
+
+* Verify admin can:
+
+  * view summary data
+  * view users
+  * review restaurants
+  * monitor platform orders
+
+### Day 4 - Integration + role testing
+
+#### Developer 1
+
+* Review all protected routes and backend authorization rules again
+* Fix edge cases in validation and error handling
+* Clean shared backend logic where seller/admin/customer flows overlap
+
+#### Developer 2
+
+* Improve UI consistency across seller, admin, and customer pages
+* Add final loading states everywhere they are still missing
+* Add clear success/error alerts on forms and action buttons
+* Fix navigation gaps from dashboard to Week 5 pages
+
+#### Both
+
+* Run full role-based testing:
+
+  * customer
+  * seller
+  * admin
+* Test protected-route failures:
+
+  * customer blocked from seller/admin pages
+  * seller blocked from admin pages
+  * seller blocked from other sellers' orders/restaurants
+* Record every issue in one shared bug list and close the blocking ones first
+
+### Day 5 - Final polish + submission prep
+
+#### Developer 1
+
+* Final backend cleanup
+* Final auth/order/restaurant bug fixing
+* Sanity-check all API responses used in the demo
+
+#### Developer 2
+
+* Final frontend polish
+* README cleanup and feature/status update
+* Prepare screenshots
+* Prepare demo path and presenter notes
+
+#### Both
+
+* Run one complete end-to-end demo rehearsal:
+
+  * register/login
+  * browse restaurants
+  * add to cart
+  * checkout
+  * view tracking
+  * seller updates order
+  * admin reviews platform
+* Fix final blocking bugs only
+* Freeze code for submission/demo
+
+### Definition of done for Week 5
+
+* Seller can open a dedicated orders page and update order status successfully
+* Customer tracking reflects seller status changes correctly
+* Admin dashboard, users, restaurants, and order monitoring pages all load real data
+* Role-based access works correctly for customer, seller, and admin
+* Loading, success, and error states exist on all main Week 5 flows
+* README reflects the real setup and feature status
+* Screenshots and demo flow are ready before the final day ends
+
+### Main risks to watch this week
+
+* Frontend pages expecting fields the backend does not return yet
+* Missing routes causing dashboard links or direct URLs to fail
+* Seller/admin access rules breaking when testing with real role accounts
+* Final-day time loss from leaving README, screenshots, and demo prep too late
+
 ---
 
 # Daily work plan
