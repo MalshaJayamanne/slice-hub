@@ -164,7 +164,7 @@ const RestaurantList = () => {
         />
       ) : (
         <div className="space-y-6">
-          <div className="rounded-[1.75rem] border border-gray-100 bg-gray-50 p-5">
+          <div className="soft-panel p-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
               <div className="relative flex-1">
                 <Search
@@ -174,7 +174,7 @@ const RestaurantList = () => {
                 <input
                   type="text"
                   placeholder="Search restaurants..."
-                  className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:ring-2 focus:ring-primary/20"
+                  className="input-surface w-full py-3 pl-11"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -228,7 +228,7 @@ const RestaurantList = () => {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm"
+                className="surface-panel p-6"
               >
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>

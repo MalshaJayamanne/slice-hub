@@ -40,32 +40,31 @@ function Navbar({ cartCount = 0 }) {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/88 backdrop-blur-xl">
+      <div className="page-shell">
+        <div className="flex h-[88px] items-center justify-between gap-4">
+          <Link to="/" className="group flex shrink-0 items-center">
+            <div className="rounded-[1.45rem] bg-[#FF3B30] p-4 text-white shadow-lg shadow-primary/20 transition-transform group-hover:-translate-y-0.5 group-hover:rotate-6">
+              <Pizza size={24} />
+            </div>
 
-        <div className="flex justify-between items-center h-20">
-
-          {/* Logo */}
-          <Link to="/" className="flex items-center group shrink-0">
-            
-              <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
-                <Pizza size={24} />
-              </div>
-
-              <span className="ml-3 text-[#1A1A1A] text-3xl font-bold tracking-tight">
+            <div className="ml-4">
+              <span className="block text-[2.15rem] font-extrabold leading-none tracking-[-0.05em] text-[#1A1A1A]">
                 Slice<span className="text-[#FF3B30]">Hub</span>
               </span>
-                        
+              <span className="mt-1 hidden text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400 sm:block">
+                Marketplace Workspace
+              </span>
+            </div>
           </Link>
 
-          {/* Search Bar */}
-          <div className="hidden lg:flex flex-1 max-w-lg mx-12">
+          <div className="mx-6 hidden max-w-[42rem] flex-1 lg:flex">
             <form
               onSubmit={handleSearchSubmit}
-              className="relative w-full group"
+              className="relative w-full"
             >
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                 size={20}
               />
 
@@ -74,24 +73,22 @@ function Navbar({ cartCount = 0 }) {
                 placeholder="Search restaurants..."
                 value={navbarSearch}
                 onChange={(event) => setNavbarSearch(event.target.value)}
-                className="w-full rounded-2xl border border-transparent bg-gray-50 py-3 pl-12 pr-20 focus:bg-white focus:outline-none focus:border-primary/20 focus:ring-4 focus:ring-primary/5"
+                className="input-surface border-slate-200 bg-white py-4 pl-14 pr-24 text-[15px] shadow-sm"
               />
 
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700"
+                className="absolute right-2 top-1/2 min-w-[68px] -translate-y-1/2 rounded-[1rem] bg-contrast px-4 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-primary"
               >
                 Go
               </button>
             </form>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-3">
-
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/"
-              className="hidden sm:block px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 hover:text-black"
+              className="hidden rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 sm:inline-flex"
             >
               Home
             </Link>
@@ -99,42 +96,38 @@ function Navbar({ cartCount = 0 }) {
             {token && user?.role === "customer" ? (
               <Link
                 to="/orders"
-                className="hidden md:block px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 hover:text-black"
+                className="hidden rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 md:inline-flex"
               >
                 Orders
               </Link>
             ) : null}
-
-            {/* Cart */}
             <Link
               to="/cart"
-              className="relative p-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-black"
+              className="relative rounded-[1.4rem] border border-slate-200/70 bg-white px-4 py-3 text-slate-500 shadow-sm transition hover:border-white hover:bg-white hover:text-slate-900"
             >
               <ShoppingCart size={22} />
 
               {cartCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 bg-primary text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-black text-white">
                   {cartCount}
                 </span>
               )}
             </Link>
-
-            {/* User */}
             {token ? (
               <>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 p-3 sm:px-4 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-black"
+                  className="flex items-center gap-2 rounded-[1.4rem] border border-slate-200/70 bg-white px-4 py-3 text-slate-500 shadow-sm transition hover:border-white hover:bg-white hover:text-slate-900"
                 >
                   <User size={22} />
-                  <span className="hidden sm:inline font-bold text-sm">
+                  <span className="hidden text-sm font-semibold sm:inline">
                     Account
                   </span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-red-500"
+                  className="rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-500"
                 >
                   Logout
                 </button>
@@ -142,14 +135,12 @@ function Navbar({ cartCount = 0 }) {
             ) : (
               <Link
                 to="/login"
-                className="bg-contrast text-white px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary transition-all"
+                className="rounded-2xl bg-contrast px-6 py-3 text-sm font-extrabold text-white transition-all hover:bg-primary hover:shadow-lg hover:shadow-primary/20"
               >
                 Login
               </Link>
             )}
-
           </div>
-
         </div>
       </div>
     </nav>

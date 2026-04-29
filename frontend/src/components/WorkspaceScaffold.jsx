@@ -39,18 +39,18 @@ export function WorkspacePage({
   children,
 }) {
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="page-shell py-10 sm:py-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.9fr)] lg:gap-10">
         {sidebar}
 
-        <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-sm border">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+        <div className="surface-panel-strong p-8 sm:p-10">
+          <p className="section-kicker">
             {eyebrow}
           </p>
-          <h1 className="mt-3 text-4xl sm:text-5xl font-black text-contrast tracking-tight">
+          <h1 className="section-title">
             {title}
           </h1>
-          <p className="mt-3 text-gray-500 max-w-2xl">{description}</p>
+          <p className="section-copy">{description}</p>
 
           <div className="mt-8">{children}</div>
         </div>
@@ -68,18 +68,21 @@ export function WorkspaceSidebar({
 }) {
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }}
-      className="bg-white rounded-[2rem] p-8 shadow-sm border text-center"
+      whileHover={{ y: -4 }}
+      className="surface-panel relative overflow-hidden p-8 text-center sm:p-10"
     >
-      <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+      <div className="absolute right-[-2.5rem] top-[-2rem] h-28 w-28 rounded-full bg-primary/5" />
+      <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-red-100/90 shadow-sm">
         <Icon size={42} className="text-red-500" />
       </div>
 
-      <h2 className="text-2xl font-bold text-contrast">{title}</h2>
-      <p className="text-gray-500 mt-2">{subtitle}</p>
+      <h2 className="text-[2rem] font-bold tracking-[-0.04em] text-contrast">
+        {title}
+      </h2>
+      <p className="mt-3 text-[15px] leading-8 text-gray-500">{subtitle}</p>
 
       {note ? (
-        <div className="mt-6 rounded-2xl bg-orange-50 border border-orange-100 p-4 text-left">
+        <div className="mt-6 rounded-[1.5rem] border border-orange-100 bg-orange-50/90 p-4 text-left">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
             Workspace
           </p>
@@ -99,7 +102,7 @@ export function WorkspaceStat({
   tone = "primary",
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5">
+    <div className="stat-tile min-h-[166px]">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
         {label}
       </p>
@@ -127,9 +130,9 @@ export function WorkspaceState({
   const toneClass = toneClasses[tone] || toneClasses.neutral;
 
   return (
-    <div className={`rounded-[1.5rem] border px-6 py-10 text-center ${toneClass.card}`}>
+    <div className={`rounded-[1.75rem] border px-6 py-10 text-center shadow-sm ${toneClass.card}`}>
       <div
-        className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${toneClass.iconWrap}`}
+        className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full shadow-sm ${toneClass.iconWrap}`}
       >
         <Icon className={animateIcon ? "animate-spin" : ""} />
       </div>

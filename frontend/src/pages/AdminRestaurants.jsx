@@ -314,7 +314,7 @@ export default function AdminRestaurants() {
   }
 
   return (
-    <div className="p-4 space-y-8 sm:p-8">
+    <div className="page-shell space-y-8 py-6 sm:py-8">
       <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-contrast">
@@ -372,7 +372,7 @@ export default function AdminRestaurants() {
       {isRestaurantFormOpen ? (
         <form
           onSubmit={handleSubmitRestaurant}
-          className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft sm:p-8"
+          className="surface-panel p-6 sm:p-8"
         >
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -403,7 +403,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("name", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
 
             <select
@@ -411,7 +411,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("ownerId", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="select-surface"
               disabled={ownersLoading}
             >
               <option value="">
@@ -430,7 +430,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("category", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
 
             <select
@@ -438,7 +438,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("status", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="select-surface"
             >
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
@@ -451,7 +451,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("image", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+              className="input-surface md:col-span-2"
             />
 
             <textarea
@@ -460,7 +460,7 @@ export default function AdminRestaurants() {
               onChange={(event) =>
                 handleRestaurantFormChange("description", event.target.value)
               }
-              className="min-h-32 rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+              className="textarea-surface min-h-32 md:col-span-2"
             />
           </div>
 
@@ -468,7 +468,7 @@ export default function AdminRestaurants() {
             <button
               type="submit"
               disabled={submittingRestaurant}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary"
             >
               {submittingRestaurant ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -486,7 +486,7 @@ export default function AdminRestaurants() {
               type="button"
               onClick={closeRestaurantForm}
               disabled={submittingRestaurant}
-              className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary"
             >
               Cancel
             </button>
@@ -494,7 +494,7 @@ export default function AdminRestaurants() {
         </form>
       ) : null}
 
-      <div className="overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-soft">
+      <div className="table-shell rounded-[2.5rem]">
         <div className="flex flex-col items-center justify-between gap-4 border-b border-gray-100 p-6 sm:flex-row">
           <div className="group relative w-full sm:w-96">
             <Search
@@ -504,7 +504,7 @@ export default function AdminRestaurants() {
             <input
               type="text"
               placeholder="Search restaurants..."
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-sm font-bold text-contrast transition-all focus:border-primary focus:outline-none"
+              className="input-surface w-full py-3 pl-12 text-sm font-bold text-contrast"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -512,7 +512,7 @@ export default function AdminRestaurants() {
 
           <div className="flex w-full gap-2 sm:w-auto">
             <select
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-black text-contrast transition-all focus:border-primary focus:outline-none sm:w-auto"
+              className="select-surface w-full px-6 py-3 text-sm font-black text-contrast sm:w-auto"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
             >

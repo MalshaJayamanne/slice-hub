@@ -110,28 +110,31 @@ const SellerRestaurantForm = () => {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-4 py-12">
+    <div className="page-shell py-10 sm:py-12">
+      <div className="mx-auto max-w-4xl space-y-8">
+      <div className="surface-panel-strong p-6 sm:p-8">
       <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={() => navigate("/dashboard")}
-          className="rounded-lg border p-2 transition hover:bg-gray-50"
+          className="btn-secondary rounded-xl px-3 py-3"
         >
           <ArrowLeft size={20} />
         </button>
 
         <div>
-          <h1 className="text-2xl font-bold text-contrast">
+          <p className="section-kicker">Seller workspace</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
             {isEditMode ? "Edit Restaurant" : "Create Restaurant"}
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500">
             Manage your restaurant profile
           </p>
         </div>
       </div>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-600">
+        <div className="mt-6 flex items-center gap-2 rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-red-600">
           <AlertCircle size={18} />
           <span>{error}</span>
         </div>
@@ -139,10 +142,12 @@ const SellerRestaurantForm = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-xl border bg-white p-8"
+        className="mt-8 space-y-6"
       >
         <div className="space-y-2">
-          <label className="text-sm font-semibold">Restaurant Image URL</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Restaurant Image URL
+          </label>
 
           <div className="flex items-center gap-2">
             <ImageIcon size={20} className="text-gray-400" />
@@ -150,7 +155,7 @@ const SellerRestaurantForm = () => {
             <input
               type="text"
               placeholder="https://example.com/image.jpg"
-              className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
               value={formData.image}
               onChange={(event) =>
                 setFormData((current) => ({
@@ -163,13 +168,15 @@ const SellerRestaurantForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold">Restaurant Name</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Restaurant Name
+          </label>
 
           <input
             type="text"
             required
             placeholder="Pizza Palace"
-            className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="input-surface"
             value={formData.name}
             onChange={(event) =>
               setFormData((current) => ({
@@ -181,13 +188,15 @@ const SellerRestaurantForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold">Category</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Category
+          </label>
 
           <input
             type="text"
             required
             placeholder="Pizza, Burgers, Asian"
-            className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="input-surface"
             value={formData.category}
             onChange={(event) =>
               setFormData((current) => ({
@@ -199,12 +208,14 @@ const SellerRestaurantForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold">Description</label>
+          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
+            Description
+          </label>
 
           <textarea
             rows={4}
             placeholder="Tell customers about your restaurant..."
-            className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="textarea-surface"
             value={formData.description}
             onChange={(event) =>
               setFormData((current) => ({
@@ -215,20 +226,32 @@ const SellerRestaurantForm = () => {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center gap-2 rounded-lg bg-black px-6 py-3 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-primary"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
 
-          {isEditMode ? "Update Restaurant" : "Create Restaurant"}
-        </button>
+            {isEditMode ? "Update Restaurant" : "Create Restaurant"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="btn-secondary"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </form>
+      </div>
+      </div>
     </div>
   );
 };

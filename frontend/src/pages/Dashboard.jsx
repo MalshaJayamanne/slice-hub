@@ -216,13 +216,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="page-shell py-10 sm:py-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <motion.div
-          whileHover={{ scale: 1.01 }}
-          className="bg-white rounded-[2rem] p-8 shadow-sm border text-center"
+          whileHover={{ y: -4 }}
+          className="surface-panel relative overflow-hidden p-8 text-center"
         >
-          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+          <div className="absolute right-[-2rem] top-[-2rem] h-28 w-28 rounded-full bg-primary/5" />
+          <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-red-100 shadow-sm">
             <User size={42} className="text-red-500" />
           </div>
 
@@ -235,14 +236,14 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={primaryWorkspaceAction.action}
-            className="mt-6 w-full flex items-center justify-center gap-2 rounded-2xl bg-primary p-3 font-semibold text-white transition hover:bg-red-700"
+            className="btn-primary mt-6 w-full"
           >
             <primaryWorkspaceAction.icon size={18} />
             {primaryWorkspaceAction.label}
           </button>
 
           {user?.role === "seller" ? (
-            <div className="mt-6 rounded-2xl bg-orange-50 border border-orange-100 p-4 text-left">
+            <div className="mt-6 rounded-[1.5rem] border border-orange-100 bg-orange-50 p-4 text-left">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
                 Seller Workspace
               </p>
@@ -269,16 +270,17 @@ export default function Dashboard() {
           ) : null}
         </motion.div>
 
-        <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-sm border">
-          <h1 className="text-3xl font-bold mb-2">
+        <div className="surface-panel-strong lg:col-span-2 p-8 sm:p-9">
+          <p className="section-kicker">Account workspace</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
             Welcome back {user?.name || ""}
           </h1>
-          <p className="text-gray-500 mb-8">
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-gray-500">
             Pick up where you left off and jump straight into the next task.
           </p>
 
           {pageFeedback ? (
-            <div className="mb-8">
+            <div className="mb-8 mt-8">
               <FeedbackAlert
                 type={pageFeedback.type}
                 title={pageFeedback.title}
@@ -288,6 +290,7 @@ export default function Dashboard() {
             </div>
           ) : null}
 
+          <div className={pageFeedback ? "" : "mt-8"}>
           {user?.role === "seller" ? (
             <div className="mb-8">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
@@ -300,10 +303,10 @@ export default function Dashboard() {
                     <button
                       key={item.label}
                       onClick={item.action}
-                      className="w-full flex items-center justify-between rounded-2xl border border-gray-100 p-4 hover:bg-gray-50 transition"
+                      className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
                     >
                       <div className="flex items-center gap-4 text-left">
-                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
@@ -331,10 +334,10 @@ export default function Dashboard() {
                     <button
                       key={item.label}
                       onClick={item.action}
-                      className="w-full flex items-center justify-between rounded-2xl border border-gray-100 p-4 hover:bg-gray-50 transition"
+                      className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
                     >
                       <div className="flex items-center gap-4 text-left">
-                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
@@ -361,14 +364,14 @@ export default function Dashboard() {
                   <button
                     key={item.label}
                     onClick={item.action}
-                    className={`w-full flex items-center justify-between rounded-2xl p-4 transition ${
+                    className={`w-full flex items-center justify-between rounded-[1.5rem] p-4 transition ${
                       item.danger
                         ? "text-red-500 hover:bg-red-50"
-                        : "hover:bg-gray-50"
+                        : "border border-gray-100 bg-[#fbfbfc] hover:bg-white hover:shadow-sm"
                     }`}
                   >
                     <div className="flex items-center gap-4 text-left">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
                         <Icon />
                       </div>
                       <div>
@@ -381,6 +384,7 @@ export default function Dashboard() {
                 );
               })}
             </div>
+          </div>
           </div>
         </div>
       </div>

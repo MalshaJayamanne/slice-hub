@@ -359,7 +359,7 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="p-4 space-y-8 sm:p-8">
+    <div className="page-shell space-y-8 py-6 sm:py-8">
       <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-contrast">User Management</h1>
@@ -420,7 +420,7 @@ export default function AdminUsers() {
       {isUserFormOpen ? (
         <form
           onSubmit={handleSubmitUser}
-          className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft sm:p-8"
+          className="surface-panel p-6 sm:p-8"
         >
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -447,26 +447,26 @@ export default function AdminUsers() {
               placeholder="Full name"
               value={userForm.name}
               onChange={(event) => handleUserFormChange("name", event.target.value)}
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder="Email address"
               type="email"
               value={userForm.email}
               onChange={(event) => handleUserFormChange("email", event.target.value)}
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder={editingUserId ? "New password (optional)" : "Password"}
               type="password"
               value={userForm.password}
               onChange={(event) => handleUserFormChange("password", event.target.value)}
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <select
               value={userForm.role}
               onChange={(event) => handleUserFormChange("role", event.target.value)}
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="select-surface"
             >
               <option value="customer">Customer</option>
               <option value="seller">Seller</option>
@@ -476,7 +476,7 @@ export default function AdminUsers() {
               placeholder="Phone"
               value={userForm.phone}
               onChange={(event) => handleUserFormChange("phone", event.target.value)}
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder="Profile image URL"
@@ -484,13 +484,13 @@ export default function AdminUsers() {
               onChange={(event) =>
                 handleUserFormChange("profileImage", event.target.value)
               }
-              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <textarea
               placeholder="Address"
               value={userForm.address}
               onChange={(event) => handleUserFormChange("address", event.target.value)}
-              className="min-h-28 rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+              className="textarea-surface min-h-28 md:col-span-2"
             />
             <label className="flex items-center gap-3 rounded-2xl border p-4 text-sm font-medium md:col-span-2">
               <input
@@ -508,7 +508,7 @@ export default function AdminUsers() {
             <button
               type="submit"
               disabled={submittingUser}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary"
             >
               {submittingUser ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -526,7 +526,7 @@ export default function AdminUsers() {
               type="button"
               onClick={closeUserForm}
               disabled={submittingUser}
-              className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary"
             >
               Cancel
             </button>
@@ -534,7 +534,7 @@ export default function AdminUsers() {
         </form>
       ) : null}
 
-      <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-soft">
+      <div className="table-shell rounded-3xl">
         <div className="flex flex-col gap-4 border-b border-gray-100 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:w-96">
             <Search
@@ -544,7 +544,7 @@ export default function AdminUsers() {
             <input
               type="text"
               placeholder="Search by name, email, or phone..."
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface w-full py-2.5 pl-10"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -559,7 +559,7 @@ export default function AdminUsers() {
               <select
                 value={roleFilter}
                 onChange={(event) => setRoleFilter(event.target.value)}
-                className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium focus:outline-none"
+                className="select-surface py-2"
               >
                 <option value="all">All Roles</option>
                 <option value="customer">Customer</option>
@@ -570,7 +570,7 @@ export default function AdminUsers() {
               <select
                 value={activityFilter}
                 onChange={(event) => setActivityFilter(event.target.value)}
-                className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium focus:outline-none"
+                className="select-surface py-2"
               >
                 <option value="all">All Status</option>
                 <option value="true">Active</option>

@@ -385,14 +385,14 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 px-4 py-4 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+    <div className="page-shell space-y-6 py-6 sm:space-y-8 sm:py-8">
         <header className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-contrast sm:text-3xl">
+            <p className="section-kicker">Admin workspace</p>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.05em] text-contrast sm:text-4xl">
               Platform Control
             </h1>
-            <p className="text-sm font-medium text-gray-500">
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-gray-500">
               Global system health, approvals, and live admin signals.
             </p>
           </div>
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
               <input
                 type="text"
                 placeholder="Search pending approvals..."
-                className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-xs shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:pl-12 sm:text-sm"
+                className="input-surface py-3 pl-10 text-xs shadow-sm sm:pl-12 sm:text-sm"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.08 }}
-                className="group relative overflow-hidden rounded-[2rem] border border-gray-100/50 bg-white p-5 shadow-soft sm:p-6"
+                className="kpi-card sm:p-6"
               >
                 <div className="relative z-10 mb-4 flex items-start justify-between">
                   <div className={`rounded-2xl p-3 shadow-lg ${metric.iconWrap}`}>
@@ -484,7 +484,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
-          <div className="rounded-[2rem] border border-gray-100/50 bg-white p-6 shadow-soft sm:p-8 lg:col-span-2">
+          <div className="surface-panel p-6 sm:p-8 lg:col-span-2">
             <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <h2 className="text-lg font-bold text-contrast sm:text-xl">
@@ -539,7 +539,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col rounded-[2rem] border border-gray-100/50 bg-white p-8 shadow-soft">
+          <div className="surface-panel flex flex-col p-8">
             <h2 className="mb-2 text-xl font-bold text-contrast">
               Order Status Split
             </h2>
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="overflow-hidden rounded-[2rem] border border-gray-100/50 bg-white shadow-soft lg:col-span-2">
+          <div className="table-shell lg:col-span-2">
             <div className="flex items-center justify-between border-b border-gray-100 p-8">
               <h2 className="text-xl font-bold text-contrast">
                 Restaurant Approvals
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="rounded-[2rem] border border-gray-100/50 bg-white p-8 shadow-soft">
+          <div className="surface-panel p-8">
             <h2 className="mb-6 text-xl font-bold text-contrast">
               System Health
             </h2>
@@ -777,7 +777,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

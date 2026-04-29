@@ -68,16 +68,46 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5] px-4 py-12 font-inter">
+    <div className="min-h-screen px-4 py-12">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-8 bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100"
+        className="surface-panel-strong grid w-full max-w-5xl overflow-hidden lg:grid-cols-[0.95fr_1.05fr]"
       >
-        <div className="text-center">
+        <div className="hidden bg-contrast px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em]">
+              <Pizza size={16} />
+              SliceHub Access
+            </div>
+            <h1 className="mt-8 max-w-sm text-5xl font-extrabold leading-[1.02] tracking-[-0.05em] text-white">
+              Sign in to your food workspace
+            </h1>
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
+              Continue as a customer, seller, or admin and pick up your live
+              restaurant, order, and dashboard flows from one place.
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            <div className="glass-panel p-5 text-left">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/70">
+                Live roles
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/80">
+                Customer browsing, seller order processing, and admin
+                management all use the same shared UI system.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8 p-8 sm:p-10 lg:p-12">
+        <div className="text-center lg:text-left">
           <button
             type="button"
-            className="mx-auto flex items-center justify-center cursor-pointer group mb-6"
+            className="mx-auto mb-6 flex cursor-pointer items-center justify-center group lg:mx-0"
             onClick={() => navigate("/")}
           >
             <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
@@ -88,7 +118,10 @@ const Login = () => {
             </span>
           </button>
 
-          <h2 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">Welcome Back!</h2>
+          <p className="section-kicker">Welcome back</p>
+          <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[#1A1A1A]">
+            Sign in
+          </h2>
 
           <p className="mt-2 text-sm text-gray-500 font-medium">
             Don't have an account?{" "}
@@ -132,7 +165,7 @@ const Login = () => {
                   disabled={submitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                  className="input-surface pl-12 py-4"
                   placeholder="name@example.com"
                 />
               </div>
@@ -166,21 +199,21 @@ const Login = () => {
                   disabled={submitting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/20 focus:border-[#FF3B30] font-medium transition-all"
+                  className="input-surface pl-12 py-4"
                   placeholder="........"
                 />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          <div className="soft-panel px-4 py-3 text-sm text-gray-600">
             Sessions stay signed in on this device until you log out.
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-[#FF3B30] hover:bg-[#FF9F1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF3B30] transition-all shadow-lg"
+            className="btn-primary group relative w-full py-4 text-sm font-bold"
           >
             {submitting ? (
               <>
@@ -199,10 +232,12 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="rounded-2xl bg-gray-50 px-4 py-4 text-sm text-gray-600">
+        <div className="soft-panel px-4 py-4 text-sm text-gray-600">
           Email and password sign-in is the supported login flow in this demo.
         </div>
+        </div>
       </motion.div>
+      </div>
     </div>
   );
 };

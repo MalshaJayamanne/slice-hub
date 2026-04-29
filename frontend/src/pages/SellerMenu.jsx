@@ -258,8 +258,8 @@ const SellerMenu = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
-      <div className="rounded-[2rem] bg-gradient-to-br from-orange-50 via-white to-red-50 border border-orange-100 p-6 sm:p-8">
+    <div className="page-shell space-y-8 py-8 sm:py-10">
+      <div className="surface-panel-strong bg-gradient-to-br from-orange-50 via-white to-red-50 p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-3">
@@ -293,11 +293,11 @@ const SellerMenu = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="rounded-2xl bg-white px-4 py-4 border border-gray-100 shadow-sm">
+            <div className="kpi-card px-4 py-4">
               <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Foods</p>
               <p className="mt-2 text-2xl font-bold text-gray-900">{foods.length}</p>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-4 border border-gray-100 shadow-sm">
+            <div className="kpi-card px-4 py-4">
               <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Available</p>
               <p className="mt-2 text-2xl font-bold text-emerald-600">
                 {foods.filter((item) => item?.availability).length}
@@ -321,7 +321,7 @@ const SellerMenu = () => {
       ) : null}
 
       <div className="grid xl:grid-cols-[1.1fr_1.4fr] gap-8">
-        <section className="bg-white rounded-[2rem] border shadow-sm p-6 sm:p-7">
+        <section className="surface-panel p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -347,7 +347,7 @@ const SellerMenu = () => {
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:opacity-60"
+              className="btn-primary flex-1"
             >
               {saving ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -360,7 +360,7 @@ const SellerMenu = () => {
             <button
               onClick={resetForm}
               disabled={saving}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+              className="btn-secondary"
             >
               <X size={18} />
               Clear
@@ -372,34 +372,34 @@ const SellerMenu = () => {
               placeholder="Food name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder="Price"
               inputMode="decimal"
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
-              className="border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder="Category"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <input
               placeholder="Image URL"
               value={form.image}
               onChange={(e) => setForm({ ...form, image: e.target.value })}
-              className="border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
+              className="input-surface"
             />
             <textarea
               placeholder="Description"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="border p-3 rounded-2xl min-h-32 md:col-span-2 xl:col-span-1 outline-none focus:ring-2 focus:ring-primary/20"
+              className="textarea-surface min-h-32 md:col-span-2 xl:col-span-1"
             />
-            <label className="flex items-center gap-3 rounded-2xl border p-4 text-sm font-medium">
+            <label className="soft-panel flex items-center gap-3 p-4 text-sm font-medium">
               <input
                 type="checkbox"
                 checked={form.availability}
@@ -410,7 +410,7 @@ const SellerMenu = () => {
           </div>
         </section>
 
-        <section className="bg-white rounded-[2rem] border shadow-sm p-6 sm:p-7">
+        <section className="surface-panel p-6 sm:p-7">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -425,7 +425,7 @@ const SellerMenu = () => {
                 placeholder="Search by name or category"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-11 pr-4 py-3 border rounded-2xl w-full outline-none focus:ring-2 focus:ring-primary/20"
+                className="input-surface pl-11 py-3"
               />
             </div>
           </div>

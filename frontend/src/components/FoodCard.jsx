@@ -16,7 +16,7 @@ const FoodCard = ({ food, onAddToCart }) => {
   return (
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
-      className="bg-white rounded-[2.5rem] overflow-hidden shadow-soft border border-gray-100 group cursor-pointer transition-all hover:shadow-2xl"
+      className="surface-panel-strong overflow-hidden group cursor-pointer transition-all hover:shadow-2xl"
       onClick={openFood}
     >
       <div className="relative h-56 overflow-hidden">
@@ -27,7 +27,7 @@ const FoodCard = ({ food, onAddToCart }) => {
         />
 
         <div
-          className={`absolute top-4 right-4 px-3 py-1.5 rounded-2xl shadow-xl text-[10px] font-black uppercase tracking-widest ${
+          className={`absolute right-4 top-4 rounded-2xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-xl ${
             food?.availability
               ? "bg-emerald-500 text-white"
               : "bg-gray-900/85 text-white"
@@ -37,9 +37,9 @@ const FoodCard = ({ food, onAddToCart }) => {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-2 gap-3">
-          <h3 className="font-black text-xl text-contrast group-hover:text-primary transition-colors leading-tight">
+      <div className="p-6 sm:p-7">
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <h3 className="text-xl font-black leading-tight text-contrast transition-colors group-hover:text-primary">
             {food?.name}
           </h3>
           <span className="font-black text-xl text-primary whitespace-nowrap">
@@ -47,11 +47,11 @@ const FoodCard = ({ food, onAddToCart }) => {
           </span>
         </div>
 
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/80 mb-3">
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/80">
           {food?.category || "Uncategorized"}
         </p>
 
-        <p className="text-gray-500 text-sm font-medium line-clamp-2 mb-4 leading-relaxed min-h-10">
+        <p className="mb-5 min-h-10 text-sm font-medium leading-relaxed text-gray-500 line-clamp-2">
           {food?.description || "No description added yet."}
         </p>
 
@@ -63,7 +63,7 @@ const FoodCard = ({ food, onAddToCart }) => {
             }
           }}
           disabled={!food?.availability}
-          className="w-full bg-gray-50 hover:bg-primary hover:text-white disabled:hover:bg-gray-50 disabled:text-gray-400 text-contrast hover:shadow-lg hover:shadow-primary/20 font-black py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#f7f8fa] py-3.5 font-black text-contrast transition-all hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:text-gray-400 disabled:hover:bg-[#f7f8fa]"
         >
           <Plus size={20} />
           {food?.availability ? "Add to Cart" : "Currently Unavailable"}

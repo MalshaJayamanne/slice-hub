@@ -43,8 +43,9 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 sm:py-32 text-center">
-        <div className="bg-gray-50 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8">
+      <div className="page-shell py-20 text-center sm:py-32">
+        <div className="surface-panel-strong mx-auto max-w-2xl p-12">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-50 sm:mb-8 sm:h-24 sm:w-24">
           <ShoppingBag size={40} className="text-gray-300 sm:w-12 sm:h-12" />
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-contrast mb-4">
@@ -55,16 +56,17 @@ export default function Cart() {
         </p>
         <button
           onClick={() => handleNavigate("home")}
-          className="bg-primary text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+          className="btn-primary px-8"
         >
           Start Ordering
         </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="page-shell py-8 sm:py-12">
       <div className="flex flex-col gap-3 mb-8 sm:mb-12">
         <h1 className="text-3xl sm:text-5xl font-black text-contrast tracking-tighter">
           Your Cart
@@ -87,7 +89,7 @@ export default function Cart() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 shadow-soft border border-gray-100 flex items-center gap-4 sm:gap-8 group"
+                className="surface-panel flex items-center gap-4 p-4 group sm:gap-8 sm:p-6"
               >
                 <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0">
                   <img
@@ -158,7 +160,7 @@ export default function Cart() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-contrast rounded-[2rem] sm:rounded-[2.5rem] p-8 sm:p-10 text-white sticky top-24 shadow-2xl shadow-contrast/20">
+          <div className="sticky top-24 rounded-[2rem] bg-contrast p-8 text-white shadow-2xl shadow-contrast/20 sm:rounded-[2.5rem] sm:p-10">
             <h2 className="text-2xl sm:text-3xl font-black mb-8 sm:mb-10">
               Order Summary
             </h2>
@@ -227,7 +229,7 @@ export default function Cart() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-3xl p-4 shadow-soft border border-gray-100 flex items-center gap-4 group hover:shadow-lg transition-all"
+                className="surface-panel flex items-center gap-4 rounded-3xl p-4 transition-all group hover:shadow-lg"
               >
                 <img
                   src={item.image || "https://picsum.photos/300/300"}

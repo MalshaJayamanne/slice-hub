@@ -171,13 +171,13 @@ const RestaurantMenu = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div className="rounded-[2rem] border bg-white shadow-sm p-5 sm:p-6 mb-8">
+      <div className="page-shell py-8">
+        <div className="surface-panel p-5 sm:p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-3 md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
-                className="w-full rounded-2xl border px-12 py-3 outline-none focus:ring-2 focus:ring-primary/20"
+                className="input-surface w-full px-12 py-3"
                 placeholder="Search food by name"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -192,7 +192,7 @@ const RestaurantMenu = () => {
             <button
               onClick={handleSearch}
               disabled={foodLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="btn-primary"
             >
               {foodLoading ? (
                 <>
@@ -210,7 +210,7 @@ const RestaurantMenu = () => {
                   fetchFoods();
                 }}
                 disabled={foodLoading}
-                className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary"
               >
                 Clear
               </button>

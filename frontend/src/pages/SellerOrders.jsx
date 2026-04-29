@@ -294,7 +294,7 @@ export default function SellerOrders() {
               type="button"
               onClick={handleExportOrders}
               disabled={!visibleOrders.length}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition-all ${
+              className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
                 visibleOrders.length
                   ? "border-gray-200 bg-white hover:bg-gray-50"
                   : "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
@@ -324,7 +324,7 @@ export default function SellerOrders() {
                 key={filter.value}
                 type="button"
                 onClick={() => setSelectedFilter(filter.value)}
-                className={`rounded-xl px-6 py-2 text-sm font-bold transition-all ${
+                className={`rounded-2xl px-6 py-3 text-sm font-bold transition-all ${
                   selectedFilter === filter.value
                     ? "bg-primary text-white shadow-lg shadow-primary/20"
                     : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
@@ -364,7 +364,7 @@ export default function SellerOrders() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.04 }}
-                    className="flex flex-col items-start gap-8 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft xl:flex-row xl:items-center"
+                    className="surface-panel flex flex-col items-start gap-8 rounded-3xl p-6 xl:flex-row xl:items-center"
                   >
                     <div className="w-full flex-1 space-y-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

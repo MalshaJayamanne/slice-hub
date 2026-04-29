@@ -162,7 +162,7 @@ export default function AdminOrders() {
         />
       ) : (
         <div className="space-y-8">
-          <div className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5">
+          <div className="soft-panel p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -196,7 +196,7 @@ export default function AdminOrders() {
               <select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none"
+                className="select-surface px-4 py-3 text-sm text-gray-700"
               >
                 <option value="all">All statuses</option>
                 <option value="Pending">Pending</option>
@@ -207,7 +207,7 @@ export default function AdminOrders() {
               <select
                 value={restaurantFilter}
                 onChange={(event) => setRestaurantFilter(event.target.value)}
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none"
+                className="select-surface px-4 py-3 text-sm text-gray-700"
               >
                 <option value="">All restaurants</option>
                 {restaurantOptions.map((restaurant) => (
@@ -220,7 +220,7 @@ export default function AdminOrders() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-600 transition hover:bg-white"
+                className="btn-secondary text-sm"
               >
                 Clear
               </button>
@@ -296,7 +296,7 @@ export default function AdminOrders() {
                   {orders.map((order) => (
                     <div
                       key={order._id}
-                      className="rounded-[1.5rem] border border-gray-100 bg-white p-5"
+                      className="surface-panel p-5"
                     >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>

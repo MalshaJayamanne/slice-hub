@@ -40,16 +40,18 @@ export default function FeedbackAlert({
 
   return (
     <div
-      className={`rounded-[1.5rem] border px-5 py-4 ${tone.wrapper} ${className}`.trim()}
+      className={`rounded-[1.5rem] border px-5 py-4 shadow-sm ${tone.wrapper} ${className}`.trim()}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Icon size={20} className={`mt-0.5 flex-shrink-0 ${tone.iconColor}`} />
+          <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/80 shadow-sm">
+            <Icon size={18} className={tone.iconColor} />
+          </div>
           <div>
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-bold tracking-[-0.02em]">
               {title || tone.defaultTitle}
             </p>
-            <p className="mt-1 text-sm">{message}</p>
+            <p className="mt-1 text-sm leading-6">{message}</p>
           </div>
         </div>
 

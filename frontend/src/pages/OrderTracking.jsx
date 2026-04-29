@@ -185,9 +185,9 @@ export default function OrderTracking() {
   const StatusBubbleIcon = statusVisual.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+    <div className="min-h-screen pb-20">
+      <div className="sticky top-0 z-30 border-b border-white/60 bg-[#f7f8fa]/85 backdrop-blur-xl">
+        <div className="page-shell flex h-20 items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/orders")}
@@ -211,9 +211,9 @@ export default function OrderTracking() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="page-shell grid grid-cols-1 gap-8 py-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-12">
-          <div className="relative h-[550px] bg-blue-50 rounded-[4rem] overflow-hidden border-8 border-white shadow-2xl group">
+          <div className="relative h-[550px] overflow-hidden rounded-[4rem] border-8 border-white bg-blue-50 shadow-2xl group">
             <div
               className="absolute inset-0 opacity-30"
               style={{
@@ -293,7 +293,7 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-2xl border border-white/20"
+                className="surface-panel-strong p-8"
               >
                 <div className="flex items-start gap-6">
                   <div
@@ -324,7 +324,7 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          <div className="bg-white p-10 rounded-[4rem] shadow-soft border border-gray-100">
+          <div className="surface-panel-strong rounded-[4rem] p-10">
             <h3 className="text-2xl font-black text-contrast tracking-tight mb-10">
               Delivery Details
             </h3>
@@ -363,7 +363,7 @@ export default function OrderTracking() {
         </div>
 
         <div className="space-y-12">
-          <div className="bg-white p-10 rounded-[4rem] shadow-soft border border-gray-100">
+          <div className="surface-panel-strong rounded-[4rem] p-10">
             <h3 className="text-2xl font-black text-contrast tracking-tight mb-12">
               Order Status
             </h3>
@@ -443,7 +443,7 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          <div className="bg-contrast text-white p-10 rounded-[4rem] shadow-2xl relative overflow-hidden">
+          <div className="relative overflow-hidden rounded-[4rem] bg-contrast p-10 text-white shadow-2xl">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <Package size={120} />
             </div>
@@ -476,7 +476,7 @@ export default function OrderTracking() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-12 bg-white rounded-[2.5rem] p-10 shadow-soft border border-gray-100 text-center max-w-2xl mx-auto lg:col-span-3"
+            className="surface-panel-strong mx-auto mt-12 max-w-2xl rounded-[2.5rem] p-10 text-center lg:col-span-3"
           >
             <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Star size={40} className="text-yellow-500 fill-yellow-500" />
@@ -527,7 +527,7 @@ export default function OrderTracking() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mt-12 bg-green-50 rounded-[2.5rem] p-10 border border-green-100 text-center max-w-2xl mx-auto lg:col-span-3"
+            className="mx-auto mt-12 max-w-2xl rounded-[2.5rem] border border-green-100 bg-green-50 p-10 text-center lg:col-span-3"
           >
             <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-green-800 mb-2">

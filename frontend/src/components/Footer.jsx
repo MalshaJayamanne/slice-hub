@@ -1,125 +1,164 @@
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Pizza } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  Pizza,
+  Twitter,
+  Youtube,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
+const socialLinks = [
+  { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
+  { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
+  { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
+  { icon: Youtube, href: "https://youtube.com", label: "YouTube" },
+];
 
 function Footer() {
   return (
-    <footer className="bg-[#111111] text-white pt-20 pb-10 border-t border-white/10">
-
-      <div className="max-w-7xl mx-auto px-6">
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
-
-          {/* Brand */}
-
-          <div className="space-y-8">
-
+    <footer className="mt-16 border-t border-white/20 bg-[#111317] pt-20 text-white">
+      <div className="page-shell">
+        <div className="grid grid-cols-1 gap-14 pb-14 md:grid-cols-2 xl:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
+          <div className="space-y-7">
             <div className="flex items-center">
-
-              <div className="bg-[#FF3B30] text-white p-2 rounded-xl shadow-lg">
+              <div className="rounded-[1.2rem] bg-primary p-3 text-white shadow-lg shadow-primary/20">
                 <Pizza size={22} />
               </div>
-
-              <span className="ml-3 text-2xl font-black tracking-tight">
-                Slice<span className="text-[#FF3B30]">Hub</span>
-              </span>
-
+              <div className="ml-3">
+                <span className="block text-3xl font-extrabold tracking-[-0.05em]">
+                  Slice<span className="text-primary">Hub</span>
+                </span>
+                <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+                  Delivery Marketplace
+                </span>
+              </div>
             </div>
 
-            <p className="text-gray-400 text-sm leading-relaxed">
-              Bringing the best local restaurants straight to your doorstep.
-              Fast, fresh, and delicious.
+            <p className="max-w-md text-sm leading-7 text-slate-400">
+              A cleaner food ordering workspace for customers, sellers, and
+              admins. Browse local restaurants, manage fulfillment, and keep the
+              full flow visible in one place.
             </p>
 
-            {/* Social */}
-
-            <div className="flex gap-4">
-              {[Facebook, Twitter, Instagram, Youtube].map((Icon, idx) => (
+            <div className="flex flex-wrap gap-3">
+              {socialLinks.map(({ icon: Icon, href, label }) => (
                 <a
-                  key={idx}
-                  href="#"
-                  className="bg-[#1a1a1a] p-3 rounded-lg hover:bg-[#FF3B30] transition-all text-gray-400 hover:text-white"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-primary/30 hover:bg-primary hover:text-white"
                 >
                   <Icon size={18} />
                 </a>
               ))}
             </div>
-
           </div>
 
-          {/* Quick Links */}
-
           <div>
-            <h4 className="text-[#FF3B30] font-bold mb-8 text-sm uppercase tracking-widest">
-              Quick Links
+            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
+              Explore
             </h4>
-
-            <ul className="space-y-4 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-white">About Us</a></li>
-              <li><a href="#" className="hover:text-white">Our Services</a></li>
-              <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white">Terms of Service</a></li>
+            <ul className="mt-7 space-y-4 text-sm text-slate-400">
+              <li>
+                <Link to="/" className="transition hover:text-white">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/restaurants" className="transition hover:text-white">
+                  Restaurants
+                </Link>
+              </li>
+              <li>
+                <Link to="/cart" className="transition hover:text-white">
+                  Cart
+                </Link>
+              </li>
+              <li>
+                <Link to="/orders" className="transition hover:text-white">
+                  Order History
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Categories */}
-
           <div>
-            <h4 className="text-[#FF3B30] font-bold mb-8 text-sm uppercase tracking-widest">
-              Categories
+            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
+              Workspaces
             </h4>
-
-            <ul className="space-y-4 text-gray-400 text-sm">
-              <li><a href="#" className="hover:text-[#FF3B30]">Pizza Delivery</a></li>
-              <li><a href="#" className="hover:text-[#FF3B30]">Burger Joints</a></li>
-              <li><a href="#" className="hover:text-[#FF3B30]">Asian Cuisine</a></li>
-              <li><a href="#" className="hover:text-[#FF3B30]">Desserts & Sweets</a></li>
+            <ul className="mt-7 space-y-4 text-sm text-slate-400">
+              <li>
+                <Link to="/dashboard" className="transition hover:text-white">
+                  Account Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/seller/orders" className="transition hover:text-white">
+                  Seller Orders
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/dashboard" className="transition hover:text-white">
+                  Admin Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="transition hover:text-white">
+                  Sign In
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Contact */}
-
           <div>
-            <h4 className="text-[#FF3B30] font-bold mb-8 text-sm uppercase tracking-widest">
+            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
               Contact
             </h4>
-
-            <ul className="space-y-6 text-gray-400 text-sm">
-
-              <li className="flex items-start gap-4">
-                <MapPin size={18} className="text-[#FF3B30]" />
-                <span>123 Foodie St, New York, NY</span>
+            <ul className="mt-7 space-y-5 text-sm text-slate-400">
+              <li className="flex items-start gap-3">
+                <MapPin size={18} className="mt-0.5 text-primary" />
+                <span>123 Foodie Street, Colombo 03, Sri Lanka</span>
               </li>
-
-              <li className="flex items-center gap-4">
-                <Phone size={18} className="text-[#FF3B30]" />
-                <span>+1 (555) 123-4567</span>
+              <li className="flex items-center gap-3">
+                <Phone size={18} className="text-primary" />
+                <a href="tel:+94112345678" className="transition hover:text-white">
+                  +94 11 234 5678
+                </a>
               </li>
-
-              <li className="flex items-center gap-4">
-                <Mail size={18} className="text-[#FF3B30]" />
-                <span>support@slicehub.com</span>
+              <li className="flex items-center gap-3">
+                <Mail size={18} className="text-primary" />
+                <a
+                  href="mailto:support@slicehub.com"
+                  className="transition hover:text-white"
+                >
+                  support@slicehub.com
+                </a>
               </li>
-
             </ul>
           </div>
-
         </div>
 
-        <div className="h-px bg-white/10 mb-8"></div>
+        <div className="hairline-divider" />
 
-        {/* Bottom */}
-
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-gray-500 text-xs">
-
-          <p>© 2026 SliceHub. All rights reserved.</p>
-
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white">Privacy</a>
-            <a href="#" className="hover:text-white">Terms</a>
-            <a href="#" className="hover:text-white">Cookies</a>
+        <div className="flex flex-col gap-4 py-8 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>Copyright 2026 SliceHub. Built for a polished end-to-end demo.</p>
+          <div className="flex flex-wrap gap-5">
+            <Link to="/restaurants" className="transition hover:text-white">
+              Browse
+            </Link>
+            <Link to="/dashboard" className="transition hover:text-white">
+              Dashboard
+            </Link>
+            <a href="mailto:support@slicehub.com" className="transition hover:text-white">
+              Support
+            </a>
           </div>
-
         </div>
-
       </div>
     </footer>
   );
