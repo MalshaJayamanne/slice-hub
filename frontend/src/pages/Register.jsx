@@ -5,8 +5,6 @@ import {
   Lock,
   ArrowRight,
   Pizza,
-  Chrome,
-  Facebook,
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -212,24 +210,8 @@ const Register = () => {
           </button>
         </form>
 
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18} /> Google
-          </button>
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18} /> Facebook
-          </button>
+        <div className="rounded-2xl bg-gray-50 px-4 py-4 text-sm text-gray-600">
+          Email registration is the supported sign-up flow in this demo.
         </div>
       </motion.div>
     </div>

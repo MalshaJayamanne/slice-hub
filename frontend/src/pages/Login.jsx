@@ -5,8 +5,6 @@ import {
   Lock,
   ArrowRight,
   Pizza,
-  Chrome,
-  Facebook,
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -29,6 +27,14 @@ const Login = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.pathname, location.state, navigate]);
+
+  const showAuthNotice = (message) => {
+    setPageFeedback({
+      type: "info",
+      title: "Email sign-in only",
+      message,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -140,6 +146,11 @@ const Login = () => {
 
                 <button
                   type="button"
+                  onClick={() =>
+                    showAuthNotice(
+                      "Password reset is not available in this demo yet. Use your existing password or create a new account if you need a fresh login."
+                    )
+                  }
                   className="text-[10px] font-bold text-[#FF3B30] uppercase tracking-widest hover:underline"
                 >
                   Forgot?
@@ -162,17 +173,8 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              disabled={submitting}
-              className="h-4 w-4 text-[#FF3B30] focus:ring-[#FF3B30] border-gray-300 rounded"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-500 font-medium">
-              Remember me
-            </label>
+          <div className="rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            Sessions stay signed in on this device until you log out.
           </div>
 
           <button
@@ -197,26 +199,8 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Chrome size={18} /> Google
-          </button>
-
-          <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-bold text-sm text-[#1A1A1A]">
-            <Facebook size={18} /> Facebook
-          </button>
+        <div className="rounded-2xl bg-gray-50 px-4 py-4 text-sm text-gray-600">
+          Email and password sign-in is the supported login flow in this demo.
         </div>
       </motion.div>
     </div>

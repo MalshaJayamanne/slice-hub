@@ -5,10 +5,13 @@ import {
   DollarSign,
   ExternalLink,
   Loader2,
+  Pencil,
   Search,
   ShoppingBag,
   Store,
+  Trash2,
   User,
+  X,
   XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +23,15 @@ const statusClasses = {
   approved: "bg-green-100 text-green-600",
   pending: "bg-orange-100 text-orange-600",
   rejected: "bg-red-100 text-red-600",
+};
+
+const initialRestaurantForm = {
+  name: "",
+  ownerId: "",
+  category: "",
+  description: "",
+  image: "",
+  status: "pending",
 };
 
 const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
@@ -34,7 +46,14 @@ export default function AdminRestaurants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingRestaurantId, setUpdatingRestaurantId] = useState("");
+  const [deletingRestaurantId, setDeletingRestaurantId] = useState("");
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [ownerOptions, setOwnerOptions] = useState([]);
+  const [ownersLoading, setOwnersLoading] = useState(false);
+  const [isRestaurantFormOpen, setIsRestaurantFormOpen] = useState(false);
+  const [editingRestaurantId, setEditingRestaurantId] = useState("");
+  const [restaurantForm, setRestaurantForm] = useState(initialRestaurantForm);
+  const [submittingRestaurant, setSubmittingRestaurant] = useState(false);
 
   const fetchRestaurants = async (initialLoad) => {
     try {
@@ -72,6 +91,29 @@ export default function AdminRestaurants() {
     }
   };
 
+  const fetchOwnerOptions = async () => {
+    try {
+      setOwnersLoading(true);
+
+      const response = await adminAPI.getUsers({ role: "all", isActive: "all" });
+      const users = Array.isArray(response?.data?.users) ? response.data.users : [];
+
+      setOwnerOptions(
+        users.filter((user) => ["seller", "admin"].includes(user.role))
+      );
+    } catch (ownerError) {
+      setOwnerOptions([]);
+      setFeedback({
+        type: "error",
+        message:
+          ownerError?.response?.data?.message ||
+          "Failed to load restaurant owner options.",
+      });
+    } finally {
+      setOwnersLoading(false);
+    }
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchRestaurants(!hasLoadedOnce);
@@ -79,6 +121,50 @@ export default function AdminRestaurants() {
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, statusFilter]);
+
+  const resetRestaurantForm = () => {
+    setRestaurantForm(initialRestaurantForm);
+    setEditingRestaurantId("");
+  };
+
+  const openCreateRestaurantForm = async () => {
+    resetRestaurantForm();
+    setIsRestaurantFormOpen(true);
+    setFeedback(null);
+
+    if (ownerOptions.length === 0) {
+      await fetchOwnerOptions();
+    }
+  };
+
+  const openEditRestaurantForm = async (restaurant) => {
+    const ownerId =
+      restaurant?.owner?._id ||
+      restaurant?.ownerId?._id ||
+      restaurant?.ownerId ||
+      "";
+
+    setEditingRestaurantId(restaurant._id);
+    setRestaurantForm({
+      name: restaurant?.name || "",
+      ownerId: ownerId?.toString?.() || "",
+      category: restaurant?.category || "",
+      description: restaurant?.description || "",
+      image: restaurant?.image || "",
+      status: restaurant?.status || "pending",
+    });
+    setIsRestaurantFormOpen(true);
+    setFeedback(null);
+
+    if (ownerOptions.length === 0) {
+      await fetchOwnerOptions();
+    }
+  };
+
+  const closeRestaurantForm = () => {
+    setIsRestaurantFormOpen(false);
+    resetRestaurantForm();
+  };
 
   const handleStatusUpdate = async (restaurant, nextStatus) => {
     try {
@@ -124,12 +210,96 @@ export default function AdminRestaurants() {
     }
   };
 
-  const handleRegisterRestaurant = () => {
-    setFeedback({
-      type: "info",
-      message:
-        "Admin-side restaurant creation is not part of the current Week 5 API, so this page stays focused on review and approval.",
-    });
+  const handleRestaurantFormChange = (field, value) => {
+    setRestaurantForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmitRestaurant = async (event) => {
+    event.preventDefault();
+
+    if (
+      !restaurantForm.name.trim() ||
+      !restaurantForm.category.trim() ||
+      !restaurantForm.ownerId
+    ) {
+      setFeedback({
+        type: "error",
+        message: "Name, owner, and category are required.",
+      });
+      return;
+    }
+
+    try {
+      setSubmittingRestaurant(true);
+      setFeedback(null);
+
+      const payload = {
+        name: restaurantForm.name.trim(),
+        ownerId: restaurantForm.ownerId,
+        category: restaurantForm.category.trim(),
+        description: restaurantForm.description.trim(),
+        image: restaurantForm.image.trim(),
+        status: restaurantForm.status,
+      };
+
+      if (editingRestaurantId) {
+        await adminAPI.updateRestaurant(editingRestaurantId, payload);
+      } else {
+        await adminAPI.createRestaurant(payload);
+      }
+
+      await fetchRestaurants(false);
+      setFeedback({
+        type: "success",
+        message: editingRestaurantId
+          ? "Restaurant updated successfully."
+          : "Restaurant created successfully.",
+      });
+      closeRestaurantForm();
+    } catch (submitError) {
+      setFeedback({
+        type: "error",
+        message:
+          submitError?.response?.data?.message ||
+          "Failed to save restaurant.",
+      });
+    } finally {
+      setSubmittingRestaurant(false);
+    }
+  };
+
+  const handleDeleteRestaurant = async (restaurant) => {
+    if (
+      !window.confirm(
+        `Delete ${restaurant.name}? Restaurants with existing orders cannot be removed.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setDeletingRestaurantId(restaurant._id);
+      setFeedback(null);
+
+      await adminAPI.deleteRestaurant(restaurant._id);
+      await fetchRestaurants(false);
+      setFeedback({
+        type: "success",
+        message: `${restaurant.name} deleted successfully.`,
+      });
+    } catch (deleteError) {
+      setFeedback({
+        type: "error",
+        message:
+          deleteError?.response?.data?.message ||
+          `Failed to delete ${restaurant.name}.`,
+      });
+    } finally {
+      setDeletingRestaurantId("");
+    }
   };
 
   if (loading) {
@@ -157,7 +327,7 @@ export default function AdminRestaurants() {
 
         <button
           type="button"
-          onClick={handleRegisterRestaurant}
+          onClick={openCreateRestaurantForm}
           className="w-full rounded-2xl bg-primary px-8 py-4 font-black text-white shadow-xl shadow-primary/20 transition-all hover:scale-105 sm:w-auto"
         >
           <span className="flex items-center justify-center gap-2">
@@ -174,7 +344,7 @@ export default function AdminRestaurants() {
             feedback.type === "success"
               ? "Restaurant updated"
               : feedback.type === "info"
-              ? "Read-only action"
+              ? "Notice"
               : "Update failed"
           }
           message={feedback.message}
@@ -197,6 +367,131 @@ export default function AdminRestaurants() {
             Retry
           </button>
         </div>
+      ) : null}
+
+      {isRestaurantFormOpen ? (
+        <form
+          onSubmit={handleSubmitRestaurant}
+          className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft sm:p-8"
+        >
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
+                {editingRestaurantId ? "Edit Restaurant" : "Create Restaurant"}
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-contrast">
+                {editingRestaurantId
+                  ? "Update Restaurant Record"
+                  : "Register Platform Restaurant"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={closeRestaurantForm}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            >
+              <X size={16} />
+              Cancel
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <input
+              placeholder="Restaurant name"
+              value={restaurantForm.name}
+              onChange={(event) =>
+                handleRestaurantFormChange("name", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+
+            <select
+              value={restaurantForm.ownerId}
+              onChange={(event) =>
+                handleRestaurantFormChange("ownerId", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+              disabled={ownersLoading}
+            >
+              <option value="">
+                {ownersLoading ? "Loading owners..." : "Select owner"}
+              </option>
+              {ownerOptions.map((owner) => (
+                <option key={owner._id} value={owner._id}>
+                  {owner.name} ({owner.role})
+                </option>
+              ))}
+            </select>
+
+            <input
+              placeholder="Category"
+              value={restaurantForm.category}
+              onChange={(event) =>
+                handleRestaurantFormChange("category", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+
+            <select
+              value={restaurantForm.status}
+              onChange={(event) =>
+                handleRestaurantFormChange("status", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            <input
+              placeholder="Image URL"
+              value={restaurantForm.image}
+              onChange={(event) =>
+                handleRestaurantFormChange("image", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+            />
+
+            <textarea
+              placeholder="Description"
+              value={restaurantForm.description}
+              onChange={(event) =>
+                handleRestaurantFormChange("description", event.target.value)
+              }
+              className="min-h-32 rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+            />
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="submit"
+              disabled={submittingRestaurant}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submittingRestaurant ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Store size={18} />
+              )}
+              {submittingRestaurant
+                ? "Saving..."
+                : editingRestaurantId
+                ? "Update Restaurant"
+                : "Create Restaurant"}
+            </button>
+
+            <button
+              type="button"
+              onClick={closeRestaurantForm}
+              disabled={submittingRestaurant}
+              className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       ) : null}
 
       <div className="overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-soft">
@@ -266,8 +561,8 @@ export default function AdminRestaurants() {
 
                 <tbody className="divide-y divide-gray-100">
                   {restaurants.map((restaurant) => {
-                    const isUpdating =
-                      updatingRestaurantId === restaurant._id;
+                    const isUpdating = updatingRestaurantId === restaurant._id;
+                    const isDeleting = deletingRestaurantId === restaurant._id;
 
                     return (
                       <tr
@@ -343,6 +638,15 @@ export default function AdminRestaurants() {
                               <ExternalLink size={20} />
                             </button>
 
+                            <button
+                              type="button"
+                              onClick={() => openEditRestaurantForm(restaurant)}
+                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+                              title="Edit Restaurant"
+                            >
+                              <Pencil size={20} />
+                            </button>
+
                             {restaurant.status !== "approved" ? (
                               <button
                                 type="button"
@@ -378,6 +682,20 @@ export default function AdminRestaurants() {
                                 )}
                               </button>
                             ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRestaurant(restaurant)}
+                              disabled={isDeleting}
+                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              title="Delete Restaurant"
+                            >
+                              {isDeleting ? (
+                                <Loader2 size={20} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={20} />
+                              )}
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -390,6 +708,7 @@ export default function AdminRestaurants() {
             <div className="grid gap-4 p-4 lg:hidden">
               {restaurants.map((restaurant) => {
                 const isUpdating = updatingRestaurantId === restaurant._id;
+                const isDeleting = deletingRestaurantId === restaurant._id;
 
                 return (
                   <article
@@ -448,13 +767,21 @@ export default function AdminRestaurants() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-4 grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                        className="flex-1 rounded-2xl border px-4 py-3 text-sm text-primary"
+                        className="rounded-2xl border px-4 py-3 text-sm text-primary"
                       >
                         View
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => openEditRestaurantForm(restaurant)}
+                        className="rounded-2xl border px-4 py-3 text-sm text-orange-500"
+                      >
+                        Edit
                       </button>
 
                       {restaurant.status !== "approved" ? (
@@ -462,7 +789,7 @@ export default function AdminRestaurants() {
                           type="button"
                           onClick={() => handleStatusUpdate(restaurant, "approved")}
                           disabled={isUpdating}
-                          className="flex-1 rounded-2xl border px-4 py-3 text-sm text-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-2xl border px-4 py-3 text-sm text-green-600 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {isUpdating ? "Updating..." : "Approve"}
                         </button>
@@ -473,11 +800,20 @@ export default function AdminRestaurants() {
                           type="button"
                           onClick={() => handleStatusUpdate(restaurant, "rejected")}
                           disabled={isUpdating}
-                          className="flex-1 rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {isUpdating ? "Updating..." : "Reject"}
                         </button>
                       ) : null}
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRestaurant(restaurant)}
+                        disabled={isDeleting}
+                        className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </button>
                     </div>
                   </article>
                 );

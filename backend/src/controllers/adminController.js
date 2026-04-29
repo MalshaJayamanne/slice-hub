@@ -1,4 +1,6 @@
 
+import bcrypt from "bcryptjs";
+
 import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import User from "../models/User.js";
@@ -12,6 +14,8 @@ import {
 const ORDER_STATUSES = ["Pending", "Preparing", "Delivered"];
 const RESTAURANT_STATUSES = ["pending", "approved", "rejected"];
 const USER_ROLES = ["customer", "seller", "admin"];
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+const MIN_PASSWORD_LENGTH = 6;
 
 const buildUserResponse = (user, restaurantCounts) => ({
   _id: user._id,
@@ -138,6 +142,148 @@ const getRestaurantMetricsMap = async (restaurantIds) => {
       },
     ])
   );
+};
+
+const validateAdminUserPayload = (
+  { name, email, password, role, phone, address, profileImage, isActive },
+  isPartial = false
+) => {
+  if (!isPartial || name !== undefined) {
+    if (!normalizeStringValue(name)) {
+      throw createHttpError("Name is required.", 400);
+    }
+  }
+
+  if (!isPartial || email !== undefined) {
+    const normalizedEmail = normalizeStringValue(email).toLowerCase();
+
+    if (!normalizedEmail) {
+      throw createHttpError("Email is required.", 400);
+    }
+
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      throw createHttpError("Please provide a valid email address.", 400);
+    }
+  }
+
+  if (!isPartial || password !== undefined) {
+    if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+      throw createHttpError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+        400
+      );
+    }
+  }
+
+  if (role !== undefined && !findEnumValue(role, USER_ROLES)) {
+    throw createHttpError("Invalid role.", 400);
+  }
+
+  if (phone !== undefined && typeof phone !== "string") {
+    throw createHttpError("Phone must be a string.", 400);
+  }
+
+  if (address !== undefined && typeof address !== "string") {
+    throw createHttpError("Address must be a string.", 400);
+  }
+
+  if (profileImage !== undefined && typeof profileImage !== "string") {
+    throw createHttpError("Profile image must be a string.", 400);
+  }
+
+  if (isActive !== undefined && typeof isActive !== "boolean") {
+    throw createHttpError("isActive must be true or false.", 400);
+  }
+};
+
+const buildSingleUserResponse = async (user) => {
+  const ownedRestaurantCount = await Restaurant.countDocuments({ ownerId: user._id });
+
+  return buildUserResponse(
+    user,
+    new Map([[user._id.toString(), ownedRestaurantCount]])
+  );
+};
+
+const ensureAdminUserMutationAllowed = async (
+  targetUser,
+  { actingUserId, deleting = false, nextRole, nextIsActive }
+) => {
+  const isSelf = targetUser._id.toString() === actingUserId.toString();
+  const resolvedRole = nextRole || targetUser.role;
+  const resolvedIsActive =
+    nextIsActive === undefined ? targetUser.isActive : nextIsActive;
+
+  if (isSelf && deleting) {
+    throw createHttpError("You cannot delete your own account.", 400);
+  }
+
+  if (isSelf && resolvedRole !== targetUser.role) {
+    throw createHttpError("You cannot change your own admin role.", 400);
+  }
+
+  if (isSelf && resolvedIsActive === false) {
+    throw createHttpError("You cannot deactivate your own account.", 400);
+  }
+
+  const ownedRestaurantCount = await Restaurant.countDocuments({
+    ownerId: targetUser._id,
+  });
+
+  if (
+    ownedRestaurantCount > 0 &&
+    ["seller", "admin"].includes(targetUser.role) &&
+    !["seller", "admin"].includes(resolvedRole)
+  ) {
+    throw createHttpError(
+      "This user still owns restaurants and cannot be changed to a customer.",
+      400
+    );
+  }
+
+  const isRemovingAdminRole =
+    targetUser.role === "admin" && resolvedRole !== "admin";
+  const isDeactivatingAdmin =
+    targetUser.role === "admin" &&
+    targetUser.isActive &&
+    resolvedIsActive === false;
+
+  if (deleting || isRemovingAdminRole) {
+    const adminCount = await User.countDocuments({ role: "admin" });
+
+    if (adminCount <= 1) {
+      throw createHttpError("At least one admin account must remain.", 400);
+    }
+  }
+
+  if (isDeactivatingAdmin) {
+    const activeAdminCount = await User.countDocuments({
+      role: "admin",
+      isActive: true,
+    });
+
+    if (activeAdminCount <= 1) {
+      throw createHttpError("At least one active admin account must remain.", 400);
+    }
+  }
+
+  if (deleting) {
+    if (ownedRestaurantCount > 0) {
+      throw createHttpError(
+        "User cannot be deleted while they still own restaurants.",
+        400
+      );
+    }
+
+    const hasOrders = await Order.exists({ customer: targetUser._id });
+
+    if (hasOrders) {
+      throw createHttpError(
+        "User cannot be deleted after placing orders.",
+        400
+      );
+    }
+  }
 };
 
 export const getDashboardSummary = async (_req, res, next) => {
@@ -278,6 +424,131 @@ export const getAdminUsers = async (req, res, next) => {
       },
       count: users.length,
       users: users.map((user) => buildUserResponse(user, restaurantCountMap)),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createAdminUser = async (req, res, next) => {
+  try {
+    validateAdminUserPayload(req.body);
+
+    const normalizedName = normalizeStringValue(req.body.name);
+    const normalizedEmail = normalizeStringValue(req.body.email).toLowerCase();
+    const normalizedRole = findEnumValue(req.body.role, USER_ROLES) || "customer";
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    if (existingUser) {
+      throw createHttpError("User already exists with this email.", 409);
+    }
+
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
+
+    const user = await User.create({
+      name: normalizedName,
+      email: normalizedEmail,
+      passwordHash,
+      role: normalizedRole,
+      phone: req.body.phone?.trim() || "",
+      address: req.body.address?.trim() || "",
+      profileImage: req.body.profileImage?.trim() || "",
+      isActive: req.body.isActive ?? true,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully.",
+      user: await buildSingleUserResponse(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAdminUser = async (req, res, next) => {
+  try {
+    validateObjectId(req.params.id, "user id");
+    validateAdminUserPayload(req.body, true);
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      throw createHttpError("User not found.", 404);
+    }
+
+    const normalizedRole =
+      req.body.role !== undefined
+        ? findEnumValue(req.body.role, USER_ROLES)
+        : user.role;
+    const normalizedIsActive =
+      req.body.isActive !== undefined ? req.body.isActive : user.isActive;
+
+    await ensureAdminUserMutationAllowed(user, {
+      actingUserId: req.user._id,
+      nextRole: normalizedRole,
+      nextIsActive: normalizedIsActive,
+    });
+
+    if (req.body.email !== undefined) {
+      const normalizedEmail = normalizeStringValue(req.body.email).toLowerCase();
+      const existingUser = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: user._id },
+      });
+
+      if (existingUser) {
+        throw createHttpError("User already exists with this email.", 409);
+      }
+
+      user.email = normalizedEmail;
+    }
+
+    if (req.body.name !== undefined) user.name = normalizeStringValue(req.body.name);
+    if (req.body.role !== undefined) user.role = normalizedRole;
+    if (req.body.phone !== undefined) user.phone = req.body.phone.trim();
+    if (req.body.address !== undefined) user.address = req.body.address.trim();
+    if (req.body.profileImage !== undefined) {
+      user.profileImage = req.body.profileImage.trim();
+    }
+    if (req.body.isActive !== undefined) user.isActive = req.body.isActive;
+    if (req.body.password !== undefined) {
+      user.passwordHash = await bcrypt.hash(req.body.password, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully.",
+      user: await buildSingleUserResponse(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAdminUser = async (req, res, next) => {
+  try {
+    validateObjectId(req.params.id, "user id");
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      throw createHttpError("User not found.", 404);
+    }
+
+    await ensureAdminUserMutationAllowed(user, {
+      actingUserId: req.user._id,
+      deleting: true,
+    });
+
+    await user.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully.",
     });
   } catch (error) {
     next(error);

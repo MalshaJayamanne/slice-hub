@@ -5,11 +5,9 @@ import {
   Clock3,
   LayoutDashboard,
   LogOut,
-  MapPin,
   Package,
   PlusCircle,
   ShoppingBag,
-  Settings,
   Store,
   User,
   Users,
@@ -82,6 +80,38 @@ export default function Dashboard() {
     () => sellerRestaurants[0] || null,
     [sellerRestaurants]
   );
+
+  const primaryWorkspaceAction = useMemo(() => {
+    if (user?.role === "admin") {
+      return {
+        label: "Open Admin Dashboard",
+        icon: LayoutDashboard,
+        action: () => navigate("/admin/dashboard"),
+      };
+    }
+
+    if (user?.role === "seller") {
+      if (primarySellerRestaurant) {
+        return {
+          label: "Open Seller Orders",
+          icon: ShoppingBag,
+          action: () => navigate("/seller/orders"),
+        };
+      }
+
+      return {
+        label: "Create Restaurant",
+        icon: PlusCircle,
+        action: () => navigate("/seller/restaurant/create"),
+      };
+    }
+
+    return {
+      label: "Browse Restaurants",
+      icon: Store,
+      action: () => navigate("/restaurants"),
+    };
+  }, [navigate, primarySellerRestaurant, user?.role]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -171,10 +201,10 @@ export default function Dashboard() {
       hidden: user?.role !== "customer",
     },
     {
-      label: "Saved Addresses",
-      description: "Manage delivery locations",
-      icon: MapPin,
-      disabled: true,
+      label: "Browse Restaurants",
+      description: "Explore menus and place a new order",
+      icon: Store,
+      action: () => navigate("/restaurants"),
     },
     {
       label: "Logout",
@@ -203,12 +233,12 @@ export default function Dashboard() {
           </p>
 
           <button
-            disabled
-            className="mt-6 w-full flex items-center justify-center gap-2 border p-3 rounded-2xl text-gray-400 cursor-not-allowed bg-gray-50"
-            title="Profile editing is not connected yet"
+            type="button"
+            onClick={primaryWorkspaceAction.action}
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-2xl bg-primary p-3 font-semibold text-white transition hover:bg-red-700"
           >
-            <Settings size={18} />
-            Edit Profile Soon
+            <primaryWorkspaceAction.icon size={18} />
+            {primaryWorkspaceAction.label}
           </button>
 
           {user?.role === "seller" ? (
@@ -330,13 +360,10 @@ export default function Dashboard() {
                 return (
                   <button
                     key={item.label}
-                    onClick={item.disabled ? undefined : item.action}
-                    disabled={item.disabled}
+                    onClick={item.action}
                     className={`w-full flex items-center justify-between rounded-2xl p-4 transition ${
                       item.danger
                         ? "text-red-500 hover:bg-red-50"
-                        : item.disabled
-                        ? "text-gray-400 bg-gray-50 cursor-not-allowed"
                         : "hover:bg-gray-50"
                     }`}
                   >
@@ -346,9 +373,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="font-semibold">{item.label}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.disabled ? `${item.description} - coming soon` : item.description}
-                        </p>
+                        <p className="text-sm text-gray-500">{item.description}</p>
                       </div>
                     </div>
                     <ChevronRight />

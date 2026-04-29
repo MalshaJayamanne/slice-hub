@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Clock,
   Package,
-  TrendingUp,
   Navigation,
   Loader2,
 } from "lucide-react";
@@ -65,12 +64,13 @@ export default function Checkout() {
     const contactBits = [];
     if (form.fullName.trim()) contactBits.push(`Name: ${form.fullName.trim()}`);
     if (form.phone.trim()) contactBits.push(`Phone: ${form.phone.trim()}`);
+    contactBits.push(`Delivery: ${DELIVERY_OPTIONS[deliveryType].label}`);
     if (form.instructions.trim()) {
       contactBits.push(`Instructions: ${form.instructions.trim()}`);
     }
 
     return [...parts, ...contactBits].join(", ");
-  }, [form]);
+  }, [deliveryType, form]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -357,7 +357,7 @@ export default function Checkout() {
                 <Clock size={24} />
               </div>
               <h2 className="text-2xl font-bold text-contrast">
-                Delivery Options
+                Delivery Preference
               </h2>
             </div>
 
@@ -384,7 +384,7 @@ export default function Checkout() {
                     Standard Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.standard.timing} | Included in current total
+                    {DELIVERY_OPTIONS.standard.timing} | Shared with the restaurant
                   </p>
                 </div>
               </label>
@@ -404,18 +404,24 @@ export default function Checkout() {
                   onChange={() => setDeliveryType("priority")}
                 />
                 <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
-                  <TrendingUp size={20} />
+                  <Clock size={20} />
                 </div>
                 <div>
                   <p className="font-black text-contrast text-sm">
                     Priority Delivery
                   </p>
                   <p className="text-xs font-bold text-gray-400">
-                    {DELIVERY_OPTIONS.priority.timing} | UI option only for now
+                    {DELIVERY_OPTIONS.priority.timing} | Shared as a faster delivery preference
                   </p>
                 </div>
               </label>
             </div>
+
+            <p className="mt-4 text-sm text-gray-500">
+              Your delivery preference is included in the order details so the
+              restaurant can see it. No extra delivery fee is applied in this
+              demo.
+            </p>
           </section>
         </div>
 
@@ -448,6 +454,10 @@ export default function Checkout() {
               <div className="flex justify-between text-gray-600 text-sm">
                 <span>Validated Total</span>
                 <span>Rs. {subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Delivery Preference</span>
+                <span>{DELIVERY_OPTIONS[deliveryType].label}</span>
               </div>
               <div className="flex justify-between text-xl font-bold text-contrast pt-2">
                 <span>Total</span>

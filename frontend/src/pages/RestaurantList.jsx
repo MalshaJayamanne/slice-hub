@@ -66,8 +66,13 @@ const RestaurantList = () => {
   }, []);
 
   useEffect(() => {
-    if (location.state?.initialSearch) {
-      setSearchQuery(location.state.initialSearch);
+    if (
+      Object.prototype.hasOwnProperty.call(
+        location.state || {},
+        "initialSearch"
+      )
+    ) {
+      setSearchQuery(location.state?.initialSearch || "");
     }
   }, [location.state]);
 

@@ -1,9 +1,12 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("token");
+  const [navbarSearch, setNavbarSearch] = useState("");
   let user = null;
 
   try {
@@ -16,6 +19,24 @@ function Navbar({ cartCount = 0 }) {
     localStorage.removeItem("token");
     localStorage.removeItem("authUser");
     navigate("/login");
+  };
+
+  useEffect(() => {
+    if (
+      location.pathname === "/restaurants" &&
+      Object.prototype.hasOwnProperty.call(location.state || {}, "initialSearch")
+    ) {
+      setNavbarSearch(location.state?.initialSearch || "");
+    }
+  }, [location.pathname, location.state]);
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    navigate("/restaurants", {
+      state: {
+        initialSearch: navbarSearch.trim(),
+      },
+    });
   };
 
   return (
@@ -39,7 +60,10 @@ function Navbar({ cartCount = 0 }) {
 
           {/* Search Bar */}
           <div className="hidden lg:flex flex-1 max-w-lg mx-12">
-            <div className="relative w-full group">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative w-full group"
+            >
               <Search
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary"
                 size={20}
@@ -47,10 +71,19 @@ function Navbar({ cartCount = 0 }) {
 
               <input
                 type="text"
-                placeholder="Search for food..."
-                className="w-full pl-12 pr-6 py-3 bg-gray-50 border border-transparent rounded-2xl focus:outline-none focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5"
+                placeholder="Search restaurants..."
+                value={navbarSearch}
+                onChange={(event) => setNavbarSearch(event.target.value)}
+                className="w-full rounded-2xl border border-transparent bg-gray-50 py-3 pl-12 pr-20 focus:bg-white focus:outline-none focus:border-primary/20 focus:ring-4 focus:ring-primary/5"
               />
-            </div>
+
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700"
+              >
+                Go
+              </button>
+            </form>
           </div>
 
           {/* Navigation */}

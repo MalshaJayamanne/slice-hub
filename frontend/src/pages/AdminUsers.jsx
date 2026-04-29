@@ -5,9 +5,11 @@ import {
   Mail,
   Search,
   Shield,
+  Trash2,
   UserCheck,
   UserPlus,
   UserX,
+  X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -23,6 +25,17 @@ const roleClasses = {
   admin: "bg-purple-100 text-purple-600",
   seller: "bg-blue-100 text-blue-600",
   customer: "bg-gray-100 text-gray-600",
+};
+
+const initialUserForm = {
+  name: "",
+  email: "",
+  password: "",
+  role: "customer",
+  phone: "",
+  address: "",
+  profileImage: "",
+  isActive: true,
 };
 
 const getUserInitials = (name) =>
@@ -54,6 +67,12 @@ export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [activityFilter, setActivityFilter] = useState("all");
+  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState("");
+  const [userForm, setUserForm] = useState(initialUserForm);
+  const [submittingUser, setSubmittingUser] = useState(false);
+  const [togglingUserId, setTogglingUserId] = useState("");
+  const [deletingUserId, setDeletingUserId] = useState("");
 
   const fetchUsers = async (initialLoad) => {
     try {
@@ -99,10 +118,42 @@ export default function AdminUsers() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, roleFilter, activityFilter]);
 
+  const resetUserForm = () => {
+    setUserForm(initialUserForm);
+    setEditingUserId("");
+  };
+
   const clearFilters = () => {
     setSearchTerm("");
     setRoleFilter("all");
     setActivityFilter("all");
+  };
+
+  const openCreateUserForm = () => {
+    resetUserForm();
+    setIsUserFormOpen(true);
+    setFeedback(null);
+  };
+
+  const openEditUserForm = (user) => {
+    setEditingUserId(user._id);
+    setUserForm({
+      name: user.name || "",
+      email: user.email || "",
+      password: "",
+      role: user.role || "customer",
+      phone: user.phone || "",
+      address: user.address || "",
+      profileImage: user.profileImage || "",
+      isActive: user.isActive ?? true,
+    });
+    setIsUserFormOpen(true);
+    setFeedback(null);
+  };
+
+  const closeUserForm = () => {
+    setIsUserFormOpen(false);
+    resetUserForm();
   };
 
   const exportUsers = () => {
@@ -136,11 +187,135 @@ export default function AdminUsers() {
     window.URL.revokeObjectURL(url);
   };
 
-  const showReadOnlyMessage = (message) => {
-    setFeedback({
-      type: "info",
-      message,
-    });
+  const handleUserFormChange = (field, value) => {
+    setUserForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmitUser = async (event) => {
+    event.preventDefault();
+
+    if (!userForm.name.trim() || !userForm.email.trim()) {
+      setFeedback({
+        type: "error",
+        message: "Name and email are required.",
+      });
+      return;
+    }
+
+    if (!editingUserId && userForm.password.length < 6) {
+      setFeedback({
+        type: "error",
+        message: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    if (editingUserId && userForm.password && userForm.password.length < 6) {
+      setFeedback({
+        type: "error",
+        message: "Updated passwords must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    try {
+      setSubmittingUser(true);
+      setFeedback(null);
+
+      const payload = {
+        name: userForm.name.trim(),
+        email: userForm.email.trim(),
+        role: userForm.role,
+        phone: userForm.phone.trim(),
+        address: userForm.address.trim(),
+        profileImage: userForm.profileImage.trim(),
+        isActive: userForm.isActive,
+      };
+
+      if (userForm.password) {
+        payload.password = userForm.password;
+      }
+
+      if (editingUserId) {
+        await adminAPI.updateUser(editingUserId, payload);
+      } else {
+        await adminAPI.createUser(payload);
+      }
+
+      await fetchUsers(false);
+      setFeedback({
+        type: "success",
+        message: editingUserId
+          ? "User updated successfully."
+          : "User created successfully.",
+      });
+      closeUserForm();
+    } catch (submitError) {
+      setFeedback({
+        type: "error",
+        message:
+          submitError?.response?.data?.message ||
+          "Failed to save the user.",
+      });
+    } finally {
+      setSubmittingUser(false);
+    }
+  };
+
+  const handleToggleUserStatus = async (user) => {
+    try {
+      setTogglingUserId(user._id);
+      setFeedback(null);
+
+      await adminAPI.updateUser(user._id, {
+        isActive: !user.isActive,
+      });
+
+      await fetchUsers(false);
+      setFeedback({
+        type: "success",
+        message: `${user.name} is now ${user.isActive ? "inactive" : "active"}.`,
+      });
+    } catch (toggleError) {
+      setFeedback({
+        type: "error",
+        message:
+          toggleError?.response?.data?.message ||
+          `Failed to update ${user.name}.`,
+      });
+    } finally {
+      setTogglingUserId("");
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Delete ${user.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeletingUserId(user._id);
+      setFeedback(null);
+
+      await adminAPI.deleteUser(user._id);
+      await fetchUsers(false);
+      setFeedback({
+        type: "success",
+        message: `${user.name} deleted successfully.`,
+      });
+    } catch (deleteError) {
+      setFeedback({
+        type: "error",
+        message:
+          deleteError?.response?.data?.message ||
+          `Failed to delete ${user.name}.`,
+      });
+    } finally {
+      setDeletingUserId("");
+    }
   };
 
   const sellerCount = users.filter((user) => user.role === "seller").length;
@@ -209,11 +384,7 @@ export default function AdminUsers() {
 
           <button
             type="button"
-            onClick={() =>
-              showReadOnlyMessage(
-                "User creation is not part of the Week 5 admin API, so this view stays read-only for the demo."
-              )
-            }
+            onClick={openCreateUserForm}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg transition-all hover:bg-red-700"
           >
             <UserPlus size={16} />
@@ -225,7 +396,13 @@ export default function AdminUsers() {
       {feedback ? (
         <FeedbackAlert
           type={feedback.type}
-          title={feedback.type === "info" ? "Read-only action" : "Notice"}
+          title={
+            feedback.type === "success"
+              ? "Users updated"
+              : feedback.type === "info"
+              ? "Notice"
+              : "Something went wrong"
+          }
           message={feedback.message}
           onClose={() => setFeedback(null)}
         />
@@ -240,6 +417,123 @@ export default function AdminUsers() {
         />
       ) : null}
 
+      {isUserFormOpen ? (
+        <form
+          onSubmit={handleSubmitUser}
+          className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft sm:p-8"
+        >
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
+                {editingUserId ? "Edit User" : "Create User"}
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-contrast">
+                {editingUserId ? "Update Account" : "Add Platform User"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={closeUserForm}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            >
+              <X size={16} />
+              Cancel
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <input
+              placeholder="Full name"
+              value={userForm.name}
+              onChange={(event) => handleUserFormChange("name", event.target.value)}
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              placeholder="Email address"
+              type="email"
+              value={userForm.email}
+              onChange={(event) => handleUserFormChange("email", event.target.value)}
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              placeholder={editingUserId ? "New password (optional)" : "Password"}
+              type="password"
+              value={userForm.password}
+              onChange={(event) => handleUserFormChange("password", event.target.value)}
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <select
+              value={userForm.role}
+              onChange={(event) => handleUserFormChange("role", event.target.value)}
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="customer">Customer</option>
+              <option value="seller">Seller</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input
+              placeholder="Phone"
+              value={userForm.phone}
+              onChange={(event) => handleUserFormChange("phone", event.target.value)}
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <input
+              placeholder="Profile image URL"
+              value={userForm.profileImage}
+              onChange={(event) =>
+                handleUserFormChange("profileImage", event.target.value)
+              }
+              className="rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <textarea
+              placeholder="Address"
+              value={userForm.address}
+              onChange={(event) => handleUserFormChange("address", event.target.value)}
+              className="min-h-28 rounded-2xl border p-3 outline-none focus:ring-2 focus:ring-primary/20 md:col-span-2"
+            />
+            <label className="flex items-center gap-3 rounded-2xl border p-4 text-sm font-medium md:col-span-2">
+              <input
+                type="checkbox"
+                checked={userForm.isActive}
+                onChange={(event) =>
+                  handleUserFormChange("isActive", event.target.checked)
+                }
+              />
+              Keep this account active
+            </label>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="submit"
+              disabled={submittingUser}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submittingUser ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Shield size={18} />
+              )}
+              {submittingUser
+                ? "Saving..."
+                : editingUserId
+                ? "Update User"
+                : "Create User"}
+            </button>
+
+            <button
+              type="button"
+              onClick={closeUserForm}
+              disabled={submittingUser}
+              className="rounded-2xl border px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
+
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-soft">
         <div className="flex flex-col gap-4 border-b border-gray-100 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:w-96">
@@ -249,7 +543,7 @@ export default function AdminUsers() {
             />
             <input
               type="text"
-              placeholder="Search by name, email, or ID..."
+              placeholder="Search by name, email, or phone..."
               className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
@@ -334,170 +628,211 @@ export default function AdminUsers() {
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
-                  {users.map((user, index) => (
-                    <motion.tr
-                      key={user._id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      className="transition-colors hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
-                            {getUserInitials(user.name)}
+                  {users.map((user, index) => {
+                    const isToggling = togglingUserId === user._id;
+                    const isDeleting = deletingUserId === user._id;
+
+                    return (
+                      <motion.tr
+                        key={user._id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.03 }}
+                        className="transition-colors hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                              {getUserInitials(user.name)}
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-bold text-contrast">
+                                {user.name}
+                              </p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
                           </div>
+                        </td>
 
-                          <div>
-                            <p className="text-sm font-bold text-contrast">
-                              {user.name}
-                            </p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <span
-                          className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                            roleClasses[user.role] || roleClasses.customer
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {formatDate(user.createdAt)}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <div
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              user.isActive ? "bg-green-500" : "bg-red-500"
+                        <td className="px-6 py-4">
+                          <span
+                            className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                              roleClasses[user.role] || roleClasses.customer
                             }`}
-                          />
-                          <span className="text-xs capitalize text-gray-600">
-                            {user.isActive ? "active" : "inactive"}
+                          >
+                            {user.role}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              (window.location.href = `mailto:${user.email}`)
-                            }
-                            className="rounded-lg p-2 text-gray-400 transition-all hover:bg-primary/5 hover:text-primary"
-                            title="Send Message"
-                          >
-                            <Mail size={18} />
-                          </button>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {formatDate(user.createdAt)}
+                        </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              showReadOnlyMessage(
-                                `Role and permission editing for ${user.name} is still read-only in this demo.`
-                              )
-                            }
-                            className="rounded-lg p-2 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
-                            title="Manage Permissions"
-                          >
-                            <Shield size={18} />
-                          </button>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                user.isActive ? "bg-green-500" : "bg-red-500"
+                              }`}
+                            />
+                            <span className="text-xs capitalize text-gray-600">
+                              {user.isActive ? "active" : "inactive"}
+                            </span>
+                          </div>
+                        </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              showReadOnlyMessage(
-                                `Account suspension for ${user.name} is not connected to a backend action yet.`
-                              )
-                            }
-                            className="rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500"
-                            title="Suspend User"
-                          >
-                            <UserX size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                (window.location.href = `mailto:${user.email}`)
+                              }
+                              className="rounded-lg p-2 text-gray-400 transition-all hover:bg-primary/5 hover:text-primary"
+                              title="Send Message"
+                            >
+                              <Mail size={18} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openEditUserForm(user)}
+                              className="rounded-lg p-2 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
+                              title="Manage Permissions"
+                            >
+                              <Shield size={18} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleUserStatus(user)}
+                              disabled={isToggling}
+                              className="rounded-lg p-2 text-gray-400 transition-all hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              title={user.isActive ? "Deactivate User" : "Activate User"}
+                            >
+                              {isToggling ? (
+                                <Loader2 size={18} className="animate-spin" />
+                              ) : user.isActive ? (
+                                <UserX size={18} />
+                              ) : (
+                                <UserCheck size={18} />
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteUser(user)}
+                              disabled={isDeleting}
+                              className="rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              title="Delete User"
+                            >
+                              {isDeleting ? (
+                                <Loader2 size={18} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={18} />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <div className="grid gap-4 p-4 md:hidden">
-              {users.map((user, index) => (
-                <motion.article
-                  key={user._id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className="rounded-[1.5rem] border border-gray-100 p-4 shadow-sm"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
-                      {getUserInitials(user.name)}
-                    </div>
+              {users.map((user, index) => {
+                const isToggling = togglingUserId === user._id;
+                const isDeleting = deletingUserId === user._id;
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-bold text-contrast">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
+                return (
+                  <motion.article
+                    key={user._id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="rounded-[1.5rem] border border-gray-100 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                        {getUserInitials(user.name)}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-bold text-contrast">{user.name}</p>
+                            <p className="text-xs text-gray-500">{user.email}</p>
+                          </div>
+
+                          <span
+                            className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                              roleClasses[user.role] || roleClasses.customer
+                            }`}
+                          >
+                            {user.role}
+                          </span>
                         </div>
 
-                        <span
-                          className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                            roleClasses[user.role] || roleClasses.customer
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </div>
+                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-600">
+                          {user.isActive ? (
+                            <UserCheck size={14} className="text-green-500" />
+                          ) : (
+                            <UserX size={14} className="text-red-500" />
+                          )}
+                          <span>{user.isActive ? "Active" : "Inactive"}</span>
+                          <span className="text-gray-300">|</span>
+                          <span>{formatDate(user.createdAt)}</span>
+                        </div>
 
-                      <div className="mt-3 flex items-center gap-2 text-xs text-gray-600">
-                        {user.isActive ? (
-                          <UserCheck size={14} className="text-green-500" />
-                        ) : (
-                          <UserX size={14} className="text-red-500" />
-                        )}
-                        <span>{user.isActive ? "Active" : "Inactive"}</span>
-                        <span className="text-gray-300">|</span>
-                        <span>{formatDate(user.createdAt)}</span>
-                      </div>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              (window.location.href = `mailto:${user.email}`)
+                            }
+                            className="rounded-2xl border px-4 py-3 text-sm text-primary"
+                          >
+                            Message
+                          </button>
 
-                      <div className="mt-4 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            (window.location.href = `mailto:${user.email}`)
-                          }
-                          className="flex-1 rounded-2xl border px-4 py-3 text-sm text-primary"
-                        >
-                          Message
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => openEditUserForm(user)}
+                            className="rounded-2xl border px-4 py-3 text-sm text-orange-500"
+                          >
+                            Edit
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            showReadOnlyMessage(
-                              `Role and permission editing for ${user.name} is still read-only in this demo.`
-                            )
-                          }
-                          className="flex-1 rounded-2xl border px-4 py-3 text-sm text-orange-500"
-                        >
-                          Permissions
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleUserStatus(user)}
+                            disabled={isToggling}
+                            className="rounded-2xl border px-4 py-3 text-sm text-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isToggling
+                              ? "Updating..."
+                              : user.isActive
+                              ? "Deactivate"
+                              : "Activate"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(user)}
+                            disabled={isDeleting}
+                            className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isDeleting ? "Deleting..." : "Delete"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.article>
-              ))}
+                  </motion.article>
+                );
+              })}
             </div>
           </>
         )}
