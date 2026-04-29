@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  CheckCircle2,
   ChevronLeft,
   Loader2,
   Pencil,
@@ -13,7 +14,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import foodAPI from "../api/foodAPI";
 import restaurantAPI from "../api/restaurantApi";
-import FeedbackAlert from "../components/FeedbackAlert";
 
 const initialForm = {
   name: "",
@@ -308,21 +308,16 @@ const SellerMenu = () => {
       </div>
 
       {error ? (
-        <FeedbackAlert
-          type="error"
-          title="Action failed"
-          message={error}
-          onClose={() => setError("")}
-        />
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
       ) : null}
 
       {success ? (
-        <FeedbackAlert
-          type="success"
-          title="Saved"
-          message={success}
-          onClose={() => setSuccess("")}
-        />
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <CheckCircle2 size={18} />
+          {success}
+        </div>
       ) : null}
 
       <div className="grid xl:grid-cols-[1.1fr_1.4fr] gap-8">
