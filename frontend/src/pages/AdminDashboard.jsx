@@ -16,12 +16,12 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import adminAPI from "../api/adminAPI";
-import FeedbackAlert from "../components/FeedbackAlert";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
+import useToast from "../hooks/useToast";
 
 const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
 const formatNumber = (value) =>
@@ -97,11 +97,11 @@ const buildRestaurantOwnerLabel = (restaurant) =>
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [summary, setSummary] = useState(null);
   const [pendingRestaurants, setPendingRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingRestaurantId, setUpdatingRestaurantId] = useState("");
 
@@ -140,7 +140,6 @@ export default function AdminDashboard() {
   const handleRestaurantAction = async (restaurant, nextStatus) => {
     try {
       setUpdatingRestaurantId(restaurant._id);
-      setFeedback(null);
 
       await adminAPI.updateRestaurantStatus(restaurant._id, nextStatus);
 
@@ -175,17 +174,15 @@ export default function AdminDashboard() {
         };
       });
 
-      setFeedback({
-        type: "success",
-        message: `${buildRestaurantLabel(restaurant)} marked as ${nextStatus}.`,
-      });
+      toast.success(
+        `${buildRestaurantLabel(restaurant)} marked as ${nextStatus}.`,
+        "Restaurant updated"
+      );
     } catch (updateError) {
-      setFeedback({
-        type: "error",
-        message:
-          updateError?.response?.data?.message ||
-          `Failed to update ${buildRestaurantLabel(restaurant)}.`,
-      });
+      const message =
+        updateError?.response?.data?.message ||
+        `Failed to update ${buildRestaurantLabel(restaurant)}.`;
+      toast.error(message, "Update failed");
     } finally {
       setUpdatingRestaurantId("");
     }
@@ -427,19 +424,6 @@ export default function AdminDashboard() {
             </button>
           </div>
         </header>
-
-        {feedback ? (
-          <FeedbackAlert
-            type={feedback.type}
-            title={
-              feedback.type === "success"
-                ? "Restaurant updated"
-                : "Update failed"
-            }
-            message={feedback.message}
-            onClose={() => setFeedback(null)}
-          />
-        ) : null}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
           {summaryCards.map((metric, index) => {

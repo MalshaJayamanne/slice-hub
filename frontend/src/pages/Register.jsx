@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import useToast from "../hooks/useToast";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -21,12 +22,14 @@ const Register = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirm) {
       setError("Passwords do not match.");
+      toast.error("Passwords do not match.", "Registration failed");
       return;
     }
 
@@ -51,7 +54,10 @@ const Register = () => {
         },
       });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Registration failed");
+      const message =
+        requestError.response?.data?.message || "Registration failed";
+      setError(message);
+      toast.error(message, "Registration failed");
     } finally {
       setSubmitting(false);
     }

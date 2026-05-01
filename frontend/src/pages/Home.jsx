@@ -12,7 +12,6 @@ import {
 import { motion } from "framer-motion";
 
 import FoodCard from "../components/FoodCard";
-import FeedbackAlert from "../components/FeedbackAlert";
 import RestaurantCard from "../components/RestaurantCard";
 import {
   WorkspaceEmptyState,
@@ -22,17 +21,19 @@ import {
 import foodAPI from "../api/foodAPI";
 import { useCart } from "../context/CartContext";
 import { restaurantService } from "../services/restaurantService";
+import { hasAuthSession } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, canUseCart } = useCart();
+  const toast = useToast();
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [heroSearch, setHeroSearch] = useState("");
   const [heroLocation, setHeroLocation] = useState("");
-  const [cartFeedback, setCartFeedback] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -69,14 +70,7 @@ export default function Home() {
     return foods[Math.floor(Math.random() * foods.length)];
   }, [foods]);
 
-  const authUser = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem("authUser");
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch (_error) {
-      return null;
-    }
-  }, []);
+  const isSignedIn = useMemo(() => hasAuthSession(), []);
 
   const handleBrowseRestaurants = () => {
     navigate("/restaurants", {
@@ -88,7 +82,7 @@ export default function Home() {
 
   const handleAddToCart = (food) => {
     const result = addItem(food, 1);
-    setCartFeedback({
+    toast.showToast({
       type: result.success ? "success" : "error",
       title: result.success ? "Added to cart" : "Cart update failed",
       message: result.message,
@@ -203,17 +197,6 @@ export default function Home() {
         </div>
       </section>
 
-      {cartFeedback ? (
-        <section className="page-shell">
-          <FeedbackAlert
-            type={cartFeedback.type}
-            title={cartFeedback.title}
-            message={cartFeedback.message}
-            onClose={() => setCartFeedback(null)}
-          />
-        </section>
-      ) : null}
-
       {loading ? (
         <section className="page-shell">
           <WorkspaceLoadingState
@@ -281,6 +264,7 @@ export default function Home() {
                     key={food?._id}
                     food={food}
                     onAddToCart={handleAddToCart}
+                    cartAccessAllowed={canUseCart}
                   />
                 ))}
               </div>
@@ -330,9 +314,10 @@ export default function Home() {
 
                         <button
                           onClick={() => handleAddToCart(recommendedFood)}
-                          className="rounded-2xl border border-white px-6 py-3 font-bold"
+                          disabled={!canUseCart}
+                          className="rounded-2xl border border-white px-6 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Add to Cart
+                          {canUseCart ? "Add to Cart" : "Customer Cart Only"}
                         </button>
                       </div>
                     </>
@@ -376,10 +361,10 @@ export default function Home() {
             </Link>
 
             <Link
-              to={authUser ? "/dashboard" : "/login"}
+              to={isSignedIn ? "/dashboard" : "/login"}
               className="btn-secondary px-8"
             >
-              {authUser ? "Open Dashboard" : "Login"}
+              {isSignedIn ? "Open Dashboard" : "Login"}
             </Link>
           </div>
         </div>

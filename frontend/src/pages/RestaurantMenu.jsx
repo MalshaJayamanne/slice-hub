@@ -15,11 +15,13 @@ import {
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
+import useToast from "../hooks/useToast";
 
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, canUseCart } = useCart();
+  const toast = useToast();
 
   const [restaurant, setRestaurant] = useState(null);
   const [foods, setFoods] = useState([]);
@@ -27,11 +29,14 @@ const RestaurantMenu = () => {
   const [loading, setLoading] = useState(true);
   const [foodLoading, setFoodLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cartMessage, setCartMessage] = useState("");
 
   const handleAddToCart = (food) => {
     const result = addItem(food, 1);
-    setCartMessage(result.message);
+    toast.showToast({
+      type: result.success ? "success" : "error",
+      title: result.success ? "Added to cart" : "Cart update failed",
+      message: result.message,
+    });
   };
 
   useEffect(() => {
@@ -217,11 +222,6 @@ const RestaurantMenu = () => {
             ) : null}
           </div>
 
-          {cartMessage ? (
-            <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-              {cartMessage}
-            </div>
-          ) : null}
         </div>
 
         {error && !loading ? (
@@ -260,6 +260,7 @@ const RestaurantMenu = () => {
                 key={food?._id}
                 food={food}
                 onAddToCart={handleAddToCart}
+                cartAccessAllowed={canUseCart}
               />
             ))}
           </div>

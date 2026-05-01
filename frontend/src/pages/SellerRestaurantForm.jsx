@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import restaurantAPI from "../api/restaurantApi";
+import useToast from "../hooks/useToast";
 
 const initialFormData = {
   name: "",
@@ -21,6 +22,7 @@ const SellerRestaurantForm = () => {
   const navigate = useNavigate();
   const { id: restaurantId } = useParams();
   const isEditMode = Boolean(restaurantId);
+  const toast = useToast();
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
@@ -92,10 +94,11 @@ const SellerRestaurantForm = () => {
       });
     } catch (submitError) {
       console.error(submitError);
-      setError(
+      const message =
         submitError?.response?.data?.message ||
-          "Failed to save restaurant."
-      );
+        "Failed to save restaurant.";
+      setError(message);
+      toast.error(message, "Save failed");
     } finally {
       setSaving(false);
     }

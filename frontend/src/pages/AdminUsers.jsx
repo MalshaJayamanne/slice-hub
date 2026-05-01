@@ -20,6 +20,7 @@ import {
   WorkspaceErrorState,
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
+import useToast from "../hooks/useToast";
 
 const roleClasses = {
   admin: "bg-purple-100 text-purple-600",
@@ -58,11 +59,11 @@ const formatDate = (value) =>
 const escapeCsvValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
 export default function AdminUsers() {
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState(null);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -132,7 +133,6 @@ export default function AdminUsers() {
   const openCreateUserForm = () => {
     resetUserForm();
     setIsUserFormOpen(true);
-    setFeedback(null);
   };
 
   const openEditUserForm = (user) => {
@@ -148,7 +148,6 @@ export default function AdminUsers() {
       isActive: user.isActive ?? true,
     });
     setIsUserFormOpen(true);
-    setFeedback(null);
   };
 
   const closeUserForm = () => {
@@ -158,6 +157,7 @@ export default function AdminUsers() {
 
   const exportUsers = () => {
     if (!users.length) {
+      toast.info("There are no users in the current view to export.", "No export data");
       return;
     }
 
@@ -185,6 +185,7 @@ export default function AdminUsers() {
     link.download = `platform-users-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
+    toast.success("The visible users were exported as a CSV file.", "Export ready");
   };
 
   const handleUserFormChange = (field, value) => {
@@ -198,32 +199,28 @@ export default function AdminUsers() {
     event.preventDefault();
 
     if (!userForm.name.trim() || !userForm.email.trim()) {
-      setFeedback({
-        type: "error",
-        message: "Name and email are required.",
-      });
+      toast.error("Name and email are required.", "Missing details");
       return;
     }
 
     if (!editingUserId && userForm.password.length < 6) {
-      setFeedback({
-        type: "error",
-        message: "Password must be at least 6 characters long.",
-      });
+      toast.error(
+        "Password must be at least 6 characters long.",
+        "Password too short"
+      );
       return;
     }
 
     if (editingUserId && userForm.password && userForm.password.length < 6) {
-      setFeedback({
-        type: "error",
-        message: "Updated passwords must be at least 6 characters long.",
-      });
+      toast.error(
+        "Updated passwords must be at least 6 characters long.",
+        "Password too short"
+      );
       return;
     }
 
     try {
       setSubmittingUser(true);
-      setFeedback(null);
 
       const payload = {
         name: userForm.name.trim(),
@@ -246,20 +243,16 @@ export default function AdminUsers() {
       }
 
       await fetchUsers(false);
-      setFeedback({
-        type: "success",
-        message: editingUserId
-          ? "User updated successfully."
-          : "User created successfully.",
-      });
+      const message = editingUserId
+        ? "User updated successfully."
+        : "User created successfully.";
+      toast.success(message, "User saved");
       closeUserForm();
     } catch (submitError) {
-      setFeedback({
-        type: "error",
-        message:
-          submitError?.response?.data?.message ||
-          "Failed to save the user.",
-      });
+      const message =
+        submitError?.response?.data?.message ||
+        "Failed to save the user.";
+      toast.error(message, "Save failed");
     } finally {
       setSubmittingUser(false);
     }
@@ -268,24 +261,21 @@ export default function AdminUsers() {
   const handleToggleUserStatus = async (user) => {
     try {
       setTogglingUserId(user._id);
-      setFeedback(null);
 
       await adminAPI.updateUser(user._id, {
         isActive: !user.isActive,
       });
 
       await fetchUsers(false);
-      setFeedback({
-        type: "success",
-        message: `${user.name} is now ${user.isActive ? "inactive" : "active"}.`,
-      });
+      const message = `${user.name} is now ${
+        user.isActive ? "inactive" : "active"
+      }.`;
+      toast.success(message, "User updated");
     } catch (toggleError) {
-      setFeedback({
-        type: "error",
-        message:
-          toggleError?.response?.data?.message ||
-          `Failed to update ${user.name}.`,
-      });
+      const message =
+        toggleError?.response?.data?.message ||
+        `Failed to update ${user.name}.`;
+      toast.error(message, "Update failed");
     } finally {
       setTogglingUserId("");
     }
@@ -298,21 +288,15 @@ export default function AdminUsers() {
 
     try {
       setDeletingUserId(user._id);
-      setFeedback(null);
 
       await adminAPI.deleteUser(user._id);
       await fetchUsers(false);
-      setFeedback({
-        type: "success",
-        message: `${user.name} deleted successfully.`,
-      });
+      toast.success(`${user.name} deleted successfully.`, "User deleted");
     } catch (deleteError) {
-      setFeedback({
-        type: "error",
-        message:
-          deleteError?.response?.data?.message ||
-          `Failed to delete ${user.name}.`,
-      });
+      const message =
+        deleteError?.response?.data?.message ||
+        `Failed to delete ${user.name}.`;
+      toast.error(message, "Delete failed");
     } finally {
       setDeletingUserId("");
     }
@@ -392,21 +376,6 @@ export default function AdminUsers() {
           </button>
         </div>
       </header>
-
-      {feedback ? (
-        <FeedbackAlert
-          type={feedback.type}
-          title={
-            feedback.type === "success"
-              ? "Users updated"
-              : feedback.type === "info"
-              ? "Notice"
-              : "Something went wrong"
-          }
-          message={feedback.message}
-          onClose={() => setFeedback(null)}
-        />
-      ) : null}
 
       {error ? (
         <FeedbackAlert

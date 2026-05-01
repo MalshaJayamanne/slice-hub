@@ -17,7 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import adminAPI from "../api/adminAPI";
-import FeedbackAlert from "../components/FeedbackAlert";
+import useToast from "../hooks/useToast";
 
 const statusClasses = {
   approved: "bg-green-100 text-green-600",
@@ -38,11 +38,11 @@ const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
 
 export default function AdminRestaurants() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingRestaurantId, setUpdatingRestaurantId] = useState("");
@@ -102,13 +102,11 @@ export default function AdminRestaurants() {
         users.filter((user) => ["seller", "admin"].includes(user.role))
       );
     } catch (ownerError) {
+      const message =
+        ownerError?.response?.data?.message ||
+        "Failed to load restaurant owner options.";
       setOwnerOptions([]);
-      setFeedback({
-        type: "error",
-        message:
-          ownerError?.response?.data?.message ||
-          "Failed to load restaurant owner options.",
-      });
+      toast.error(message, "Owner options unavailable");
     } finally {
       setOwnersLoading(false);
     }
@@ -130,7 +128,6 @@ export default function AdminRestaurants() {
   const openCreateRestaurantForm = async () => {
     resetRestaurantForm();
     setIsRestaurantFormOpen(true);
-    setFeedback(null);
 
     if (ownerOptions.length === 0) {
       await fetchOwnerOptions();
@@ -154,7 +151,6 @@ export default function AdminRestaurants() {
       status: restaurant?.status || "pending",
     });
     setIsRestaurantFormOpen(true);
-    setFeedback(null);
 
     if (ownerOptions.length === 0) {
       await fetchOwnerOptions();
@@ -169,7 +165,6 @@ export default function AdminRestaurants() {
   const handleStatusUpdate = async (restaurant, nextStatus) => {
     try {
       setUpdatingRestaurantId(restaurant._id);
-      setFeedback(null);
 
       const response = await adminAPI.updateRestaurantStatus(
         restaurant._id,
@@ -194,17 +189,15 @@ export default function AdminRestaurants() {
         })
       );
 
-      setFeedback({
-        type: "success",
-        message: `${restaurant.name} marked as ${nextStatus}.`,
-      });
+      toast.success(
+        `${restaurant.name} marked as ${nextStatus}.`,
+        "Restaurant updated"
+      );
     } catch (updateError) {
-      setFeedback({
-        type: "error",
-        message:
-          updateError?.response?.data?.message ||
-          `Failed to update ${restaurant.name}.`,
-      });
+      const message =
+        updateError?.response?.data?.message ||
+        `Failed to update ${restaurant.name}.`;
+      toast.error(message, "Update failed");
     } finally {
       setUpdatingRestaurantId("");
     }
@@ -225,16 +218,12 @@ export default function AdminRestaurants() {
       !restaurantForm.category.trim() ||
       !restaurantForm.ownerId
     ) {
-      setFeedback({
-        type: "error",
-        message: "Name, owner, and category are required.",
-      });
+      toast.error("Name, owner, and category are required.", "Missing details");
       return;
     }
 
     try {
       setSubmittingRestaurant(true);
-      setFeedback(null);
 
       const payload = {
         name: restaurantForm.name.trim(),
@@ -252,20 +241,16 @@ export default function AdminRestaurants() {
       }
 
       await fetchRestaurants(false);
-      setFeedback({
-        type: "success",
-        message: editingRestaurantId
-          ? "Restaurant updated successfully."
-          : "Restaurant created successfully.",
-      });
+      const message = editingRestaurantId
+        ? "Restaurant updated successfully."
+        : "Restaurant created successfully.";
+      toast.success(message, "Restaurant saved");
       closeRestaurantForm();
     } catch (submitError) {
-      setFeedback({
-        type: "error",
-        message:
-          submitError?.response?.data?.message ||
-          "Failed to save restaurant.",
-      });
+      const message =
+        submitError?.response?.data?.message ||
+        "Failed to save restaurant.";
+      toast.error(message, "Save failed");
     } finally {
       setSubmittingRestaurant(false);
     }
@@ -282,21 +267,18 @@ export default function AdminRestaurants() {
 
     try {
       setDeletingRestaurantId(restaurant._id);
-      setFeedback(null);
 
       await adminAPI.deleteRestaurant(restaurant._id);
       await fetchRestaurants(false);
-      setFeedback({
-        type: "success",
-        message: `${restaurant.name} deleted successfully.`,
-      });
+      toast.success(
+        `${restaurant.name} deleted successfully.`,
+        "Restaurant deleted"
+      );
     } catch (deleteError) {
-      setFeedback({
-        type: "error",
-        message:
-          deleteError?.response?.data?.message ||
-          `Failed to delete ${restaurant.name}.`,
-      });
+      const message =
+        deleteError?.response?.data?.message ||
+        `Failed to delete ${restaurant.name}.`;
+      toast.error(message, "Delete failed");
     } finally {
       setDeletingRestaurantId("");
     }
@@ -336,21 +318,6 @@ export default function AdminRestaurants() {
           </span>
         </button>
       </header>
-
-      {feedback ? (
-        <FeedbackAlert
-          type={feedback.type}
-          title={
-            feedback.type === "success"
-              ? "Restaurant updated"
-              : feedback.type === "info"
-              ? "Notice"
-              : "Update failed"
-          }
-          message={feedback.message}
-          onClose={() => setFeedback(null)}
-        />
-      ) : null}
 
       {error ? (
         <div className="flex items-center gap-4 rounded-3xl border border-red-100 bg-red-50 p-6 text-red-600">

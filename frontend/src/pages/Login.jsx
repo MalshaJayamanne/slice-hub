@@ -11,29 +11,27 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import { emitAuthChanged } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [pageFeedback, setPageFeedback] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
 
   React.useEffect(() => {
     if (location.state?.feedback) {
-      setPageFeedback(location.state.feedback);
+      toast.showToast(location.state.feedback);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, toast]);
 
   const showAuthNotice = (message) => {
-    setPageFeedback({
-      type: "info",
-      title: "Email sign-in only",
-      message,
-    });
+    toast.info(message, "Email sign-in only");
   };
 
   const handleSubmit = async (e) => {
@@ -50,6 +48,7 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.user.token);
       localStorage.setItem("authUser", JSON.stringify(res.data.user));
+      emitAuthChanged();
 
       navigate("/dashboard", {
         state: {
@@ -61,7 +60,9 @@ const Login = () => {
         },
       });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Login failed");
+      const message = requestError.response?.data?.message || "Login failed";
+      setError(message);
+      toast.error(message, "Login failed");
     } finally {
       setSubmitting(false);
     }
@@ -132,15 +133,6 @@ const Login = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {pageFeedback ? (
-            <FeedbackAlert
-              type={pageFeedback.type}
-              title={pageFeedback.title}
-              message={pageFeedback.message}
-              onClose={() => setPageFeedback(null)}
-            />
-          ) : null}
-
           {error ? (
             <FeedbackAlert
               type="error"

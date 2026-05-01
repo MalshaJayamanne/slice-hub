@@ -15,6 +15,8 @@ import { motion } from "framer-motion";
 import orderAPI from "../api/orderAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
 import { useCart } from "../context/CartContext";
+import { getAuthUser } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 const DELIVERY_OPTIONS = {
   standard: {
@@ -30,13 +32,9 @@ const DELIVERY_OPTIONS = {
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartRestaurantId, clearCart, subtotal } = useCart();
+  const toast = useToast();
 
-  let storedUser = null;
-  try {
-    storedUser = JSON.parse(localStorage.getItem("authUser"));
-  } catch (_error) {
-    storedUser = null;
-  }
+  const storedUser = getAuthUser();
 
   const [isOrdered, setIsOrdered] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -83,6 +81,7 @@ export default function Checkout() {
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0 || !cartRestaurantId) {
       setError("Your cart is empty.");
+      toast.error("Your cart is empty.", "Checkout blocked");
       return;
     }
 
@@ -93,6 +92,10 @@ export default function Checkout() {
       !form.city.trim()
     ) {
       setError("Please complete the delivery and contact details.");
+      toast.error(
+        "Please complete the delivery and contact details.",
+        "Checkout blocked"
+      );
       return;
     }
 
@@ -124,10 +127,11 @@ export default function Checkout() {
         });
       }, 2500);
     } catch (placeOrderError) {
-      setError(
+      const message =
         placeOrderError?.response?.data?.message ||
-          "Failed to place the order. Please try again."
-      );
+        "Failed to place the order. Please try again.";
+      setError(message);
+      toast.error(message, "Checkout failed");
     } finally {
       setPlacingOrder(false);
     }

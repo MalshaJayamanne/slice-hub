@@ -2,22 +2,21 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 
+import { clearAuthSession, getAuthUser, isCustomer } from "../utils/auth";
+import useToast from "../hooks/useToast";
+
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const token = localStorage.getItem("token");
   const [navbarSearch, setNavbarSearch] = useState("");
-  let user = null;
-
-  try {
-    user = JSON.parse(localStorage.getItem("authUser"));
-  } catch (_error) {
-    user = null;
-  }
+  const user = getAuthUser();
+  const canUseCart = token && isCustomer(user);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authUser");
+    clearAuthSession();
+    toast.info("You have been signed out.", "Signed out");
     navigate("/login");
   };
 
@@ -101,18 +100,20 @@ function Navbar({ cartCount = 0 }) {
                 Orders
               </Link>
             ) : null}
-            <Link
-              to="/cart"
-              className="relative rounded-[1.4rem] border border-slate-200/70 bg-white px-4 py-3 text-slate-500 shadow-sm transition hover:border-white hover:bg-white hover:text-slate-900"
-            >
-              <ShoppingCart size={22} />
+            {canUseCart ? (
+              <Link
+                to="/cart"
+                className="relative rounded-[1.4rem] border border-slate-200/70 bg-white px-4 py-3 text-slate-500 shadow-sm transition hover:border-white hover:bg-white hover:text-slate-900"
+              >
+                <ShoppingCart size={22} />
 
-              {cartCount > 0 && (
-                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-black text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+                {cartCount > 0 && (
+                  <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-black text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            ) : null}
             {token ? (
               <>
                 <Link

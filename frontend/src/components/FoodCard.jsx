@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 
-const FoodCard = ({ food, onAddToCart }) => {
+const FoodCard = ({ food, onAddToCart, cartAccessAllowed = true }) => {
   const navigate = useNavigate();
 
   if (!food) return null;
@@ -58,15 +58,19 @@ const FoodCard = ({ food, onAddToCart }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            if (food?.availability) {
+            if (food?.availability && cartAccessAllowed) {
               onAddToCart && onAddToCart(food);
             }
           }}
-          disabled={!food?.availability}
+          disabled={!food?.availability || !cartAccessAllowed}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#f7f8fa] py-3.5 font-black text-contrast transition-all hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:text-gray-400 disabled:hover:bg-[#f7f8fa]"
         >
           <Plus size={20} />
-          {food?.availability ? "Add to Cart" : "Currently Unavailable"}
+          {!food?.availability
+            ? "Currently Unavailable"
+            : cartAccessAllowed
+              ? "Add to Cart"
+              : "Customer Cart Only"}
         </button>
       </div>
     </motion.div>
