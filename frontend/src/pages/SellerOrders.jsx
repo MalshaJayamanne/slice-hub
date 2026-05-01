@@ -12,7 +12,6 @@ import {
 import { motion } from "framer-motion";
 
 import orderAPI from "../api/orderAPI";
-import FeedbackAlert from "../components/FeedbackAlert";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -20,6 +19,7 @@ import {
   WorkspacePage,
   WorkspaceSidebar,
 } from "../components/WorkspaceScaffold";
+import useToast from "../hooks/useToast";
 
 const statusClasses = {
   Pending: "bg-amber-50 text-amber-600 border border-amber-100",
@@ -77,6 +77,7 @@ const getNextStatus = (status) => {
 };
 
 export default function SellerOrders() {
+  const toast = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -85,7 +86,6 @@ export default function SellerOrders() {
     orderId: "",
     status: "",
   });
-  const [feedback, setFeedback] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -114,7 +114,6 @@ export default function SellerOrders() {
         orderId: order._id,
         status: nextStatus,
       });
-      setFeedback(null);
 
       const response = await orderAPI.updateOrderStatus(order._id, nextStatus);
       const updatedOrder = response?.data;
@@ -125,17 +124,15 @@ export default function SellerOrders() {
         )
       );
 
-      setFeedback({
-        type: "success",
-        message: `Order ${formatOrderId(order._id)} updated to ${nextStatus}.`,
-      });
+      toast.success(
+        `Order ${formatOrderId(order._id)} updated to ${nextStatus}.`,
+        "Order updated"
+      );
     } catch (updateError) {
-      setFeedback({
-        type: "error",
-        message:
-          updateError?.response?.data?.message ||
-          `Failed to update order ${formatOrderId(order._id)}.`,
-      });
+      const message =
+        updateError?.response?.data?.message ||
+        `Failed to update order ${formatOrderId(order._id)}.`;
+      toast.error(message, "Update failed");
     } finally {
       setUpdatingAction({
         orderId: "",
@@ -146,6 +143,10 @@ export default function SellerOrders() {
 
   const handleExportOrders = () => {
     if (!visibleOrders.length) {
+      toast.info(
+        "There are no orders in the current view to export.",
+        "No export data"
+      );
       return;
     }
 
@@ -174,6 +175,7 @@ export default function SellerOrders() {
     link.download = `seller-orders-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
+    toast.success("The visible orders were exported as a CSV file.", "Export ready");
   };
 
   useEffect(() => {
@@ -304,19 +306,6 @@ export default function SellerOrders() {
               Export Orders
             </button>
           </header>
-
-          {feedback ? (
-            <FeedbackAlert
-              type={feedback.type}
-              title={
-                feedback.type === "success"
-                  ? "Order updated"
-                  : "Update failed"
-              }
-              message={feedback.message}
-              onClose={() => setFeedback(null)}
-            />
-          ) : null}
 
           <div className="flex flex-wrap gap-4">
             {filterOptions.map((filter) => (

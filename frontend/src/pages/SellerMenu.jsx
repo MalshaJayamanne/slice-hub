@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  CheckCircle2,
   ChevronLeft,
   Loader2,
   Pencil,
@@ -14,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import foodAPI from "../api/foodAPI";
 import restaurantAPI from "../api/restaurantApi";
+import useToast from "../hooks/useToast";
 
 const initialForm = {
   name: "",
@@ -27,6 +27,7 @@ const initialForm = {
 const SellerMenu = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const toast = useToast();
   const currentUser = useMemo(() => {
     try {
       const storedUser = localStorage.getItem("authUser");
@@ -45,7 +46,6 @@ const SellerMenu = () => {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [forbidden, setForbidden] = useState(false);
 
   const canManageRestaurant = useCallback(
@@ -126,11 +126,16 @@ const SellerMenu = () => {
   const validateForm = () => {
     if (!form.name.trim() || !form.category.trim()) {
       setError("Food name and category are required.");
+      toast.error("Food name and category are required.", "Missing details");
       return false;
     }
 
     if (form.price === "" || Number.isNaN(Number(form.price)) || Number(form.price) < 0) {
       setError("Price must be a valid number greater than or equal to 0.");
+      toast.error(
+        "Price must be a valid number greater than or equal to 0.",
+        "Invalid price"
+      );
       return false;
     }
 
@@ -150,10 +155,10 @@ const SellerMenu = () => {
 
       if (editingId) {
         await foodAPI.update(editingId, payload);
-        setSuccess("Food item updated successfully.");
+        toast.success("Food item updated successfully.", "Menu updated");
       } else {
         await foodAPI.create(payload);
-        setSuccess("Food item added successfully.");
+        toast.success("Food item added successfully.", "Menu updated");
       }
 
       resetForm();
@@ -161,8 +166,9 @@ const SellerMenu = () => {
       setError("");
     } catch (err) {
       console.error("Save food error:", err);
-      setSuccess("");
-      setError(err?.response?.data?.message || "Failed to save food.");
+      const message = err?.response?.data?.message || "Failed to save food.";
+      setError(message);
+      toast.error(message, "Save failed");
     } finally {
       setSaving(false);
     }
@@ -176,12 +182,13 @@ const SellerMenu = () => {
         resetForm();
       }
       await fetchFoods();
-      setSuccess("Food item deleted successfully.");
       setError("");
+      toast.success("Food item deleted successfully.", "Menu updated");
     } catch (err) {
       console.error("Delete error:", err);
-      setSuccess("");
-      setError(err?.response?.data?.message || "Failed to delete food.");
+      const message = err?.response?.data?.message || "Failed to delete food.";
+      setError(message);
+      toast.error(message, "Delete failed");
     } finally {
       setDeletingId("");
     }
@@ -197,7 +204,6 @@ const SellerMenu = () => {
       image: item?.image || "",
       availability: item?.availability ?? true,
     });
-    setSuccess("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -310,13 +316,6 @@ const SellerMenu = () => {
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </div>
-      ) : null}
-
-      {success ? (
-        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          <CheckCircle2 size={18} />
-          {success}
         </div>
       ) : null}
 

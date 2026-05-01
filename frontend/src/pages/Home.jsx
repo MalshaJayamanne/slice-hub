@@ -12,7 +12,6 @@ import {
 import { motion } from "framer-motion";
 
 import FoodCard from "../components/FoodCard";
-import FeedbackAlert from "../components/FeedbackAlert";
 import RestaurantCard from "../components/RestaurantCard";
 import {
   WorkspaceEmptyState,
@@ -23,17 +22,18 @@ import foodAPI from "../api/foodAPI";
 import { useCart } from "../context/CartContext";
 import { restaurantService } from "../services/restaurantService";
 import { hasAuthSession } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 export default function Home() {
   const navigate = useNavigate();
   const { addItem, canUseCart } = useCart();
+  const toast = useToast();
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [heroSearch, setHeroSearch] = useState("");
   const [heroLocation, setHeroLocation] = useState("");
-  const [cartFeedback, setCartFeedback] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -82,7 +82,7 @@ export default function Home() {
 
   const handleAddToCart = (food) => {
     const result = addItem(food, 1);
-    setCartFeedback({
+    toast.showToast({
       type: result.success ? "success" : "error",
       title: result.success ? "Added to cart" : "Cart update failed",
       message: result.message,
@@ -196,17 +196,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {cartFeedback ? (
-        <section className="page-shell">
-          <FeedbackAlert
-            type={cartFeedback.type}
-            title={cartFeedback.title}
-            message={cartFeedback.message}
-            onClose={() => setCartFeedback(null)}
-          />
-        </section>
-      ) : null}
 
       {loading ? (
         <section className="page-shell">

@@ -15,6 +15,7 @@ import {
   WorkspaceErrorState,
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
+import useToast from "../hooks/useToast";
 
 const STATUS_ORDER = ["Pending", "Preparing", "Delivered"];
 
@@ -46,6 +47,7 @@ const formatCurrency = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
 export default function OrderTracking() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const toast = useToast();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -515,7 +517,13 @@ export default function OrderTracking() {
             />
 
             <button
-              onClick={() => setIsSubmitted(true)}
+              onClick={() => {
+                setIsSubmitted(true);
+                toast.success(
+                  "Your note was saved locally for this demo review.",
+                  "Feedback saved"
+                );
+              }}
               className="w-full bg-primary hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all"
             >
               Save Local Note

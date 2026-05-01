@@ -16,26 +16,26 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import FeedbackAlert from "../components/FeedbackAlert";
 import restaurantAPI from "../api/restaurantApi";
 import { clearAuthSession, getAuthUser } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
 
   const user = getAuthUser();
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
-  const [pageFeedback, setPageFeedback] = useState(null);
 
   useEffect(() => {
     if (location.state?.feedback) {
-      setPageFeedback(location.state.feedback);
+      toast.showToast(location.state.feedback);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, toast]);
 
   useEffect(() => {
     if (user?.role !== "seller") return;
@@ -109,6 +109,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     clearAuthSession();
+    toast.info("You have been signed out.", "Signed out");
     navigate("/login");
   };
 
@@ -272,18 +273,7 @@ export default function Dashboard() {
             Pick up where you left off and jump straight into the next task.
           </p>
 
-          {pageFeedback ? (
-            <div className="mb-8 mt-8">
-              <FeedbackAlert
-                type={pageFeedback.type}
-                title={pageFeedback.title}
-                message={pageFeedback.message}
-                onClose={() => setPageFeedback(null)}
-              />
-            </div>
-          ) : null}
-
-          <div className={pageFeedback ? "" : "mt-8"}>
+          <div className="mt-8">
           {user?.role === "seller" ? (
             <div className="mb-8">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">

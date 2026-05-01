@@ -13,17 +13,18 @@ import {
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
+import useToast from "../hooks/useToast";
 
 export default function FoodDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addItem, canUseCart } = useCart();
+  const toast = useToast();
 
   const [item, setItem] = useState(null);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [cartMessage, setCartMessage] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -84,7 +85,11 @@ export default function FoodDetails() {
 
   const handleAddToCart = () => {
     const result = addItem(item, qty);
-    setCartMessage(result.message);
+    toast.showToast({
+      type: result.success ? "success" : "error",
+      title: result.success ? "Added to cart" : "Cart update failed",
+      message: result.message,
+    });
   };
 
   return (
@@ -166,12 +171,6 @@ export default function FoodDetails() {
                   : "Customer Cart Only"}
             </button>
           </div>
-
-          {cartMessage ? (
-            <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-              {cartMessage}
-            </div>
-          ) : null}
 
           {item?.restaurant?.name ? (
             <button

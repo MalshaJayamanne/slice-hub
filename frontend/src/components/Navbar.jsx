@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 
 import { clearAuthSession, getAuthUser, isCustomer } from "../utils/auth";
+import useToast from "../hooks/useToast";
 
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const token = localStorage.getItem("token");
   const [navbarSearch, setNavbarSearch] = useState("");
   const user = getAuthUser();
@@ -14,6 +16,7 @@ function Navbar({ cartCount = 0 }) {
 
   const handleLogout = () => {
     clearAuthSession();
+    toast.info("You have been signed out.", "Signed out");
     navigate("/login");
   };
 
