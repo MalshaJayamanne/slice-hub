@@ -19,7 +19,7 @@ import { useCart } from "../context/CartContext";
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, canUseCart } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [foods, setFoods] = useState([]);
@@ -260,6 +260,7 @@ const RestaurantMenu = () => {
                 key={food?._id}
                 food={food}
                 onAddToCart={handleAddToCart}
+                cartAccessAllowed={canUseCart}
               />
             ))}
           </div>

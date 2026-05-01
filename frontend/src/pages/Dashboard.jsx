@@ -18,19 +18,13 @@ import { motion } from "framer-motion";
 
 import FeedbackAlert from "../components/FeedbackAlert";
 import restaurantAPI from "../api/restaurantApi";
+import { clearAuthSession, getAuthUser } from "../utils/auth";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  let user = null;
-  try {
-    const storedUser = localStorage.getItem("authUser");
-    user = storedUser ? JSON.parse(storedUser) : null;
-  } catch (error) {
-    console.error("Invalid user JSON:", error);
-    user = null;
-  }
+  const user = getAuthUser();
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
@@ -114,8 +108,7 @@ export default function Dashboard() {
   }, [navigate, primarySellerRestaurant, user?.role]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authUser");
+    clearAuthSession();
     navigate("/login");
   };
 

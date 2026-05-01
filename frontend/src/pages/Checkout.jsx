@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import orderAPI from "../api/orderAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
 import { useCart } from "../context/CartContext";
+import { getAuthUser } from "../utils/auth";
 
 const DELIVERY_OPTIONS = {
   standard: {
@@ -31,12 +32,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartRestaurantId, clearCart, subtotal } = useCart();
 
-  let storedUser = null;
-  try {
-    storedUser = JSON.parse(localStorage.getItem("authUser"));
-  } catch (_error) {
-    storedUser = null;
-  }
+  const storedUser = getAuthUser();
 
   const [isOrdered, setIsOrdered] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);

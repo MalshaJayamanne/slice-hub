@@ -17,7 +17,7 @@ import { useCart } from "../context/CartContext";
 export default function FoodDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, canUseCart } = useCart();
 
   const [item, setItem] = useState(null);
   const [qty, setQty] = useState(1);
@@ -156,10 +156,14 @@ export default function FoodDetails() {
 
             <button
               onClick={handleAddToCart}
-              disabled={!item?.availability}
+              disabled={!item?.availability || !canUseCart}
               className="btn-primary w-full px-6 py-4 sm:w-auto sm:flex-1"
             >
-              {item?.availability ? `Add ${qty} to Cart` : "Currently Unavailable"}
+              {!item?.availability
+                ? "Currently Unavailable"
+                : canUseCart
+                  ? `Add ${qty} to Cart`
+                  : "Customer Cart Only"}
             </button>
           </div>
 

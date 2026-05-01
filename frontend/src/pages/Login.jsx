@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import { emitAuthChanged } from "../utils/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -50,6 +51,7 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.user.token);
       localStorage.setItem("authUser", JSON.stringify(res.data.user));
+      emitAuthChanged();
 
       navigate("/dashboard", {
         state: {
