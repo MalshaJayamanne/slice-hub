@@ -4,3 +4,5 @@ backend/node_modules/
 backend/.env
 frontend/.env
 frontend/dist/
+postman
+.postman
