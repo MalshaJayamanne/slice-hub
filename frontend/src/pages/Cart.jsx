@@ -44,43 +44,43 @@ export default function Cart() {
   if (cartItems.length === 0) {
     return (
       <div className="page-shell py-20 text-center sm:py-32">
-        <div className="surface-panel-strong mx-auto max-w-2xl p-12">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-50 sm:mb-8 sm:h-24 sm:w-24">
-          <ShoppingBag size={40} className="text-gray-300 sm:w-12 sm:h-12" />
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-contrast mb-4">
-          Your cart is empty
-        </h2>
-        <p className="text-gray-500 font-medium mb-8 sm:mb-12 max-w-xs mx-auto">
-          Looks like you haven&apos;t added anything to your cart yet.
-        </p>
-        <button
-          onClick={() => handleNavigate("home")}
-          className="btn-primary px-8"
-        >
-          Start Ordering
-        </button>
+        <div className="surface-panel mx-auto max-w-2xl p-12 shadow-xl shadow-slate-200/50">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 sm:mb-8 sm:h-24 sm:w-24 shadow-inner">
+            <ShoppingBag size={40} className="text-slate-300 sm:h-12 sm:w-12" />
+          </div>
+          <h2 className="font-display mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Your cart is empty
+          </h2>
+          <p className="mx-auto mb-8 max-w-xs text-base font-medium text-slate-500 sm:mb-10">
+            Looks like you haven&apos;t added anything to your cart yet.
+          </p>
+          <button
+            onClick={() => handleNavigate("home")}
+            className="btn-primary px-8"
+          >
+            Start Ordering
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-shell py-8 sm:py-12">
-      <div className="flex flex-col gap-3 mb-8 sm:mb-12">
-        <h1 className="text-3xl sm:text-5xl font-black text-contrast tracking-tighter">
+    <div className="page-shell py-12 sm:py-16">
+      <div className="mb-10 flex flex-col gap-3 sm:mb-14">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
           Your Cart
         </h1>
         {cartRestaurantName ? (
-          <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 border border-orange-100 px-4 py-2 text-sm font-semibold text-orange-700 w-fit">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-200/50 bg-orange-50 px-4 py-2 text-sm font-semibold text-[#f97316]">
             <Store size={16} />
             Ordering from {cartRestaurantName}
           </div>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-12">
+        <div className="space-y-4 lg:col-span-2 sm:space-y-6">
           <AnimatePresence>
             {cartItems.map((item) => (
               <motion.div
@@ -89,44 +89,44 @@ export default function Cart() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="surface-panel flex items-center gap-4 p-4 group sm:gap-8 sm:p-6"
+                className="surface-panel group flex items-center gap-4 p-4 transition-all hover:shadow-lg hover:shadow-slate-200/40 sm:gap-6 sm:p-5"
               >
-                <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0">
+                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28">
                   <img
                     src={item.image || "https://picsum.photos/300/300"}
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-black text-base sm:text-2xl text-contrast truncate group-hover:text-primary transition-colors">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-display truncate text-lg font-bold text-slate-900 transition-colors group-hover:text-[#FF4F40] sm:text-xl">
                       {item.name}
                     </h3>
-                    <p className="font-black text-base sm:text-2xl text-primary whitespace-nowrap sm:hidden">
+                    <p className="font-display whitespace-nowrap text-lg font-bold text-[#FF4F40] sm:hidden">
                       Rs. {(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
 
-                  <p className="text-gray-400 text-[10px] sm:text-sm font-bold mb-3 sm:mb-4">
+                  <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                     Unit Price: Rs. {Number(item.price).toFixed(2)}
                   </p>
 
-                  <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-8">
-                    <div className="flex items-center gap-2 sm:gap-4 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                  <div className="flex items-center justify-between gap-4 sm:justify-start sm:gap-8">
+                    <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-1 sm:gap-4">
                       <button
                         onClick={() =>
                           updateQuantity(item.foodId, item.quantity - 1)
                         }
-                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:text-primary transition-all disabled:opacity-50 active:scale-90"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm transition-all hover:text-[#FF4F40] active:scale-[0.9] disabled:opacity-50 sm:h-9 sm:w-9"
                         disabled={item.quantity <= 1}
                       >
-                        <Minus size={14} className="sm:w-4 sm:h-4" />
+                        <Minus size={14} />
                       </button>
 
-                      <span className="font-black w-4 sm:w-6 text-center text-sm sm:text-lg">
+                      <span className="w-4 text-center text-sm font-bold sm:w-6 sm:text-base">
                         {item.quantity}
                       </span>
 
@@ -134,23 +134,23 @@ export default function Cart() {
                         onClick={() =>
                           updateQuantity(item.foodId, item.quantity + 1)
                         }
-                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:text-primary transition-all active:scale-90"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm transition-all hover:text-[#FF4F40] active:scale-[0.9] sm:h-9 sm:w-9"
                       >
-                        <Plus size={14} className="sm:w-4 sm:h-4" />
+                        <Plus size={14} />
                       </button>
                     </div>
 
                     <button
                       onClick={() => removeItem(item.foodId)}
-                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      className="rounded-xl p-2.5 text-slate-300 transition-all hover:bg-red-50 hover:text-red-500"
                     >
-                      <Trash2 size={18} className="sm:w-5 sm:h-5" />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
 
-                <div className="text-right hidden sm:block">
-                  <p className="font-black text-3xl text-primary tracking-tighter">
+                <div className="hidden text-right sm:block pr-4">
+                  <p className="font-display text-2xl font-bold tracking-tight text-[#FF4F40]">
                     Rs. {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
@@ -160,94 +160,99 @@ export default function Cart() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="sticky top-24 rounded-[2rem] bg-contrast p-8 text-white shadow-2xl shadow-contrast/20 sm:rounded-[2.5rem] sm:p-10">
-            <h2 className="text-2xl sm:text-3xl font-black mb-8 sm:mb-10">
-              Order Summary
-            </h2>
+          <div className="sticky top-28 rounded-[2.5rem] bg-slate-900 p-8 text-white shadow-2xl shadow-slate-900/20 sm:p-10 relative overflow-hidden">
+            <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-[#FF4F40]/20 blur-[50px]" />
+            <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-[50px]" />
+            
+            <div className="relative z-10">
+              <h2 className="font-display mb-8 text-2xl font-bold tracking-tight sm:mb-10 sm:text-3xl">
+                Order Summary
+              </h2>
 
-            <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-10">
-              <div className="flex justify-between text-white/60 font-bold text-sm sm:text-base">
-                <span>Subtotal</span>
-                <span className="text-white">Rs. {subtotal.toFixed(2)}</span>
-              </div>
+              <div className="mb-8 space-y-4 sm:mb-10 sm:space-y-6">
+                <div className="flex justify-between text-sm font-medium text-white/60 sm:text-base">
+                  <span>Subtotal</span>
+                  <span className="text-white font-bold">Rs. {subtotal.toFixed(2)}</span>
+                </div>
 
-              <div className="flex justify-between text-white/60 font-bold text-sm sm:text-base">
-                <span>Validated Total</span>
-                <span className="text-white">Rs. {subtotal.toFixed(2)}</span>
-              </div>
+                <div className="flex justify-between text-sm font-medium text-white/60 sm:text-base">
+                  <span>Validated Total</span>
+                  <span className="text-white font-bold">Rs. {subtotal.toFixed(2)}</span>
+                </div>
 
-              <div className="h-px bg-white/10 my-6" />
+                <div className="my-6 h-px bg-white/10" />
 
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">
-                    Total Amount
-                  </p>
-                  <p className="text-4xl sm:text-5xl font-black tracking-tighter">
-                    Rs. {total.toFixed(2)}
-                  </p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-white/50">
+                      Total Amount
+                    </p>
+                    <p className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+                      Rs. {total.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               </div>
+
+              <button
+                onClick={() => handleNavigate("checkout")}
+                className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-[#FF4F40] py-4 text-base font-bold text-white shadow-xl shadow-[#FF4F40]/30 transition-all hover:-translate-y-1 hover:bg-[#E63E30] hover:shadow-[#FF4F40]/40 sm:py-5 sm:text-lg"
+              >
+                Proceed to Checkout
+                <ArrowRight
+                  size={20}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </button>
+
+              <p className="mt-6 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
+                Secure SSL Encryption
+              </p>
             </div>
-
-            <button
-              onClick={() => handleNavigate("checkout")}
-              className="w-full bg-primary hover:bg-white hover:text-primary text-white font-black py-4 sm:py-6 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 text-base sm:text-xl group"
-            >
-              Proceed to Checkout
-              <ArrowRight
-                size={20}
-                className="group-hover:translate-x-2 transition-transform"
-              />
-            </button>
-
-            <p className="text-center text-white/40 text-[10px] font-bold mt-6 uppercase tracking-widest">
-              Secure SSL Encryption
-            </p>
           </div>
         </div>
 
-        <div className="lg:col-span-3 mt-12">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-primary/10 p-2 rounded-xl text-primary">
-              <Sparkles size={24} />
+        <div className="mt-12 lg:col-span-3">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="rounded-xl bg-[#FF4F40]/10 p-2.5 text-[#FF4F40]">
+              <Sparkles size={20} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-contrast">
-                Smart Cart Suggestions
+              <h2 className="font-display text-2xl font-bold text-slate-900">
+                Smart Suggestions
               </h2>
-              <p className="text-sm text-gray-400 font-medium italic">
-                Quick links based on what you already picked
+              <p className="text-sm font-medium text-slate-500">
+                Quick links based on your selections
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {cartItems.slice(0, 3).map((item, index) => (
               <motion.div
                 key={item.foodId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="surface-panel flex items-center gap-4 rounded-3xl p-4 transition-all group hover:shadow-lg"
+                className="surface-panel group flex items-center gap-4 p-4 transition-all hover:shadow-lg hover:shadow-slate-200/40"
               >
                 <img
                   src={item.image || "https://picsum.photos/300/300"}
                   alt={item.name}
-                  className="w-20 h-20 object-cover rounded-2xl group-hover:scale-105 transition-transform"
+                  className="h-20 w-20 rounded-2xl object-cover transition-transform group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
 
                 <div className="flex-1">
-                  <h3 className="font-bold text-sm text-contrast mb-1">
+                  <h3 className="mb-1 text-sm font-bold text-slate-900">
                     {item.name}
                   </h3>
-                  <p className="text-primary font-black text-sm">
+                  <p className="font-display text-sm font-bold text-[#FF4F40]">
                     Rs. {Number(item.price).toFixed(2)}
                   </p>
                   <button
                     onClick={() => handleNavigate("details", item)}
-                    className="mt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-1"
+                    className="mt-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-[#FF4F40]"
                   >
                     View Details <ArrowRight size={12} />
                   </button>

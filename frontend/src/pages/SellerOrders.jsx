@@ -215,7 +215,7 @@ export default function SellerOrders() {
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
                   Queue Revenue
                 </p>
-                <p className="mt-3 text-2xl font-black tracking-tight text-primary">
+                <p className="font-display mt-3 text-2xl font-bold tracking-tight text-[#FF4F40]">
                   {formatCurrency(visibleRevenue)}
                 </p>
                 <p className="mt-2 text-sm text-gray-500">
@@ -282,7 +282,7 @@ export default function SellerOrders() {
         <div className="space-y-8">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-contrast">
+              <h2 className="font-display text-3xl font-bold text-slate-900">
                 Order Management
               </h2>
               <p className="text-gray-500">
@@ -369,7 +369,7 @@ export default function SellerOrders() {
                     <div className="w-full flex-1 space-y-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                          <h3 className="text-lg font-bold text-contrast">
+                          <h3 className="font-display text-lg font-bold text-slate-900">
                             Order {formatOrderId(order._id)}
                           </h3>
                           <p className="text-sm text-gray-500">
@@ -450,12 +450,12 @@ export default function SellerOrders() {
                               key={`${order._id}-${getItemName(item)}-${itemIndex}`}
                               className="flex min-w-[220px] flex-shrink-0 items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
                             >
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-sm font-black text-primary shadow-sm">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-sm font-black text-primary shadow-sm">
                                 {getItemName(item).slice(0, 2).toUpperCase()}
                               </div>
 
                               <div className="min-w-0">
-                                <p className="truncate text-xs font-bold text-contrast">
+                                <p className="truncate text-xs font-bold text-slate-900">
                                   {getItemName(item)}
                                 </p>
                                 <p className="text-[10px] text-gray-500">
@@ -564,7 +564,7 @@ export default function SellerOrders() {
                         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">
                           Total Amount
                         </p>
-                        <p className="text-2xl font-bold text-primary">
+                        <p className="font-display text-2xl font-bold text-[#FF4F40]">
                           {formatCurrency(order.totalAmount)}
                         </p>
                         <p className="mt-2 text-xs text-gray-500">

@@ -1,73 +1,63 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary-red: #ff3b30;
-  --secondary-orange: #ff9f1c;
-  --contrast-dark: #1a1a1a;
-  --surface-base: #f4f5f7;
-  --surface-soft: #f8fafc;
-  --surface-muted: #eef2f6;
-  --font-body: "Manrope", "Segoe UI", sans-serif;
-  --font-display: "Sora", "Manrope", "Segoe UI", sans-serif;
+  --primary: #FF4F40;
+  --primary-hover: #E63E30;
+  --contrast: #0B0F19;
+  --surface-bg: #F8FAFC;
+  --font-body: "Inter", sans-serif;
+  --font-display: "Outfit", sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     font-family: var(--font-body);
-    @apply min-h-screen bg-[#f4f5f7] text-slate-800 antialiased;
+    @apply min-h-screen bg-[#F8FAFC] text-slate-800 antialiased;
     background-image:
-      radial-gradient(circle at top left, rgba(255, 159, 28, 0.1), transparent 28%),
-      radial-gradient(circle at top right, rgba(255, 59, 48, 0.08), transparent 24%),
-      linear-gradient(180deg, #fbfbfc 0%, #f4f5f7 38%, #edf1f5 100%);
+      radial-gradient(circle at 15% 50%, rgba(255, 79, 64, 0.04), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(255, 159, 28, 0.04), transparent 25%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-24 -24 72 72' fill='none' stroke='rgba(0,0,0,0.035)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 11h.01'/%3E%3Cpath d='M11 15h.01'/%3E%3Cpath d='M16 16h.01'/%3E%3Cpath d='m2 16 20 6-6-20A20 20 0 0 0 2 16'/%3E%3Cpath d='M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4'/%3E%3C/svg%3E");
+    background-size: 100% 100%, 100% 100%, 120px 120px;
     background-attachment: fixed;
+    overflow-x: hidden;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-[-0.03em];
-  }
-
-  a,
-  button,
-  input,
-  select,
-  textarea {
-    font-family: inherit;
+    @apply tracking-tight;
   }
 
   ::selection {
-    background: rgba(255, 59, 48, 0.16);
-    color: #111827;
+    background: rgba(255, 79, 64, 0.2);
+    color: var(--contrast);
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+    scrollbar-color: rgba(255, 79, 64, 0.35) transparent;
   }
 
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   *::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
     border-radius: 9999px;
-    background-clip: content-box;
-    background-color: rgba(148, 163, 184, 0.75);
+    background-color: rgba(255, 79, 64, 0.3);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 79, 64, 0.55);
   }
 
   *::-webkit-scrollbar-track {
@@ -76,101 +66,67 @@
 }
 
 @layer components {
-  .app-main {
-    @apply min-h-screen;
-  }
-
   .page-shell {
-    @apply mx-auto max-w-[1520px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-7xl px-5 sm:px-6 lg:px-8;
   }
 
-  .surface-panel {
-    @apply rounded-[2rem] border backdrop-blur-sm;
-    background-color: rgba(255, 255, 255, 0.88);
-    border-color: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
-  }
-
-  .surface-panel-strong {
-    @apply rounded-[2.5rem] border backdrop-blur;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-color: rgba(255, 255, 255, 0.86);
-    box-shadow: 0 28px 64px rgba(15, 23, 42, 0.1);
-  }
-
-  .soft-panel {
-    @apply rounded-[1.75rem] border border-gray-100 bg-[#f7f8fa];
+  .app-main {
+    @apply pt-[104px] pb-16;
   }
 
   .glass-panel {
-    @apply rounded-[2rem] border backdrop-blur-xl;
-    background-color: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    @apply rounded-3xl border border-white/40 bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)];
   }
 
-  .kpi-card {
-    @apply relative overflow-hidden rounded-[1.75rem] border bg-white px-5 py-5;
-    border-color: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  .surface-panel {
+    @apply rounded-[2rem] border border-slate-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all;
+  }
+
+  .surface-panel-strong {
+    @apply rounded-[2rem] border border-white bg-white/90 backdrop-blur-xl shadow-[0_20px_40px_rgb(0,0,0,0.06)];
   }
 
   .section-kicker {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.22em];
-    color: rgba(255, 59, 48, 0.72);
-  }
-
-  .section-title {
-    @apply mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast sm:text-5xl;
-  }
-
-  .section-copy {
-    @apply mt-3 max-w-2xl text-[15px] leading-7 text-gray-500;
+    @apply text-xs font-bold uppercase tracking-widest text-[#FF4F40];
   }
 
   .input-surface {
-    @apply w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 text-sm text-slate-700 transition placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-red-100;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  }
-
-  .textarea-surface {
-    @apply input-surface min-h-[120px] resize-none;
-  }
-
-  .select-surface {
-    @apply input-surface appearance-none pr-10;
+    @apply w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3.5 text-[15px] text-slate-700 transition-all placeholder:text-slate-400 focus:border-[#FF4F40] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF4F40]/10;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-[#e5322a] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FF4F40] px-6 py-3.5 font-semibold text-white shadow-lg shadow-[#FF4F40]/25 transition-all hover:-translate-y-0.5 hover:bg-[#E63E30] hover:shadow-xl hover:shadow-[#FF4F40]/30 disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:border-gray-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-600 transition hover:bg-white hover:text-slate-900;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3.5 font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow disabled:pointer-events-none disabled:opacity-50;
   }
 
   .stat-tile {
-    @apply rounded-[1.5rem] border border-gray-100 bg-[#f8fafb] p-5;
+    @apply flex flex-col justify-center rounded-[1.5rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md;
   }
 
-  .table-shell {
-    @apply overflow-hidden rounded-[2rem] border bg-white;
-    border-color: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  .select-surface {
+    @apply w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3.5 text-[15px] text-slate-700 transition-all focus:border-[#FF4F40] focus:outline-none focus:ring-4 focus:ring-[#FF4F40]/10;
   }
 
-  .table-header {
-    @apply bg-[#f7f8fa] text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400;
+  .table-lite {
+    @apply w-full border-collapse text-sm;
   }
 
-  .hairline-divider {
-    @apply h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent;
+  .table-lite thead tr {
+    @apply border-b border-slate-100 bg-slate-50;
   }
 
-  .floating-orb {
-    @apply pointer-events-none absolute rounded-full blur-3xl;
+  .table-lite thead th {
+    @apply px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400;
+  }
+
+  .table-lite tbody tr {
+    @apply border-b border-slate-50 transition-colors hover:bg-slate-50/70;
+  }
+
+  .table-lite tbody td {
+    @apply px-4 py-3.5 text-sm text-slate-700;
   }
 }

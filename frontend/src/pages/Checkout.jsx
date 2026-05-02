@@ -143,17 +143,17 @@ export default function Checkout() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-50"
+          className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-50 shadow-inner"
         >
-          <CheckCircle2 size={48} className="text-green-500" />
+          <CheckCircle2 size={48} className="text-emerald-500" />
         </motion.div>
-        <h2 className="text-4xl font-extrabold text-contrast mb-4">
+        <h2 className="font-display text-4xl font-bold text-slate-900 mb-4 tracking-tight sm:text-5xl">
           Order Placed Successfully!
         </h2>
-        <p className="text-gray-500 mb-8 text-lg">
+        <p className="text-slate-500 mb-8 text-lg font-medium">
           Your delicious food is being prepared and will be with you shortly.
         </p>
-        <div className="animate-pulse text-primary font-bold">
+        <div className="animate-pulse text-[#FF4F40] font-bold tracking-widest text-sm uppercase">
           Redirecting to your dashboard...
         </div>
       </div>
@@ -164,26 +164,26 @@ export default function Checkout() {
     <div className="page-shell py-8 sm:py-12">
       <button
         onClick={() => navigate("/cart")}
-        className="group mb-6 flex items-center gap-2 font-black text-gray-400 transition-all hover:text-primary sm:mb-8"
+        className="group mb-8 flex items-center gap-3 font-bold text-slate-400 transition-all hover:text-[#FF4F40]"
       >
-        <div className="rounded-xl bg-white p-2 shadow-soft transition-all group-hover:bg-primary group-hover:text-white">
-          <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+        <div className="rounded-xl bg-white p-2 shadow-sm transition-all group-hover:-translate-x-1 group-hover:bg-[#FF4F40] group-hover:text-white group-hover:shadow-md">
+          <ChevronLeft size={18} className="sm:h-5 sm:w-5" />
         </div>
-        <span className="text-sm sm:text-base">Back to Cart</span>
+        <span className="text-sm uppercase tracking-widest sm:text-xs">Back to Cart</span>
       </button>
 
-      <h1 className="text-3xl sm:text-5xl font-black text-contrast mb-8 sm:mb-12 tracking-tighter">
+      <h1 className="font-display text-4xl font-bold text-slate-900 mb-8 sm:mb-12 sm:text-5xl tracking-tight">
         Checkout
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-          <section className="surface-panel-strong space-y-6 p-6 sm:space-y-8 sm:rounded-[3rem] sm:p-10">
+          <section className="surface-panel space-y-6 p-6 sm:space-y-8 sm:p-10">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center text-blue-600">
-                <MapPin size={20} className="sm:w-7 sm:h-7" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 sm:h-14 sm:w-14">
+                <MapPin size={22} className="sm:h-7 sm:w-7" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-contrast tracking-tight">
+              <h2 className="font-display text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                 Delivery Address
               </h2>
             </div>
@@ -426,8 +426,8 @@ export default function Checkout() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="surface-panel sticky top-24 p-8">
-            <h2 className="text-2xl font-bold text-contrast mb-6">
+          <div className="surface-panel sticky top-28 p-8 sm:p-10">
+            <h2 className="font-display mb-6 text-2xl font-bold text-slate-900 sm:mb-8">
               Order Summary
             </h2>
 
@@ -446,22 +446,23 @@ export default function Checkout() {
 
             <div className="h-px bg-gray-100 my-4" />
 
-            <div className="space-y-3 mb-4">
-              <div className="flex justify-between text-gray-600 text-sm">
+            <div className="mb-4 space-y-4">
+              <div className="flex justify-between text-sm font-medium text-slate-500">
                 <span>Subtotal</span>
-                <span>Rs. {subtotal.toFixed(2)}</span>
+                <span className="font-bold text-slate-700">Rs. {subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600 text-sm">
+              <div className="flex justify-between text-sm font-medium text-slate-500">
                 <span>Validated Total</span>
-                <span>Rs. {subtotal.toFixed(2)}</span>
+                <span className="font-bold text-slate-700">Rs. {subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600 text-sm">
+              <div className="flex justify-between text-sm font-medium text-slate-500">
                 <span>Delivery Preference</span>
-                <span>{DELIVERY_OPTIONS[deliveryType].label}</span>
+                <span className="font-bold text-slate-700">{DELIVERY_OPTIONS[deliveryType].label}</span>
               </div>
-              <div className="flex justify-between text-xl font-bold text-contrast pt-2">
-                <span>Total</span>
-                <span className="text-primary">Rs. {total.toFixed(2)}</span>
+              <div className="my-6 h-px bg-slate-100" />
+              <div className="flex justify-between pt-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-2">Total Amount</span>
+                <span className="font-display text-3xl font-bold text-[#FF4F40]">Rs. {total.toFixed(2)}</span>
               </div>
             </div>
 

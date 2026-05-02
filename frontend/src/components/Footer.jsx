@@ -19,17 +19,17 @@ const socialLinks = [
 
 function Footer() {
   return (
-    <footer className="mt-16 border-t border-white/20 bg-[#111317] pt-20 text-white">
+    <footer className="mt-16 bg-slate-900 pt-20 text-white">
       <div className="page-shell">
         <div className="grid grid-cols-1 gap-14 pb-14 md:grid-cols-2 xl:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
           <div className="space-y-7">
             <div className="flex items-center">
-              <div className="rounded-[1.2rem] bg-primary p-3 text-white shadow-lg shadow-primary/20">
-                <Pizza size={22} />
+              <div className="rounded-[1.2rem] bg-gradient-to-br from-[#FF4F40] to-[#E63E30] p-3 text-white shadow-lg shadow-[#FF4F40]/20">
+                <Pizza size={22} fill="currentColor" />
               </div>
               <div className="ml-3">
-                <span className="block text-3xl font-extrabold tracking-[-0.05em]">
-                  Slice<span className="text-primary">Hub</span>
+                <span className="font-display block text-3xl font-bold tracking-tight">
+                  Slice<span className="text-[#FF4F40]">Hub</span>
                 </span>
                 <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
                   Delivery Marketplace
@@ -60,7 +60,7 @@ function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
+            <h4 className="font-display text-sm font-bold uppercase tracking-widest text-[#FF4F40]/80">
               Explore
             </h4>
             <ul className="mt-7 space-y-4 text-sm text-slate-400">
@@ -88,7 +88,7 @@ function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
+            <h4 className="font-display text-sm font-bold uppercase tracking-widest text-[#FF4F40]/80">
               Workspaces
             </h4>
             <ul className="mt-7 space-y-4 text-sm text-slate-400">
@@ -116,22 +116,22 @@ function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-extrabold uppercase tracking-[0.22em] text-primary/80">
+            <h4 className="font-display text-sm font-bold uppercase tracking-widest text-[#FF4F40]/80">
               Contact
             </h4>
             <ul className="mt-7 space-y-5 text-sm text-slate-400">
               <li className="flex items-start gap-3">
-                <MapPin size={18} className="mt-0.5 text-primary" />
+                <MapPin size={18} className="mt-0.5 text-[#FF4F40]" />
                 <span>123 Foodie Street, Colombo 03, Sri Lanka</span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone size={18} className="text-primary" />
+                <Phone size={18} className="text-[#FF4F40]" />
                 <a href="tel:+94112345678" className="transition hover:text-white">
                   +94 11 234 5678
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={18} className="text-primary" />
+                <Mail size={18} className="text-[#FF4F40]" />
                 <a
                   href="mailto:support@slicehub.com"
                   className="transition hover:text-white"

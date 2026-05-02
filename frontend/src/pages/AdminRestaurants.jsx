@@ -317,7 +317,7 @@ export default function AdminRestaurants() {
     <div className="page-shell space-y-8 py-6 sm:py-8">
       <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-contrast">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">
             Restaurant Management
           </h1>
           <p className="font-medium text-gray-500">
@@ -328,7 +328,7 @@ export default function AdminRestaurants() {
         <button
           type="button"
           onClick={openCreateRestaurantForm}
-          className="w-full rounded-2xl bg-primary px-8 py-4 font-black text-white shadow-xl shadow-primary/20 transition-all hover:scale-105 sm:w-auto"
+          className="btn-primary w-full px-8 sm:w-auto"
         >
           <span className="flex items-center justify-center gap-2">
             <Store size={20} />
@@ -372,17 +372,17 @@ export default function AdminRestaurants() {
       {isRestaurantFormOpen ? (
         <form
           onSubmit={handleSubmitRestaurant}
-          className="surface-panel p-6 sm:p-8"
+          className="surface-panel p-6 shadow-sm sm:p-8"
         >
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
                 {editingRestaurantId ? "Edit Restaurant" : "Create Restaurant"}
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-contrast">
+              <h2 className="font-display mt-2 text-2xl font-bold text-slate-900">
                 {editingRestaurantId
-                  ? "Update Restaurant Record"
-                  : "Register Platform Restaurant"}
+                  ? "Edit Restaurant"
+                  : "Register Restaurant"}
               </h2>
             </div>
 
@@ -494,17 +494,17 @@ export default function AdminRestaurants() {
         </form>
       ) : null}
 
-      <div className="table-shell rounded-[2.5rem]">
-        <div className="flex flex-col items-center justify-between gap-4 border-b border-gray-100 p-6 sm:flex-row">
-          <div className="group relative w-full sm:w-96">
+      <div className="surface-panel overflow-hidden">
+        <div className="flex flex-col items-center justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row">
+          <div className="group relative w-full sm:w-80">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-primary"
-              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#FF4F40]"
+              size={17}
             />
             <input
               type="text"
               placeholder="Search restaurants..."
-              className="input-surface w-full py-3 pl-12 text-sm font-bold text-contrast"
+              className="input-surface w-full py-2.5 pl-11 text-sm"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -512,7 +512,7 @@ export default function AdminRestaurants() {
 
           <div className="flex w-full gap-2 sm:w-auto">
             <select
-              className="select-surface w-full px-6 py-3 text-sm font-black text-contrast sm:w-auto"
+              className="select-surface w-full py-2.5 text-sm sm:w-auto"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
             >
@@ -524,302 +524,144 @@ export default function AdminRestaurants() {
           </div>
         </div>
 
-        <div className="border-b border-gray-100 bg-gray-50/40 px-6 py-3 text-sm text-gray-500">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span>{restaurants.length} restaurants in the current view</span>
-            <span className="inline-flex items-center gap-2">
-              {refreshing ? <Loader2 size={14} className="animate-spin" /> : null}
-              {refreshing ? "Refreshing list..." : "Live admin restaurant data"}
-            </span>
-          </div>
+        <div className="flex items-center justify-between border-b border-slate-50 bg-slate-50/60 px-5 py-2.5 text-xs text-slate-400">
+          <span>{restaurants.length} restaurants</span>
+          <span className="inline-flex items-center gap-1.5">
+            {refreshing ? <Loader2 size={12} className="animate-spin" /> : null}
+            {refreshing ? "Refreshing..." : "Live admin data"}
+          </span>
         </div>
 
         {restaurants.length === 0 ? (
           <div className="px-6 py-14 text-center">
-            <Store className="mx-auto text-gray-300" size={36} />
-            <p className="mt-4 text-lg font-semibold text-gray-700">
-              No restaurants found
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              Try a different search or change the current status filter.
-            </p>
+            <Store className="mx-auto text-slate-200" size={36} />
+            <p className="mt-4 font-semibold text-slate-600">No restaurants found</p>
+            <p className="mt-1 text-sm text-slate-400">Try a different search or status filter.</p>
           </div>
         ) : (
-          <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                    <th className="px-8 py-5">Restaurant</th>
-                    <th className="px-8 py-5">Owner</th>
-                    <th className="px-8 py-5">Total Orders</th>
-                    <th className="px-8 py-5">Revenue</th>
-                    <th className="px-8 py-5">Status</th>
-                    <th className="px-8 py-5 text-right">Actions</th>
-                  </tr>
-                </thead>
+          <div className="overflow-x-auto">
+            <table className="table-lite">
+              <thead>
+                <tr>
+                  <th className="w-14"></th>
+                  <th>Restaurant</th>
+                  <th>Owner</th>
+                  <th>Orders</th>
+                  <th>Revenue</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {restaurants.map((restaurant) => {
+                  const isUpdating = updatingRestaurantId === restaurant._id;
+                  const isDeleting = deletingRestaurantId === restaurant._id;
 
-                <tbody className="divide-y divide-gray-100">
-                  {restaurants.map((restaurant) => {
-                    const isUpdating = updatingRestaurantId === restaurant._id;
-                    const isDeleting = deletingRestaurantId === restaurant._id;
-
-                    return (
-                      <tr
-                        key={restaurant._id}
-                        className="transition-colors hover:bg-gray-50/50"
-                      >
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="h-14 w-14 overflow-hidden rounded-2xl border border-gray-100 shadow-soft">
-                              {restaurant.image ? (
-                                <img
-                                  src={restaurant.image}
-                                  alt={restaurant.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm font-black text-primary">
-                                  {restaurant.name?.slice(0, 2).toUpperCase()}
-                                </div>
-                              )}
+                  return (
+                    <tr key={restaurant._id}>
+                      <td className="w-14">
+                        <div className="h-11 w-11 overflow-hidden rounded-xl bg-slate-100">
+                          {restaurant.image ? (
+                            <img
+                              src={restaurant.image}
+                              alt={restaurant.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[#FF4F40]">
+                              {restaurant.name?.slice(0, 2).toUpperCase()}
                             </div>
-
-                            <div>
-                              <p className="text-sm font-black text-contrast">
-                                {restaurant.name}
-                              </p>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                {restaurant.category || "Uncategorized"}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
-                            <User size={14} />
-                            {restaurant.owner?.name || restaurant.owner?.email || "No owner"}
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
-                            <ShoppingBag size={14} />
-                            {restaurant.metrics?.totalOrders || 0}
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-1 text-sm font-black text-green-600">
-                            <DollarSign size={14} />
-                            {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
-                          </div>
-                        </td>
-
-                        <td className="px-8 py-5">
-                          <span
-                            className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${
-                              statusClasses[restaurant.status] || statusClasses.pending
-                            }`}
-                          >
-                            {restaurant.status}
-                          </span>
-                        </td>
-
-                        <td className="px-8 py-5 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-primary/5 hover:text-primary"
-                              title="View Storefront"
-                            >
-                              <ExternalLink size={20} />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => openEditRestaurantForm(restaurant)}
-                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-orange-50 hover:text-orange-500"
-                              title="Edit Restaurant"
-                            >
-                              <Pencil size={20} />
-                            </button>
-
-                            {restaurant.status !== "approved" ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusUpdate(restaurant, "approved")
-                                }
-                                disabled={isUpdating}
-                                className="rounded-xl p-3 text-gray-400 transition-all hover:bg-green-50 hover:text-green-500 disabled:cursor-not-allowed disabled:opacity-60"
-                                title="Approve"
-                              >
-                                {isUpdating ? (
-                                  <Loader2 size={20} className="animate-spin" />
-                                ) : (
-                                  <CheckCircle2 size={20} />
-                                )}
-                              </button>
-                            ) : null}
-
-                            {restaurant.status !== "rejected" ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusUpdate(restaurant, "rejected")
-                                }
-                                disabled={isUpdating}
-                                className="rounded-xl p-3 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                                title="Reject"
-                              >
-                                {isUpdating ? (
-                                  <Loader2 size={20} className="animate-spin" />
-                                ) : (
-                                  <XCircle size={20} />
-                                )}
-                              </button>
-                            ) : null}
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRestaurant(restaurant)}
-                              disabled={isDeleting}
-                              className="rounded-xl p-3 text-gray-400 transition-all hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                              title="Delete Restaurant"
-                            >
-                              {isDeleting ? (
-                                <Loader2 size={20} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={20} />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="grid gap-4 p-4 lg:hidden">
-              {restaurants.map((restaurant) => {
-                const isUpdating = updatingRestaurantId === restaurant._id;
-                const isDeleting = deletingRestaurantId === restaurant._id;
-
-                return (
-                  <article
-                    key={restaurant._id}
-                    className="rounded-[1.5rem] border border-gray-100 p-4 shadow-sm"
-                  >
-                    <div className="flex gap-4">
-                      <div className="h-20 w-20 overflow-hidden rounded-2xl border border-gray-100">
-                        {restaurant.image ? (
-                          <img
-                            src={restaurant.image}
-                            alt={restaurant.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm font-black text-primary">
-                            {restaurant.name?.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-black text-contrast">
-                              {restaurant.name}
-                            </p>
-                            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                              {restaurant.category || "Uncategorized"}
-                            </p>
-                          </div>
-
-                          <span
-                            className={`rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${
-                              statusClasses[restaurant.status] || statusClasses.pending
-                            }`}
-                          >
-                            {restaurant.status}
-                          </span>
+                          )}
                         </div>
+                      </td>
 
-                        <div className="mt-3 space-y-2 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <User size={14} />
-                            {restaurant.owner?.name || restaurant.owner?.email || "No owner"}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <ShoppingBag size={14} />
-                            {restaurant.metrics?.totalOrders || 0} orders
-                          </div>
-                          <div className="flex items-center gap-1 font-bold text-green-600">
-                            <DollarSign size={14} />
-                            {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
-                          </div>
+                      <td>
+                        <p className="font-display font-bold text-slate-900">{restaurant.name}</p>
+                        <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                          {restaurant.category || "Uncategorized"}
+                        </p>
+                      </td>
+
+                      <td>
+                        <span className="inline-flex items-center gap-1.5 text-slate-600">
+                          <User size={13} className="shrink-0 text-slate-400" />
+                          <span className="truncate max-w-[120px]">
+                            {restaurant.owner?.name || restaurant.owner?.email || "—"}
+                          </span>
+                        </span>
+                      </td>
+
+                      <td className="whitespace-nowrap text-slate-600">
+                        {restaurant.metrics?.totalOrders || 0}
+                      </td>
+
+                      <td className="whitespace-nowrap font-semibold text-emerald-600">
+                        {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
+                      </td>
+
+                      <td>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${statusClasses[restaurant.status] || statusClasses.pending}`}>
+                          {restaurant.status}
+                        </span>
+                      </td>
+
+                      <td className="text-right">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/restaurant/${restaurant._id}`)}
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#FF4F40]"
+                            title="View"
+                          >
+                            <ExternalLink size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openEditRestaurantForm(restaurant)}
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-orange-50 hover:text-orange-500"
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          {restaurant.status !== "approved" ? (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusUpdate(restaurant, "approved")}
+                              disabled={isUpdating}
+                              className="rounded-lg p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-500 disabled:opacity-50"
+                              title="Approve"
+                            >
+                              {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                            </button>
+                          ) : null}
+                          {restaurant.status !== "rejected" ? (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusUpdate(restaurant, "rejected")}
+                              disabled={isUpdating}
+                              className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                              title="Reject"
+                            >
+                              {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRestaurant(restaurant)}
+                            disabled={isDeleting}
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                            title="Delete"
+                          >
+                            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                          </button>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                        className="rounded-2xl border px-4 py-3 text-sm text-primary"
-                      >
-                        View
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => openEditRestaurantForm(restaurant)}
-                        className="rounded-2xl border px-4 py-3 text-sm text-orange-500"
-                      >
-                        Edit
-                      </button>
-
-                      {restaurant.status !== "approved" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusUpdate(restaurant, "approved")}
-                          disabled={isUpdating}
-                          className="rounded-2xl border px-4 py-3 text-sm text-green-600 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isUpdating ? "Updating..." : "Approve"}
-                        </button>
-                      ) : null}
-
-                      {restaurant.status !== "rejected" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusUpdate(restaurant, "rejected")}
-                          disabled={isUpdating}
-                          className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isUpdating ? "Updating..." : "Reject"}
-                        </button>
-                      ) : null}
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteRestaurant(restaurant)}
-                        disabled={isDeleting}
-                        className="rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

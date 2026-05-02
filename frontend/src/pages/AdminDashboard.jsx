@@ -389,7 +389,7 @@ export default function AdminDashboard() {
         <header className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="section-kicker">Admin workspace</p>
-            <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.05em] text-contrast sm:text-4xl">
+            <h1 className="font-display mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Platform Control
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-gray-500">
@@ -467,10 +467,10 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="relative z-10">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 sm:text-xs">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:text-xs">
                     {metric.label}
                   </p>
-                  <h3 className="mt-1 text-2xl font-black text-contrast sm:text-3xl">
+                  <h3 className="font-display mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                     {metric.value}
                   </h3>
                 </div>
@@ -487,10 +487,10 @@ export default function AdminDashboard() {
           <div className="surface-panel p-6 sm:p-8 lg:col-span-2">
             <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-lg font-bold text-contrast sm:text-xl">
+                <h2 className="font-display text-lg font-bold text-slate-900 sm:text-xl">
                   Platform Activity
                 </h2>
-                <p className="text-xs text-gray-400 sm:text-sm">
+                <p className="text-xs font-medium text-slate-500 sm:text-sm">
                   Live distribution across users, restaurants, and fulfilled orders.
                 </p>
               </div>
@@ -539,8 +539,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="surface-panel flex flex-col p-8">
-            <h2 className="mb-2 text-xl font-bold text-contrast">
+          <div className="surface-panel flex flex-col p-8 shadow-sm">
+            <h2 className="font-display mb-2 text-xl font-bold text-slate-900">
               Order Status Split
             </h2>
             <p className="mb-8 text-sm text-gray-400">
@@ -552,11 +552,11 @@ export default function AdminDashboard() {
                 className="relative h-48 w-48 rounded-full"
                 style={ringStyle}
               >
-                <div className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-white text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <div className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-white text-center shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     Total
                   </p>
-                  <p className="text-xl font-black text-contrast">
+                  <p className="font-display text-2xl font-bold text-slate-900">
                     {formatNumber(summary.orders.total)}
                   </p>
                 </div>
@@ -587,8 +587,8 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="table-shell lg:col-span-2">
-            <div className="flex items-center justify-between border-b border-gray-100 p-8">
-              <h2 className="text-xl font-bold text-contrast">
+            <div className="flex items-center justify-between border-b border-slate-100 p-8">
+              <h2 className="font-display text-xl font-bold text-slate-900">
                 Restaurant Approvals
               </h2>
               <span className="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-orange-600">
@@ -707,8 +707,8 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="surface-panel p-8">
-            <h2 className="mb-6 text-xl font-bold text-contrast">
+          <div className="surface-panel p-8 shadow-sm">
+            <h2 className="font-display mb-6 text-xl font-bold text-slate-900">
               System Health
             </h2>
 

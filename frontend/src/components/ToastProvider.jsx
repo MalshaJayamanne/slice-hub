@@ -52,7 +52,7 @@ function ToastItem({ toast, onDismiss }) {
         </div>
 
         <div className="min-w-0">
-          <p className="text-sm font-extrabold tracking-[-0.02em]">
+          <p className="font-display text-sm font-bold tracking-tight">
             {toast.title || tone.defaultTitle}
           </p>
           {toast.message ? (

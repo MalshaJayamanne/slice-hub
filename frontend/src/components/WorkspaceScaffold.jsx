@@ -25,8 +25,8 @@ const toneClasses = {
 };
 
 const valueToneClasses = {
-  primary: "text-primary",
-  dark: "text-contrast",
+  primary: "text-[#FF4F40]",
+  dark: "text-slate-900",
   success: "text-emerald-600",
   warning: "text-orange-500",
 };
@@ -43,16 +43,16 @@ export function WorkspacePage({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.9fr)] lg:gap-10">
         {sidebar}
 
-        <div className="surface-panel-strong p-8 sm:p-10">
-          <p className="section-kicker">
+        <div className="surface-panel p-8 shadow-lg shadow-slate-200/40 sm:p-10">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#FF4F40]">
             {eyebrow}
           </p>
-          <h1 className="section-title">
+          <h1 className="font-display mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             {title}
           </h1>
-          <p className="section-copy">{description}</p>
+          <p className="mt-4 text-[15px] leading-relaxed text-slate-500">{description}</p>
 
-          <div className="mt-8">{children}</div>
+          <div className="mt-10">{children}</div>
         </div>
       </div>
     </div>
@@ -69,20 +69,20 @@ export function WorkspaceSidebar({
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="surface-panel relative overflow-hidden p-8 text-center sm:p-10"
+      className="surface-panel relative overflow-hidden p-8 text-center shadow-lg shadow-slate-200/40 sm:p-10"
     >
-      <div className="absolute right-[-2.5rem] top-[-2rem] h-28 w-28 rounded-full bg-primary/5" />
-      <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-red-100/90 shadow-sm">
-        <Icon size={42} className="text-red-500" />
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#FF4F40]/5 blur-2xl" />
+      <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#FF4F40]/10 shadow-inner">
+        <Icon size={42} className="text-[#FF4F40]" />
       </div>
 
-      <h2 className="text-[2rem] font-bold tracking-[-0.04em] text-contrast">
+      <h2 className="font-display text-[2rem] font-bold tracking-tight text-slate-900">
         {title}
       </h2>
-      <p className="mt-3 text-[15px] leading-8 text-gray-500">{subtitle}</p>
+      <p className="mt-3 text-[15px] leading-relaxed text-slate-500">{subtitle}</p>
 
       {note ? (
-        <div className="mt-6 rounded-[1.5rem] border border-orange-100 bg-orange-50/90 p-4 text-left">
+        <div className="mt-8 rounded-2xl border border-orange-200/50 bg-orange-50/50 p-5 text-left">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
             Workspace
           </p>
@@ -103,11 +103,11 @@ export function WorkspaceStat({
 }) {
   return (
     <div className="stat-tile min-h-[166px]">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
         {label}
       </p>
       <p
-        className={`mt-3 text-3xl font-black tracking-tight ${
+        className={`font-display mt-3 text-2xl font-bold tracking-tight break-words ${
           valueToneClasses[tone] || valueToneClasses.primary
         }`}
       >

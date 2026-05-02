@@ -227,7 +227,7 @@ export default function Dashboard() {
             <User size={42} className="text-red-500" />
           </div>
 
-          <h2 className="text-2xl font-bold">{user?.name || "User"}</h2>
+          <h2 className="font-display text-2xl font-bold text-slate-900">{user?.name || "User"}</h2>
           <p className="text-gray-500 mt-1">{user?.email || "No email"}</p>
           <p className="text-sm text-gray-400 mt-2 capitalize">
             Role: {user?.role || "N/A"}
@@ -254,7 +254,7 @@ export default function Dashboard() {
                 </div>
               ) : primarySellerRestaurant ? (
                 <div className="mt-3">
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-display font-semibold text-slate-900">
                     {primarySellerRestaurant.name}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
@@ -270,9 +270,9 @@ export default function Dashboard() {
           ) : null}
         </motion.div>
 
-        <div className="surface-panel-strong lg:col-span-2 p-8 sm:p-9">
+        <div className="surface-panel lg:col-span-2 p-8 shadow-md sm:p-9">
           <p className="section-kicker">Account workspace</p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
+          <h1 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900">
             Welcome back {user?.name || ""}
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-gray-500">
@@ -310,7 +310,7 @@ export default function Dashboard() {
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          <p className="font-display font-bold text-slate-900">{item.label}</p>
                           <p className="text-sm text-gray-500">{item.description}</p>
                         </div>
                       </div>
@@ -341,7 +341,7 @@ export default function Dashboard() {
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          <p className="font-display font-bold text-slate-900">{item.label}</p>
                           <p className="text-sm text-gray-500">{item.description}</p>
                         </div>
                       </div>
@@ -375,7 +375,7 @@ export default function Dashboard() {
                         <Icon />
                       </div>
                       <div>
-                        <p className="font-semibold">{item.label}</p>
+                        <p className="font-display font-bold text-slate-900">{item.label}</p>
                         <p className="text-sm text-gray-500">{item.description}</p>
                       </div>
                     </div>

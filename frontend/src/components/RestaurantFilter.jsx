@@ -7,7 +7,7 @@ const RestaurantFilter = ({category,setCategory}) => {
     <select
       value={category}
       onChange={(e)=>setCategory(e.target.value)}
-      className="filter-dropdown"
+      className="select-surface"
     >
 
       <option value="">All</option>

@@ -6,3 +6,4 @@ frontend/.env
 frontend/dist/
 postman
 .postman
+frontend/public/

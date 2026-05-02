@@ -95,25 +95,25 @@ const Register = () => {
         <div className="text-center lg:text-left">
           <button
             type="button"
-            className="mx-auto mb-6 flex cursor-pointer items-center justify-center group lg:mx-0"
+            className="group mx-auto mb-6 flex cursor-pointer items-center justify-center lg:mx-0"
             onClick={() => navigate("/")}
           >
-            <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
-              <Pizza size={32} />
+            <div className="rounded-2xl bg-gradient-to-br from-[#FF4F40] to-[#E63E30] p-3 text-white shadow-lg shadow-[#FF4F40]/30 transition-transform group-hover:-translate-y-1 group-hover:rotate-12">
+              <Pizza size={28} fill="currentColor" />
             </div>
-            <span className="ml-3 text-[#1A1A1A] text-3xl font-bold tracking-tight">
-              Slice<span className="text-[#FF3B30]">Hub</span>
+            <span className="font-display ml-3 text-3xl font-bold tracking-tight text-slate-900">
+              Slice<span className="text-[#FF4F40]">Hub</span>
             </span>
           </button>
 
           <p className="section-kicker">Create account</p>
-          <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[#1A1A1A]">
+          <h2 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             Register
           </h2>
 
-          <p className="mt-2 text-sm text-gray-500 font-medium">
+          <p className="mt-3 text-[15px] font-medium text-slate-500">
             Already have an account?{" "}
-            <Link to="/login" className="text-[#FF3B30] font-bold hover:underline">
+            <Link to="/login" className="font-bold text-[#FF4F40] hover:text-[#E63E30] hover:underline">
               Sign In
             </Link>
           </p>
@@ -178,7 +178,7 @@ const Register = () => {
               </select>
             </div>
 
-            <div className="soft-panel border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-gray-600">
+            <div className="surface-panel border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
               Sellers can create and manage restaurants after signing in. Admin accounts are created separately by the backend.
             </div>
 
@@ -241,7 +241,7 @@ const Register = () => {
           </button>
         </form>
 
-        <div className="soft-panel px-4 py-4 text-sm text-gray-600">
+        <div className="surface-panel px-4 py-4 text-sm text-slate-600 shadow-sm">
           Email registration is the supported sign-up flow in this demo.
         </div>
         </div>

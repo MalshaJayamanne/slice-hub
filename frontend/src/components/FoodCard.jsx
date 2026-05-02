@@ -15,44 +15,45 @@ const FoodCard = ({ food, onAddToCart }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      className="surface-panel-strong overflow-hidden group cursor-pointer transition-all hover:shadow-2xl"
+      whileHover={{ y: -6, scale: 1.01 }}
+      className="surface-panel flex h-full flex-col overflow-hidden group cursor-pointer"
       onClick={openFood}
     >
       <div className="relative h-56 overflow-hidden">
         <img
           src={food?.image || "https://picsum.photos/400/300"}
           alt={food?.name || "food"}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         <div
-          className={`absolute right-4 top-4 rounded-2xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-xl ${
+          className={`absolute right-4 top-4 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-sm backdrop-blur-md ${
             food?.availability
-              ? "bg-emerald-500 text-white"
-              : "bg-gray-900/85 text-white"
+              ? "bg-emerald-500/90 text-white"
+              : "bg-slate-900/80 text-white"
           }`}
         >
-          {food?.availability ? "Available" : "Unavailable"}
+          {food?.availability ? "Available" : "Sold Out"}
         </div>
       </div>
 
-      <div className="p-6 sm:p-7">
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className="text-xl font-black leading-tight text-contrast transition-colors group-hover:text-primary">
+      <div className="flex flex-1 flex-col p-6">
+        <div className="mb-1 flex items-start justify-between gap-3">
+          <h3 className="font-display text-[1.35rem] font-bold leading-tight text-slate-900 transition-colors group-hover:text-[#FF4F40]">
             {food?.name}
           </h3>
-          <span className="font-black text-xl text-primary whitespace-nowrap">
+          <span className="whitespace-nowrap font-display text-xl font-bold text-[#FF4F40]">
             Rs. {food?.price}
           </span>
         </div>
 
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/80">
-          {food?.category || "Uncategorized"}
+        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+          {food?.category || "Specialty"}
         </p>
 
-        <p className="mb-5 min-h-10 text-sm font-medium leading-relaxed text-gray-500 line-clamp-2">
-          {food?.description || "No description added yet."}
+        <p className="mb-6 min-h-[2.5rem] text-[14px] leading-relaxed text-slate-500 line-clamp-2">
+          {food?.description || "A delicious culinary creation prepared with fresh ingredients."}
         </p>
 
         <button
@@ -63,9 +64,9 @@ const FoodCard = ({ food, onAddToCart }) => {
             }
           }}
           disabled={!food?.availability}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#f7f8fa] py-3.5 font-black text-contrast transition-all hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:text-gray-400 disabled:hover:bg-[#f7f8fa]"
+          className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 py-3.5 text-sm font-bold text-slate-700 transition-all hover:bg-[#FF4F40] hover:text-white hover:shadow-lg hover:shadow-[#FF4F40]/25 active:scale-[0.98] disabled:text-slate-400 disabled:hover:bg-slate-50 disabled:hover:shadow-none"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           {food?.availability ? "Add to Cart" : "Currently Unavailable"}
         </button>
       </div>

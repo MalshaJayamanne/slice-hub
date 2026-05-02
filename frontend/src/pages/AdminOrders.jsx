@@ -135,7 +135,7 @@ export default function AdminOrders() {
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
                 Current Revenue
               </p>
-              <p className="mt-3 text-2xl font-black tracking-tight text-primary">
+              <p className="font-display mt-3 text-2xl font-bold tracking-tight text-[#FF4F40]">
                 {formatCurrency(summary.totalRevenue)}
               </p>
               <p className="mt-2 text-sm text-gray-500">
@@ -162,7 +162,7 @@ export default function AdminOrders() {
         />
       ) : (
         <div className="space-y-8">
-          <div className="soft-panel p-5">
+          <div className="surface-panel p-5 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -282,114 +282,55 @@ export default function AdminOrders() {
                 />
               </div>
 
-              <div>
-                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
-                    Live Order List
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Live API-backed visibility for platform support and final demo review.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div
-                      key={order._id}
-                      className="surface-panel p-5"
-                    >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Order Id
-                          </p>
-                          <h2 className="mt-2 text-xl font-bold text-contrast">
+              <div className="surface-panel overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="table-lite">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Restaurant</th>
+                        <th>Customer</th>
+                        <th>Seller</th>
+                        <th>Total</th>
+                        <th>Items</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order) => (
+                        <tr key={order._id}>
+                          <td className="font-display font-bold text-slate-900 whitespace-nowrap">
                             {formatOrderId(order._id)}
-                          </h2>
-                          <p className="mt-2 text-sm text-gray-500">
-                            {order.restaurant?.name || "Unknown restaurant"}
-                          </p>
-                        </div>
-
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${
-                            statusClasses[order.status] || statusClasses.Pending
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-
-                      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                        <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Customer
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {order.customer?.name || "Unknown customer"}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Seller
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {order.restaurant?.owner?.name || "Unknown owner"}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Total
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
+                          </td>
+                          <td className="max-w-[130px]">
+                            <span className="block truncate">{order.restaurant?.name || "—"}</span>
+                          </td>
+                          <td className="max-w-[140px]">
+                            <span className="block truncate font-medium text-slate-800">{order.customer?.name || "—"}</span>
+                            <span className="block truncate text-xs text-slate-400">{order.customer?.email || ""}</span>
+                          </td>
+                          <td className="max-w-[120px]">
+                            <span className="block truncate">{order.restaurant?.owner?.name || "—"}</span>
+                          </td>
+                          <td className="whitespace-nowrap font-semibold text-slate-900">
                             {formatCurrency(order.totalAmount)}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Items
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {order.metrics?.itemCount || 0} items
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Created
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
+                          </td>
+                          <td className="whitespace-nowrap text-slate-500">
+                            {order.metrics?.itemCount || 0}
+                          </td>
+                          <td className="whitespace-nowrap text-xs text-slate-400">
                             {formatDateTime(order.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 rounded-2xl bg-gray-50 px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                          Delivery Address
-                        </p>
-                        <p className="mt-2 text-sm text-gray-700">
-                          {order.deliveryAddress || "No delivery address provided"}
-                        </p>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                        <span className="inline-flex items-center gap-2">
-                          <Store size={16} />
-                          Restaurant owner: {order.restaurant?.owner?.name || "Unknown"}
-                        </span>
-                        <span className="inline-flex items-center gap-2">
-                          <User size={16} />
-                          {order.customer?.email || "No customer email"}
-                        </span>
-                        <span className="inline-flex items-center gap-2">
-                          <Package size={16} />
-                          {order.items
-                            ?.map((item) => `${item.quantity}x ${item.name}`)
-                            .join(", ") || "No items"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                          </td>
+                          <td>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${statusClasses[order.status] || statusClasses.Pending}`}>
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </>
