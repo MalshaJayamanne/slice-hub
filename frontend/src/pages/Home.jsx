@@ -12,6 +12,7 @@ import {
 import { motion } from "framer-motion";
 
 import FoodCard from "../components/FoodCard";
+import FeedbackAlert from "../components/FeedbackAlert";
 import RestaurantCard from "../components/RestaurantCard";
 import {
   WorkspaceEmptyState,
@@ -21,19 +22,17 @@ import {
 import foodAPI from "../api/foodAPI";
 import { useCart } from "../context/CartContext";
 import { restaurantService } from "../services/restaurantService";
-import { hasAuthSession } from "../utils/auth";
-import useToast from "../hooks/useToast";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { addItem, canUseCart } = useCart();
-  const toast = useToast();
+  const { addItem } = useCart();
   const [restaurants, setRestaurants] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [heroSearch, setHeroSearch] = useState("");
   const [heroLocation, setHeroLocation] = useState("");
+  const [cartFeedback, setCartFeedback] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -70,7 +69,14 @@ export default function Home() {
     return foods[Math.floor(Math.random() * foods.length)];
   }, [foods]);
 
-  const isSignedIn = useMemo(() => hasAuthSession(), []);
+  const authUser = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("authUser");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (_error) {
+      return null;
+    }
+  }, []);
 
   const handleBrowseRestaurants = () => {
     navigate("/restaurants", {
@@ -82,7 +88,7 @@ export default function Home() {
 
   const handleAddToCart = (food) => {
     const result = addItem(food, 1);
-    toast.showToast({
+    setCartFeedback({
       type: result.success ? "success" : "error",
       title: result.success ? "Added to cart" : "Cart update failed",
       message: result.message,
@@ -90,7 +96,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-20 pb-24">
+    <div className="pb-24">
       <section className="relative flex min-h-[760px] items-center overflow-hidden bg-black py-24">
         <div className="absolute inset-0 z-0">
           <img
@@ -101,111 +107,123 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/68" />
         </div>
 
-        <div className="page-shell relative z-10 pt-6 text-white">
+        <div className="page-shell relative z-10 w-full pt-6">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0.8, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-[58rem] space-y-8"
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="mx-auto flex max-w-[64rem] flex-col items-center text-center"
           >
-            <div className="glass-panel flex w-fit items-center gap-2 px-4 py-2.5 text-white">
+            <div className="mb-8 flex items-center gap-2 rounded-full border border-[#FF4F40]/20 bg-[#FF4F40]/5 px-4 py-2 text-[#FF4F40] shadow-sm backdrop-blur-md">
               <Sparkles size={16} />
-              <span className="text-xs font-extrabold uppercase tracking-[0.22em]">
-                SliceHub Delivery Workspace
+              <span className="text-[11px] font-black uppercase tracking-widest">
+                Premium Delivery Experience
               </span>
             </div>
 
-            <h1 className="max-w-[56rem] text-[4.25rem] font-extrabold leading-[0.92] tracking-[-0.065em] text-white sm:text-[5.2rem] lg:text-[6.3rem]">
-              <span className="block">Discover better</span>
-              <span className="block text-[#FF3B30]">restaurant experiences</span>
+            <h1 className="font-display text-[4rem] font-bold leading-[0.95] tracking-tight text-white sm:text-[5.5rem] lg:text-[6.5rem]">
+              <span className="block">Discover</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF4F40] to-[#f97316]">
+                Slices of heaven
+              </span>
               <span className="block">near you</span>
             </h1>
 
-            <p className="max-w-3xl text-[1.15rem] leading-9 text-slate-200">
-              Browse approved restaurants, explore menus, and move from
-              discovery to checkout in a cleaner, faster customer flow.
+            <p className="mt-8 max-w-2xl text-[1.15rem] leading-relaxed text-slate-200">
+              Browse top-tier restaurants, explore curated menus, and enjoy a seamless ordering experience from start to finish.
             </p>
           </motion.div>
 
-          <div className="surface-panel-strong mt-12 max-w-[66rem] bg-white/96 p-4 sm:p-5">
-            <div className="grid gap-3 lg:grid-cols-[1.25fr_0.95fr_auto] lg:gap-4">
-              <label className="flex items-center gap-3 rounded-[1.65rem] bg-[#f7f8fa] px-5 py-4">
-                <Search size={20} className="text-gray-400" />
-                <input
-                  placeholder="Search restaurants..."
-                  value={heroSearch}
-                  onChange={(event) => setHeroSearch(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      handleBrowseRestaurants();
-                    }
-                  }}
-                  className="w-full bg-transparent text-[15px] font-semibold text-gray-700 outline-none placeholder:text-gray-400"
-                />
-              </label>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            className="mx-auto mt-14 max-w-[56rem]"
+          >
+            <div className="glass-panel p-3 shadow-2xl shadow-slate-200/50 sm:p-4">
+              <div className="grid gap-3 rounded-2xl bg-white p-2 sm:grid-cols-[1.5fr_1fr_auto] sm:gap-4 sm:p-3 shadow-inner">
+                <label className="flex items-center gap-3 rounded-xl bg-slate-50/80 px-4 py-3.5 transition-colors focus-within:bg-slate-100/80">
+                  <Search size={20} className="text-slate-400" />
+                  <input
+                    placeholder="Search for restaurants or dishes..."
+                    value={heroSearch}
+                    onChange={(event) => setHeroSearch(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        handleBrowseRestaurants();
+                      }
+                    }}
+                    className="w-full bg-transparent text-[15px] font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                  />
+                </label>
 
-              <label className="flex items-center gap-3 rounded-[1.65rem] bg-[#f7f8fa] px-5 py-4">
-                <MapPin size={20} className="text-gray-400" />
-                <input
-                  placeholder="Your location"
-                  value={heroLocation}
-                  onChange={(event) => setHeroLocation(event.target.value)}
-                  className="w-full bg-transparent text-[15px] font-semibold text-gray-700 outline-none placeholder:text-gray-400"
-                />
-              </label>
+                <label className="flex items-center gap-3 rounded-xl bg-slate-50/80 px-4 py-3.5 transition-colors focus-within:bg-slate-100/80">
+                  <MapPin size={20} className="text-slate-400" />
+                  <input
+                    placeholder="Your location"
+                    value={heroLocation}
+                    onChange={(event) => setHeroLocation(event.target.value)}
+                    className="w-full bg-transparent text-[15px] font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                  />
+                </label>
 
-              <button
-                onClick={handleBrowseRestaurants}
-                className="btn-primary min-h-[62px] rounded-[1.65rem] px-8 text-base"
-              >
-                Find Food
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-12 grid max-w-[56rem] gap-4 sm:grid-cols-3 sm:gap-5">
-            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
-              <Star className="text-yellow-400" />
-              <div>
-                <p className="text-lg font-extrabold">{foods.length || "Fresh"}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
-                  Visible Dishes
-                </p>
+                <button
+                  onClick={handleBrowseRestaurants}
+                  className="btn-primary min-h-[58px] rounded-xl px-8 text-base shadow-[#FF4F40]/20 sm:w-auto w-full"
+                >
+                  Find Food
+                </button>
               </div>
             </div>
+          </motion.div>
 
-            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
-              <Clock className="text-green-400" />
-              <div>
-                <p className="text-lg font-extrabold">25 min</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
-                  Avg Delivery
-                </p>
-              </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="mx-auto mt-14 grid max-w-[48rem] grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6"
+          >
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white/60 p-6 text-center backdrop-blur-md shadow-sm border border-white/50">
+              <Star className="mb-3 text-[#f97316]" size={28} />
+              <p className="font-display text-3xl font-bold text-slate-900">{foods.length || "100+"}</p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-500">Premium Dishes</p>
             </div>
 
-            <div className="glass-panel flex items-center gap-3 px-5 py-4 text-white">
-              <TrendingUp className="text-blue-400" />
-              <div>
-                <p className="text-lg font-extrabold">{restaurants.length || "Live"}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">
-                  Approved Restaurants
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white/60 p-6 text-center backdrop-blur-md shadow-sm border border-white/50">
+              <Clock className="mb-3 text-emerald-500" size={28} />
+              <p className="font-display text-3xl font-bold text-slate-900">25 min</p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-500">Avg Delivery</p>
             </div>
-          </div>
+
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white/60 p-6 text-center backdrop-blur-md shadow-sm border border-white/50">
+              <TrendingUp className="mb-3 text-blue-500" size={28} />
+              <p className="font-display text-3xl font-bold text-slate-900">{restaurants.length || "Live"}</p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-500">Top Restaurants</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
+      {cartFeedback ? (
+        <section className="page-shell mt-20">
+          <FeedbackAlert
+            type={cartFeedback.type}
+            title={cartFeedback.title}
+            message={cartFeedback.message}
+            onClose={() => setCartFeedback(null)}
+          />
+        </section>
+      ) : null}
+
       {loading ? (
-        <section className="page-shell">
+        <section className="page-shell mt-20">
           <WorkspaceLoadingState
             title="Loading featured food"
             message="Pulling the latest restaurant and dish highlights for the customer landing page."
           />
         </section>
       ) : error ? (
-        <section className="page-shell">
+        <section className="page-shell mt-20">
           <WorkspaceErrorState
             title="Home feed unavailable"
             message={error}
@@ -214,10 +232,10 @@ export default function Home() {
         </section>
       ) : (
         <>
-          <section className="page-shell">
+          <section className="page-shell mt-20">
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="section-kicker">Customer picks</p>
+                <p className="section-kicker">Customer Picks</p>
                 <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-contrast">
                   Featured Restaurants
                 </h2>
@@ -244,7 +262,7 @@ export default function Home() {
             )}
           </section>
 
-          <section className="page-shell">
+          <section className="page-shell mt-20">
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="section-kicker">Menu highlights</p>
@@ -264,7 +282,6 @@ export default function Home() {
                     key={food?._id}
                     food={food}
                     onAddToCart={handleAddToCart}
-                    cartAccessAllowed={canUseCart}
                   />
                 ))}
               </div>
@@ -277,7 +294,7 @@ export default function Home() {
             )}
           </section>
 
-          <section className="page-shell">
+          <section className="page-shell mt-20">
             <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#FF3B30] via-[#ff5b33] to-orange-500 p-8 text-white shadow-[0_28px_70px_rgba(255,59,48,0.25)] sm:p-10">
               <div className="absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
@@ -314,10 +331,9 @@ export default function Home() {
 
                         <button
                           onClick={() => handleAddToCart(recommendedFood)}
-                          disabled={!canUseCart}
-                          className="rounded-2xl border border-white px-6 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-2xl border border-white px-6 py-3 font-bold"
                         >
-                          {canUseCart ? "Add to Cart" : "Customer Cart Only"}
+                          Add to Cart
                         </button>
                       </div>
                     </>
@@ -341,7 +357,7 @@ export default function Home() {
         </>
       )}
 
-      <section className="page-shell">
+      <section className="page-shell mt-20">
         <div className="surface-panel-strong space-y-6 p-10 text-center sm:p-12">
           <p className="section-kicker">Ready when you are</p>
           <h2 className="text-4xl font-extrabold tracking-[-0.05em] text-gray-900">
@@ -361,10 +377,10 @@ export default function Home() {
             </Link>
 
             <Link
-              to={isSignedIn ? "/dashboard" : "/login"}
+              to={authUser ? "/dashboard" : "/login"}
               className="btn-secondary px-8"
             >
-              {isSignedIn ? "Open Dashboard" : "Login"}
+              {authUser ? "Open Dashboard" : "Login"}
             </Link>
           </div>
         </div>

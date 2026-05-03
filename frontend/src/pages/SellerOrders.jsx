@@ -12,6 +12,7 @@ import {
 import { motion } from "framer-motion";
 
 import orderAPI from "../api/orderAPI";
+import FeedbackAlert from "../components/FeedbackAlert";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -19,7 +20,6 @@ import {
   WorkspacePage,
   WorkspaceSidebar,
 } from "../components/WorkspaceScaffold";
-import useToast from "../hooks/useToast";
 
 const statusClasses = {
   Pending: "bg-amber-50 text-amber-600 border border-amber-100",
@@ -77,7 +77,6 @@ const getNextStatus = (status) => {
 };
 
 export default function SellerOrders() {
-  const toast = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -86,6 +85,7 @@ export default function SellerOrders() {
     orderId: "",
     status: "",
   });
+  const [feedback, setFeedback] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -114,6 +114,7 @@ export default function SellerOrders() {
         orderId: order._id,
         status: nextStatus,
       });
+      setFeedback(null);
 
       const response = await orderAPI.updateOrderStatus(order._id, nextStatus);
       const updatedOrder = response?.data;
@@ -124,15 +125,17 @@ export default function SellerOrders() {
         )
       );
 
-      toast.success(
-        `Order ${formatOrderId(order._id)} updated to ${nextStatus}.`,
-        "Order updated"
-      );
+      setFeedback({
+        type: "success",
+        message: `Order ${formatOrderId(order._id)} updated to ${nextStatus}.`,
+      });
     } catch (updateError) {
-      const message =
-        updateError?.response?.data?.message ||
-        `Failed to update order ${formatOrderId(order._id)}.`;
-      toast.error(message, "Update failed");
+      setFeedback({
+        type: "error",
+        message:
+          updateError?.response?.data?.message ||
+          `Failed to update order ${formatOrderId(order._id)}.`,
+      });
     } finally {
       setUpdatingAction({
         orderId: "",
@@ -143,10 +146,6 @@ export default function SellerOrders() {
 
   const handleExportOrders = () => {
     if (!visibleOrders.length) {
-      toast.info(
-        "There are no orders in the current view to export.",
-        "No export data"
-      );
       return;
     }
 
@@ -175,7 +174,6 @@ export default function SellerOrders() {
     link.download = `seller-orders-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
-    toast.success("The visible orders were exported as a CSV file.", "Export ready");
   };
 
   useEffect(() => {
@@ -217,7 +215,7 @@ export default function SellerOrders() {
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
                   Queue Revenue
                 </p>
-                <p className="mt-3 text-2xl font-black tracking-tight text-primary">
+                <p className="font-display mt-3 text-2xl font-bold tracking-tight text-[#FF4F40]">
                   {formatCurrency(visibleRevenue)}
                 </p>
                 <p className="mt-2 text-sm text-gray-500">
@@ -284,7 +282,7 @@ export default function SellerOrders() {
         <div className="space-y-8">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-contrast">
+              <h2 className="font-display text-3xl font-bold text-slate-900">
                 Order Management
               </h2>
               <p className="text-gray-500">
@@ -306,6 +304,19 @@ export default function SellerOrders() {
               Export Orders
             </button>
           </header>
+
+          {feedback ? (
+            <FeedbackAlert
+              type={feedback.type}
+              title={
+                feedback.type === "success"
+                  ? "Order updated"
+                  : "Update failed"
+              }
+              message={feedback.message}
+              onClose={() => setFeedback(null)}
+            />
+          ) : null}
 
           <div className="flex flex-wrap gap-4">
             {filterOptions.map((filter) => (
@@ -358,7 +369,7 @@ export default function SellerOrders() {
                     <div className="w-full flex-1 space-y-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                          <h3 className="text-lg font-bold text-contrast">
+                          <h3 className="font-display text-lg font-bold text-slate-900">
                             Order {formatOrderId(order._id)}
                           </h3>
                           <p className="text-sm text-gray-500">
@@ -439,12 +450,12 @@ export default function SellerOrders() {
                               key={`${order._id}-${getItemName(item)}-${itemIndex}`}
                               className="flex min-w-[220px] flex-shrink-0 items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
                             >
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-sm font-black text-primary shadow-sm">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-sm font-black text-primary shadow-sm">
                                 {getItemName(item).slice(0, 2).toUpperCase()}
                               </div>
 
                               <div className="min-w-0">
-                                <p className="truncate text-xs font-bold text-contrast">
+                                <p className="truncate text-xs font-bold text-slate-900">
                                   {getItemName(item)}
                                 </p>
                                 <p className="text-[10px] text-gray-500">
@@ -553,7 +564,7 @@ export default function SellerOrders() {
                         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">
                           Total Amount
                         </p>
-                        <p className="text-2xl font-bold text-primary">
+                        <p className="font-display text-2xl font-bold text-[#FF4F40]">
                           {formatCurrency(order.totalAmount)}
                         </p>
                         <p className="mt-2 text-xs text-gray-500">

@@ -9,7 +9,7 @@ const RestaurantSearch = ({search,setSearch}) => {
       placeholder="Search restaurants..."
       value={search}
       onChange={(e)=>setSearch(e.target.value)}
-      className="search-bar"
+      className="input-surface"
     />
 
   );

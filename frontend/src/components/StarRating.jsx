@@ -11,12 +11,12 @@ export const StarRating = ({ rating, size = 16 }) => {
           className={
             i < Math.floor(rating)
               ? "fill-yellow-400 text-yellow-400"
-              : "text-gray-300"
+              : "text-slate-200"
           }
         />
       ))}
 
-      <span className="text-sm font-medium text-gray-600 ml-1">
+      <span className="text-sm font-bold text-slate-600 ml-1">
         {rating}
       </span>
     </div>

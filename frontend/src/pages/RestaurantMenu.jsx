@@ -15,13 +15,11 @@ import {
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
-import useToast from "../hooks/useToast";
 
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem, canUseCart } = useCart();
-  const toast = useToast();
+  const { addItem } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [foods, setFoods] = useState([]);
@@ -29,14 +27,11 @@ const RestaurantMenu = () => {
   const [loading, setLoading] = useState(true);
   const [foodLoading, setFoodLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cartMessage, setCartMessage] = useState("");
 
   const handleAddToCart = (food) => {
     const result = addItem(food, 1);
-    toast.showToast({
-      type: result.success ? "success" : "error",
-      title: result.success ? "Added to cart" : "Cart update failed",
-      message: result.message,
-    });
+    setCartMessage(result.message);
   };
 
   useEffect(() => {
@@ -131,56 +126,68 @@ const RestaurantMenu = () => {
 
   return (
     <div className="pb-16">
-      <div className="relative overflow-hidden bg-gray-900">
-        <img
-          src={restaurant?.image || "https://picsum.photos/1400/600"}
-          alt={restaurant?.name || "restaurant"}
-          className="h-[24rem] w-full object-cover opacity-35"
-        />
+      <div className="relative overflow-hidden bg-slate-900 pb-12 pt-32 lg:pt-40 lg:pb-16">
+        <div className="absolute inset-0 z-0">
+          <img
+            src={restaurant?.image || "https://picsum.photos/1400/600"}
+            alt={restaurant?.name || "restaurant"}
+            className="h-full w-full object-cover opacity-40 blur-sm"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/80 to-slate-900/40" />
+        </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-        <div className="absolute inset-x-0 top-0 max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="absolute inset-x-0 top-0 z-20 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate("/restaurants")}
-            className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-white"
+            className="inline-flex items-center gap-2 rounded-xl bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-md transition-all hover:-translate-x-1 hover:bg-white"
           >
             <ChevronLeft size={16} />
-            All Restaurants
+            Back to Restaurants
           </button>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 max-w-6xl mx-auto px-4 sm:px-6 pb-8">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 text-white">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/70">
-                Restaurant Menu
-              </p>
-              <h1 className="mt-3 text-4xl sm:text-5xl font-black">{restaurant?.name}</h1>
-              <p className="mt-3 max-w-2xl text-white/80">
-                {restaurant?.description || "Browse the latest dishes from this restaurant."}
-              </p>
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex items-center gap-6">
+              <div className="h-32 w-32 shrink-0 overflow-hidden rounded-3xl border-4 border-white bg-white shadow-xl">
+                <img
+                  src={restaurant?.image || "https://picsum.photos/1400/600"}
+                  alt={restaurant?.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-[#FF4F40]">
+                  {restaurant?.category || "Restaurant Menu"}
+                </p>
+                <h1 className="font-display mt-1 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+                  {restaurant?.name}
+                </h1>
+                <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-600">
+                  {restaurant?.description || "Browse the latest dishes from this restaurant."}
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="rounded-2xl bg-white/12 backdrop-blur px-4 py-4 min-w-32">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/60">Total Foods</p>
-                <p className="mt-2 text-2xl font-bold">{foods.length}</p>
+            <div className="flex shrink-0 gap-4">
+              <div className="flex min-w-[120px] flex-col justify-center rounded-2xl border border-white/60 bg-white/60 px-5 py-4 text-center shadow-sm backdrop-blur-xl">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Total Foods</p>
+                <p className="font-display mt-1 text-2xl font-bold text-slate-900">{foods.length}</p>
               </div>
-              <div className="rounded-2xl bg-white/12 backdrop-blur px-4 py-4 min-w-32">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/60">Available</p>
-                <p className="mt-2 text-2xl font-bold">{availableCount}</p>
+              <div className="flex min-w-[120px] flex-col justify-center rounded-2xl border border-white/60 bg-white/60 px-5 py-4 text-center shadow-sm backdrop-blur-xl">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Available</p>
+                <p className="font-display mt-1 text-2xl font-bold text-emerald-600">{availableCount}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="page-shell py-8">
-        <div className="surface-panel p-5 sm:p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-3 md:items-center">
+      <div className="page-shell py-8 -mt-6 relative z-30">
+        <div className="surface-panel p-5 sm:p-6 mb-10 shadow-lg shadow-slate-200/50">
+          <div className="flex flex-col md:flex-row gap-4 md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 className="input-surface w-full px-12 py-3"
                 placeholder="Search food by name"
@@ -197,7 +204,7 @@ const RestaurantMenu = () => {
             <button
               onClick={handleSearch}
               disabled={foodLoading}
-              className="btn-primary"
+              className="btn-primary min-w-[120px]"
             >
               {foodLoading ? (
                 <>
@@ -222,6 +229,11 @@ const RestaurantMenu = () => {
             ) : null}
           </div>
 
+          {cartMessage ? (
+            <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+              {cartMessage}
+            </div>
+          ) : null}
         </div>
 
         {error && !loading ? (
@@ -260,7 +272,6 @@ const RestaurantMenu = () => {
                 key={food?._id}
                 food={food}
                 onAddToCart={handleAddToCart}
-                cartAccessAllowed={canUseCart}
               />
             ))}
           </div>

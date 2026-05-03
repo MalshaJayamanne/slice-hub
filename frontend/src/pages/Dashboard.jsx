@@ -16,26 +16,32 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import FeedbackAlert from "../components/FeedbackAlert";
 import restaurantAPI from "../api/restaurantApi";
-import { clearAuthSession, getAuthUser } from "../utils/auth";
-import useToast from "../hooks/useToast";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const toast = useToast();
 
-  const user = getAuthUser();
+  let user = null;
+  try {
+    const storedUser = localStorage.getItem("authUser");
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error("Invalid user JSON:", error);
+    user = null;
+  }
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+  const [pageFeedback, setPageFeedback] = useState(null);
 
   useEffect(() => {
     if (location.state?.feedback) {
-      toast.showToast(location.state.feedback);
+      setPageFeedback(location.state.feedback);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.pathname, location.state, navigate, toast]);
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (user?.role !== "seller") return;
@@ -108,8 +114,8 @@ export default function Dashboard() {
   }, [navigate, primarySellerRestaurant, user?.role]);
 
   const handleLogout = () => {
-    clearAuthSession();
-    toast.info("You have been signed out.", "Signed out");
+    localStorage.removeItem("token");
+    localStorage.removeItem("authUser");
     navigate("/login");
   };
 
@@ -221,7 +227,7 @@ export default function Dashboard() {
             <User size={42} className="text-red-500" />
           </div>
 
-          <h2 className="text-2xl font-bold">{user?.name || "User"}</h2>
+          <h2 className="font-display text-2xl font-bold text-slate-900">{user?.name || "User"}</h2>
           <p className="text-gray-500 mt-1">{user?.email || "No email"}</p>
           <p className="text-sm text-gray-400 mt-2 capitalize">
             Role: {user?.role || "N/A"}
@@ -248,7 +254,7 @@ export default function Dashboard() {
                 </div>
               ) : primarySellerRestaurant ? (
                 <div className="mt-3">
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-display font-semibold text-slate-900">
                     {primarySellerRestaurant.name}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
@@ -264,16 +270,27 @@ export default function Dashboard() {
           ) : null}
         </motion.div>
 
-        <div className="surface-panel-strong lg:col-span-2 p-8 sm:p-9">
+        <div className="surface-panel lg:col-span-2 p-8 shadow-md sm:p-9">
           <p className="section-kicker">Account workspace</p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
+          <h1 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900">
             Welcome back {user?.name || ""}
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-gray-500">
             Pick up where you left off and jump straight into the next task.
           </p>
 
-          <div className="mt-8">
+          {pageFeedback ? (
+            <div className="mb-8 mt-8">
+              <FeedbackAlert
+                type={pageFeedback.type}
+                title={pageFeedback.title}
+                message={pageFeedback.message}
+                onClose={() => setPageFeedback(null)}
+              />
+            </div>
+          ) : null}
+
+          <div className={pageFeedback ? "" : "mt-8"}>
           {user?.role === "seller" ? (
             <div className="mb-8">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
@@ -293,7 +310,7 @@ export default function Dashboard() {
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          <p className="font-display font-bold text-slate-900">{item.label}</p>
                           <p className="text-sm text-gray-500">{item.description}</p>
                         </div>
                       </div>
@@ -324,7 +341,7 @@ export default function Dashboard() {
                           <Icon className={item.tone || "text-gray-700"} />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{item.label}</p>
+                          <p className="font-display font-bold text-slate-900">{item.label}</p>
                           <p className="text-sm text-gray-500">{item.description}</p>
                         </div>
                       </div>
@@ -358,7 +375,7 @@ export default function Dashboard() {
                         <Icon />
                       </div>
                       <div>
-                        <p className="font-semibold">{item.label}</p>
+                        <p className="font-display font-bold text-slate-900">{item.label}</p>
                         <p className="text-sm text-gray-500">{item.description}</p>
                       </div>
                     </div>

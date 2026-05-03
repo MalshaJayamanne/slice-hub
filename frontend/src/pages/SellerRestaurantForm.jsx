@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import restaurantAPI from "../api/restaurantApi";
-import useToast from "../hooks/useToast";
 
 const initialFormData = {
   name: "",
@@ -22,7 +21,6 @@ const SellerRestaurantForm = () => {
   const navigate = useNavigate();
   const { id: restaurantId } = useParams();
   const isEditMode = Boolean(restaurantId);
-  const toast = useToast();
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
@@ -94,11 +92,10 @@ const SellerRestaurantForm = () => {
       });
     } catch (submitError) {
       console.error(submitError);
-      const message =
+      setError(
         submitError?.response?.data?.message ||
-        "Failed to save restaurant.";
-      setError(message);
-      toast.error(message, "Save failed");
+          "Failed to save restaurant."
+      );
     } finally {
       setSaving(false);
     }
@@ -115,7 +112,7 @@ const SellerRestaurantForm = () => {
   return (
     <div className="page-shell py-10 sm:py-12">
       <div className="mx-auto max-w-4xl space-y-8">
-      <div className="surface-panel-strong p-6 sm:p-8">
+      <div className="surface-panel p-6 shadow-md sm:p-8">
       <div className="flex items-center gap-4">
         <button
           type="button"
@@ -127,7 +124,7 @@ const SellerRestaurantForm = () => {
 
         <div>
           <p className="section-kicker">Seller workspace</p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-contrast">
+          <h1 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900">
             {isEditMode ? "Edit Restaurant" : "Create Restaurant"}
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500">

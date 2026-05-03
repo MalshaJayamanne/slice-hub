@@ -1,11 +1,14 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { getAuthToken, getAuthUser } from "../utils/auth";
 
 const ProtectedRoute = ({ role }) => {
-  const user = getAuthUser();
-  const token = getAuthToken();
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("authUser"));
+  } catch {
+    user = null;
+  }
 
-  if (!token || !user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
 
   if (role) {
     const allowed = Array.isArray(role) ? role : [role];

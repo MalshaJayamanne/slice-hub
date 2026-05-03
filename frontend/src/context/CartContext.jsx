@@ -1,41 +1,19 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import {
-  AUTH_CHANGED_EVENT,
-  getAuthToken,
-  getAuthUser,
-  isCustomer,
-} from "../utils/auth";
-
 const CART_STORAGE_KEY = "slicehub-cart";
-const EMPTY_CART = {
-  restaurantId: null,
-  restaurantName: "",
-  items: [],
-};
 
 const CartContext = createContext(null);
 
-const getCartStorageKey = () => {
-  const user = getAuthUser();
-
-  if (!getAuthToken() || !isCustomer(user) || !user?._id) {
-    return null;
-  }
-
-  return `${CART_STORAGE_KEY}:${user._id}`;
-};
-
-const readStoredCart = (storageKey) => {
+const readStoredCart = () => {
   try {
-    if (!storageKey) {
-      return EMPTY_CART;
-    }
-
-    const storedCart = localStorage.getItem(storageKey);
+    const storedCart = localStorage.getItem(CART_STORAGE_KEY);
 
     if (!storedCart) {
-      return EMPTY_CART;
+      return {
+        restaurantId: null,
+        restaurantName: "",
+        items: [],
+      };
     }
 
     const parsedCart = JSON.parse(storedCart);
@@ -45,54 +23,23 @@ const readStoredCart = (storageKey) => {
       restaurantName: parsedCart?.restaurantName || "",
       items: Array.isArray(parsedCart?.items) ? parsedCart.items : [],
     };
-  } catch {
-    return EMPTY_CART;
+  } catch (_error) {
+    return {
+      restaurantId: null,
+      restaurantName: "",
+      items: [],
+    };
   }
 };
 
 export function CartProvider({ children }) {
-  const [storageKey, setStorageKey] = useState(getCartStorageKey);
-  const [cart, setCart] = useState(() => readStoredCart(getCartStorageKey()));
+  const [cart, setCart] = useState(readStoredCart);
 
   useEffect(() => {
-    localStorage.removeItem(CART_STORAGE_KEY);
-
-    const syncCartAccess = () => {
-      const nextStorageKey = getCartStorageKey();
-      setStorageKey(nextStorageKey);
-      setCart(readStoredCart(nextStorageKey));
-    };
-
-    window.addEventListener(AUTH_CHANGED_EVENT, syncCartAccess);
-    window.addEventListener("storage", syncCartAccess);
-
-    return () => {
-      window.removeEventListener(AUTH_CHANGED_EVENT, syncCartAccess);
-      window.removeEventListener("storage", syncCartAccess);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!storageKey) {
-      return;
-    }
-
-    if (cart.items.length === 0) {
-      localStorage.removeItem(storageKey);
-      return;
-    }
-
-    localStorage.setItem(storageKey, JSON.stringify(cart));
-  }, [cart, storageKey]);
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }, [cart]);
 
   const addItem = (food, quantity = 1) => {
-    if (!getAuthToken() || !isCustomer()) {
-      return {
-        success: false,
-        message: "Please sign in with a customer account to use the cart.",
-      };
-    }
-
     const normalizedQuantity = Number(quantity);
 
     if (!food?._id) {
@@ -238,14 +185,13 @@ export function CartProvider({ children }) {
       cartRestaurantId: cart.restaurantId,
       cartRestaurantName: cart.restaurantName,
       cartCount: itemCount,
-      canUseCart: Boolean(storageKey),
       subtotal,
       addItem,
       removeItem,
       updateQuantity,
       clearCart,
     };
-  }, [cart, storageKey]);
+  }, [cart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

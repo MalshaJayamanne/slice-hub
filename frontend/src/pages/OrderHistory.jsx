@@ -93,7 +93,7 @@ export default function OrderHistory() {
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
                 Total Spent
               </p>
-              <p className="mt-3 text-2xl font-black tracking-tight text-primary">
+              <p className="font-display mt-3 text-2xl font-bold tracking-tight text-[#FF4F40]">
                 {formatCurrency(summary.totalSpent)}
               </p>
               <p className="mt-2 text-sm text-gray-500">
@@ -179,7 +179,7 @@ export default function OrderHistory() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="surface-panel p-6"
+                className="surface-panel p-6 shadow-sm"
               >
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 flex-1">
@@ -253,7 +253,7 @@ export default function OrderHistory() {
                     <button
                       type="button"
                       onClick={() => navigate(`/orders/${order._id}`)}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-red-700"
+                      className="btn-primary w-full"
                     >
                       Track Order
                       <ArrowRight size={16} />

@@ -11,27 +11,29 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
-import { emitAuthChanged } from "../utils/auth";
-import useToast from "../hooks/useToast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [pageFeedback, setPageFeedback] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const toast = useToast();
 
   React.useEffect(() => {
     if (location.state?.feedback) {
-      toast.showToast(location.state.feedback);
+      setPageFeedback(location.state.feedback);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.pathname, location.state, navigate, toast]);
+  }, [location.pathname, location.state, navigate]);
 
   const showAuthNotice = (message) => {
-    toast.info(message, "Email sign-in only");
+    setPageFeedback({
+      type: "info",
+      title: "Email sign-in only",
+      message,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -48,7 +50,6 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.user.token);
       localStorage.setItem("authUser", JSON.stringify(res.data.user));
-      emitAuthChanged();
 
       navigate("/dashboard", {
         state: {
@@ -60,9 +61,7 @@ const Login = () => {
         },
       });
     } catch (requestError) {
-      const message = requestError.response?.data?.message || "Login failed";
-      setError(message);
-      toast.error(message, "Login failed");
+      setError(requestError.response?.data?.message || "Login failed");
     } finally {
       setSubmitting(false);
     }
@@ -108,31 +107,40 @@ const Login = () => {
         <div className="text-center lg:text-left">
           <button
             type="button"
-            className="mx-auto mb-6 flex cursor-pointer items-center justify-center group lg:mx-0"
+            className="group mx-auto mb-6 flex cursor-pointer items-center justify-center lg:mx-0"
             onClick={() => navigate("/")}
           >
-            <div className="bg-[#FF3B30] text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
-              <Pizza size={32} />
+            <div className="rounded-2xl bg-gradient-to-br from-[#FF4F40] to-[#E63E30] p-3 text-white shadow-lg shadow-[#FF4F40]/30 transition-transform group-hover:-translate-y-1 group-hover:rotate-12">
+              <Pizza size={28} fill="currentColor" />
             </div>
-            <span className="ml-3 text-[#1A1A1A] text-3xl font-bold tracking-tight">
-              Slice<span className="text-[#FF3B30]">Hub</span>
+            <span className="font-display ml-3 text-3xl font-bold tracking-tight text-slate-900">
+              Slice<span className="text-[#FF4F40]">Hub</span>
             </span>
           </button>
 
           <p className="section-kicker">Welcome back</p>
-          <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[#1A1A1A]">
+          <h2 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
             Sign in
           </h2>
 
-          <p className="mt-2 text-sm text-gray-500 font-medium">
+          <p className="mt-3 text-[15px] font-medium text-slate-500">
             Don't have an account?{" "}
-            <Link to="/register" className="text-[#FF3B30] font-bold hover:underline">
+            <Link to="/register" className="font-bold text-[#FF4F40] hover:text-[#E63E30] hover:underline">
               Create one
             </Link>
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {pageFeedback ? (
+            <FeedbackAlert
+              type={pageFeedback.type}
+              title={pageFeedback.title}
+              message={pageFeedback.message}
+              onClose={() => setPageFeedback(null)}
+            />
+          ) : null}
+
           {error ? (
             <FeedbackAlert
               type="error"
@@ -176,7 +184,7 @@ const Login = () => {
                       "Password reset is not available in this demo yet. Use your existing password or create a new account if you need a fresh login."
                     )
                   }
-                  className="text-[10px] font-bold text-[#FF3B30] uppercase tracking-widest hover:underline"
+                  className="text-[10px] font-bold text-[#FF4F40] uppercase tracking-widest hover:underline"
                 >
                   Forgot?
                 </button>
@@ -198,7 +206,7 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="soft-panel px-4 py-3 text-sm text-gray-600">
+          <div className="surface-panel px-4 py-3 text-sm text-slate-600 shadow-sm">
             Sessions stay signed in on this device until you log out.
           </div>
 
@@ -224,7 +232,7 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="soft-panel px-4 py-4 text-sm text-gray-600">
+        <div className="surface-panel px-4 py-4 text-sm text-slate-600 shadow-sm">
           Email and password sign-in is the supported login flow in this demo.
         </div>
         </div>

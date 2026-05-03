@@ -48,7 +48,7 @@ export default function FeedbackAlert({
             <Icon size={18} className={tone.iconColor} />
           </div>
           <div>
-            <p className="text-sm font-bold tracking-[-0.02em]">
+            <p className="font-display text-sm font-bold tracking-tight">
               {title || tone.defaultTitle}
             </p>
             <p className="mt-1 text-sm leading-6">{message}</p>

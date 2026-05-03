@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  CheckCircle2,
   ChevronLeft,
   Loader2,
   Pencil,
@@ -13,7 +14,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import foodAPI from "../api/foodAPI";
 import restaurantAPI from "../api/restaurantApi";
-import useToast from "../hooks/useToast";
 
 const initialForm = {
   name: "",
@@ -27,7 +27,6 @@ const initialForm = {
 const SellerMenu = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const toast = useToast();
   const currentUser = useMemo(() => {
     try {
       const storedUser = localStorage.getItem("authUser");
@@ -46,6 +45,7 @@ const SellerMenu = () => {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [forbidden, setForbidden] = useState(false);
 
   const canManageRestaurant = useCallback(
@@ -126,16 +126,11 @@ const SellerMenu = () => {
   const validateForm = () => {
     if (!form.name.trim() || !form.category.trim()) {
       setError("Food name and category are required.");
-      toast.error("Food name and category are required.", "Missing details");
       return false;
     }
 
     if (form.price === "" || Number.isNaN(Number(form.price)) || Number(form.price) < 0) {
       setError("Price must be a valid number greater than or equal to 0.");
-      toast.error(
-        "Price must be a valid number greater than or equal to 0.",
-        "Invalid price"
-      );
       return false;
     }
 
@@ -155,10 +150,10 @@ const SellerMenu = () => {
 
       if (editingId) {
         await foodAPI.update(editingId, payload);
-        toast.success("Food item updated successfully.", "Menu updated");
+        setSuccess("Food item updated successfully.");
       } else {
         await foodAPI.create(payload);
-        toast.success("Food item added successfully.", "Menu updated");
+        setSuccess("Food item added successfully.");
       }
 
       resetForm();
@@ -166,9 +161,8 @@ const SellerMenu = () => {
       setError("");
     } catch (err) {
       console.error("Save food error:", err);
-      const message = err?.response?.data?.message || "Failed to save food.";
-      setError(message);
-      toast.error(message, "Save failed");
+      setSuccess("");
+      setError(err?.response?.data?.message || "Failed to save food.");
     } finally {
       setSaving(false);
     }
@@ -182,13 +176,12 @@ const SellerMenu = () => {
         resetForm();
       }
       await fetchFoods();
+      setSuccess("Food item deleted successfully.");
       setError("");
-      toast.success("Food item deleted successfully.", "Menu updated");
     } catch (err) {
       console.error("Delete error:", err);
-      const message = err?.response?.data?.message || "Failed to delete food.";
-      setError(message);
-      toast.error(message, "Delete failed");
+      setSuccess("");
+      setError(err?.response?.data?.message || "Failed to delete food.");
     } finally {
       setDeletingId("");
     }
@@ -204,6 +197,7 @@ const SellerMenu = () => {
       image: item?.image || "",
       availability: item?.availability ?? true,
     });
+    setSuccess("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -265,7 +259,7 @@ const SellerMenu = () => {
 
   return (
     <div className="page-shell space-y-8 py-8 sm:py-10">
-      <div className="surface-panel-strong bg-gradient-to-br from-orange-50 via-white to-red-50 p-6 sm:p-8">
+      <div className="surface-panel shadow-md bg-gradient-to-br from-orange-50 via-white to-red-50 p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-3">
@@ -289,7 +283,7 @@ const SellerMenu = () => {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
                 Seller Food Management
               </p>
-              <h1 className="mt-2 text-3xl sm:text-4xl font-bold text-gray-900">
+              <h1 className="font-display mt-2 text-3xl sm:text-4xl font-bold text-slate-900">
                 {restaurant?.name || "Restaurant Menu"}
               </h1>
               <p className="mt-2 text-gray-600 max-w-2xl">
@@ -319,6 +313,13 @@ const SellerMenu = () => {
         </div>
       ) : null}
 
+      {success ? (
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <CheckCircle2 size={18} />
+          {success}
+        </div>
+      ) : null}
+
       <div className="grid xl:grid-cols-[1.1fr_1.4fr] gap-8">
         <section className="surface-panel p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4 mb-6">
@@ -326,7 +327,7 @@ const SellerMenu = () => {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
                 {editingId ? "Editing" : "Create"}
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-gray-900">
+              <h2 className="font-display mt-2 text-2xl font-bold text-slate-900">
                 {editingId ? "Update Food Item" : "Add New Food"}
               </h2>
             </div>
@@ -415,7 +416,7 @@ const SellerMenu = () => {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
                 Menu Library
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-gray-900">Existing Foods</h2>
+              <h2 className="font-display mt-2 text-2xl font-bold text-slate-900">Existing Foods</h2>
             </div>
 
             <div className="relative w-full md:w-80">
@@ -440,144 +441,75 @@ const SellerMenu = () => {
               </p>
             </div>
           ) : (
-            <>
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="text-xs uppercase tracking-[0.16em] text-gray-400">
-                    <tr>
-                      <th className="pb-4">Item</th>
-                      <th className="pb-4">Category</th>
-                      <th className="pb-4">Price</th>
-                      <th className="pb-4">Status</th>
-                      <th className="pb-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredFoods.map((item) => (
-                      <tr key={item?._id} className="border-t">
-                        <td className="py-4 pr-4">
-                          <div className="flex gap-3 items-center">
-                            <img
-                              src={item?.image || "https://picsum.photos/100/100"}
-                              alt={item?.name || "food"}
-                              className="w-14 h-14 rounded-2xl object-cover"
-                            />
-                            <div>
-                              <p className="font-semibold text-gray-900">{item?.name}</p>
-                              <p className="text-xs text-gray-500 line-clamp-1">
-                                {item?.description || "No description"}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 pr-4 text-gray-600">{item?.category}</td>
-                        <td className="py-4 pr-4 font-semibold text-primary">
-                          Rs. {item?.price}
-                        </td>
-                        <td className="py-4 pr-4">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              item?.availability
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {item?.availability ? "Available" : "Unavailable"}
-                          </span>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm text-blue-600 hover:bg-blue-50"
-                            >
-                              <Pencil size={16} />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(item?._id)}
-                              disabled={deletingId === item?._id}
-                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              {deletingId === item?._id ? (
-                                <Loader2 size={16} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={16} />
-                              )}
-                              {deletingId === item?._id ? "Deleting" : "Delete"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="grid gap-4 md:hidden">
-                {filteredFoods.map((item) => (
-                  <article
-                    key={item?._id}
-                    className="rounded-[1.5rem] border border-gray-100 p-4 shadow-sm"
-                  >
-                    <div className="flex gap-4">
-                      <img
-                        src={item?.image || "https://picsum.photos/100/100"}
-                        alt={item?.name || "food"}
-                        className="w-20 h-20 rounded-2xl object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-semibold text-gray-900">{item?.name}</p>
-                            <p className="text-sm text-primary font-semibold mt-1">
-                              Rs. {item?.price}
-                            </p>
-                          </div>
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${
-                              item?.availability
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {item?.availability ? "Available" : "Unavailable"}
-                          </span>
+          <div className="surface-panel overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table-lite">
+                <thead>
+                  <tr>
+                    <th className="w-14"></th>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFoods.map((item) => (
+                    <tr key={item?._id}>
+                      <td className="w-14">
+                        <div className="h-11 w-11 overflow-hidden rounded-xl bg-slate-100">
+                          <img
+                            src={item?.image || "https://picsum.photos/100/100"}
+                            alt={item?.name || "food"}
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                        <p className="mt-2 text-xs font-bold uppercase tracking-[0.16em] text-gray-400">
-                          {item?.category}
-                        </p>
-                        <p className="mt-2 text-sm text-gray-500">
+                      </td>
+                      <td>
+                        <p className="font-display font-bold text-slate-900">{item?.name}</p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">
                           {item?.description || "No description"}
                         </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm text-blue-600"
-                      >
-                        <Pencil size={16} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item?._id)}
-                        disabled={deletingId === item?._id}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {deletingId === item?._id ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                        {deletingId === item?._id ? "Deleting" : "Delete"}
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </>
+                      </td>
+                      <td className="text-slate-500">{item?.category}</td>
+                      <td className="whitespace-nowrap font-semibold text-[#FF4F40]">
+                        Rs. {item?.price}
+                      </td>
+                      <td>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${item?.availability ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                          {item?.availability ? "Available" : "Unavailable"}
+                        </span>
+                      </td>
+                      <td className="text-right">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-500"
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item?._id)}
+                            disabled={deletingId === item?._id}
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                            title="Delete"
+                          >
+                            {deletingId === item?._id ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={16} />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
           )}
         </section>
       </div>

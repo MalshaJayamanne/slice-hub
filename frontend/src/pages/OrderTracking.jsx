@@ -15,7 +15,6 @@ import {
   WorkspaceErrorState,
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
-import useToast from "../hooks/useToast";
 
 const STATUS_ORDER = ["Pending", "Preparing", "Delivered"];
 
@@ -47,7 +46,6 @@ const formatCurrency = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
 export default function OrderTracking() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const toast = useToast();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -198,7 +196,7 @@ export default function OrderTracking() {
               <ChevronLeft size={24} />
             </button>
             <div>
-              <h1 className="text-xl font-black text-contrast">Track Order</h1>
+              <h1 className="font-display text-xl font-bold text-slate-900">Track Order</h1>
               <p className="text-xs font-bold text-gray-400">
                 Order #{order._id.slice(-6).toUpperCase()}
               </p>
@@ -247,9 +245,9 @@ export default function OrderTracking() {
               <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
                 <MapPin size={32} />
               </div>
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-contrast text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-xl">
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap shadow-xl">
                 {order?.restaurant?.name || "Restaurant"}
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-contrast rotate-45" />
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45" />
               </div>
             </motion.div>
 
@@ -285,9 +283,9 @@ export default function OrderTracking() {
               <div className="bg-green-100 p-3 rounded-2xl text-green-600">
                 <Package size={32} />
               </div>
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-contrast text-white px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap shadow-xl">
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap shadow-xl">
                 You
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-contrast rotate-45" />
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45" />
               </div>
             </motion.div>
 
@@ -295,7 +293,7 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="surface-panel-strong p-8"
+                className="surface-panel p-8 shadow-md"
               >
                 <div className="flex items-start gap-6">
                   <div
@@ -308,7 +306,7 @@ export default function OrderTracking() {
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
                       Live status
                     </p>
-                    <h4 className="mt-2 text-2xl font-black text-contrast">
+                    <h4 className="font-display mt-2 text-2xl font-bold text-slate-900">
                       {statusVisual.summaryTitle}
                     </h4>
                     <p className="mt-3 max-w-xl text-sm font-medium text-gray-500">
@@ -326,8 +324,8 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          <div className="surface-panel-strong rounded-[4rem] p-10">
-            <h3 className="text-2xl font-black text-contrast tracking-tight mb-10">
+          <div className="surface-panel rounded-[4rem] p-10 shadow-md">
+            <h3 className="font-display text-2xl font-bold text-slate-900 tracking-tight mb-10">
               Delivery Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -339,7 +337,7 @@ export default function OrderTracking() {
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                     Delivery Address
                   </p>
-                  <p className="text-xl font-black text-contrast break-words">
+                  <p className="font-display text-xl font-bold text-slate-900 break-words">
                     {deliveryAddress}
                   </p>
                 </div>
@@ -352,7 +350,7 @@ export default function OrderTracking() {
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                     Current Status
                   </p>
-                  <p className="text-xl font-black text-contrast">
+                  <p className="font-display text-xl font-bold text-slate-900">
                     {order.status}
                   </p>
                   <p className="text-base font-medium text-gray-500">
@@ -365,8 +363,8 @@ export default function OrderTracking() {
         </div>
 
         <div className="space-y-12">
-          <div className="surface-panel-strong rounded-[4rem] p-10">
-            <h3 className="text-2xl font-black text-contrast tracking-tight mb-12">
+          <div className="surface-panel rounded-[4rem] p-10 shadow-md">
+            <h3 className="font-display text-2xl font-bold text-slate-900 tracking-tight mb-12">
               Order Status
             </h3>
             <div className="relative space-y-0">
@@ -445,11 +443,11 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[4rem] bg-contrast p-10 text-white shadow-2xl">
+          <div className="relative overflow-hidden rounded-[4rem] bg-slate-900 p-10 text-white shadow-2xl">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <Package size={120} />
             </div>
-            <h3 className="text-2xl font-black mb-10 relative z-10">
+            <h3 className="font-display text-2xl font-bold mb-10 relative z-10">
               Order Summary
             </h3>
             <div className="space-y-6 mb-10 relative z-10">
@@ -467,7 +465,7 @@ export default function OrderTracking() {
             </div>
             <div className="pt-10 border-t border-white/10 flex justify-between items-center relative z-10">
               <span className="font-black text-lg opacity-60">Total Paid</span>
-              <span className="text-4xl font-black text-primary">
+              <span className="font-display text-4xl font-bold text-[#FF4F40]">
                 {formatCurrency(order.totalAmount)}
               </span>
             </div>
@@ -478,12 +476,12 @@ export default function OrderTracking() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="surface-panel-strong mx-auto mt-12 max-w-2xl rounded-[2.5rem] p-10 text-center lg:col-span-3"
+            className="surface-panel mx-auto mt-12 max-w-2xl rounded-[2.5rem] p-10 text-center shadow-md lg:col-span-3"
           >
             <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Star size={40} className="text-yellow-500 fill-yellow-500" />
             </div>
-            <h2 className="text-3xl font-extrabold text-contrast mb-4">
+            <h2 className="font-display text-3xl font-bold text-slate-900 mb-4">
               How was your order?
             </h2>
             <p className="text-gray-500 mb-8 font-medium">
@@ -517,13 +515,7 @@ export default function OrderTracking() {
             />
 
             <button
-              onClick={() => {
-                setIsSubmitted(true);
-                toast.success(
-                  "Your note was saved locally for this demo review.",
-                  "Feedback saved"
-                );
-              }}
+              onClick={() => setIsSubmitted(true)}
               className="w-full bg-primary hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all"
             >
               Save Local Note

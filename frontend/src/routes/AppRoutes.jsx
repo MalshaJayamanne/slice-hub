@@ -43,6 +43,7 @@ function AppRoutes() {
         <Route path="/restaurants" element={<RestaurantList />} />
         <Route path="/restaurant/:id" element={<RestaurantMenu />} />
         <Route path="/food/:id" element={<FoodDetails />} />
+        <Route path="/cart" element={<Cart />} />
 
         {/* AUTHENTICATED USER */}
 
@@ -54,7 +55,6 @@ function AppRoutes() {
 
         <Route element={<ProtectedRoute role="customer" />}>
 
-          <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<OrderHistory />} />
           <Route path="/orders/:id" element={<OrderTracking />} />
