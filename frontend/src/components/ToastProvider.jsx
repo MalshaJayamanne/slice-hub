@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import * as FramerMotion from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 
 import ToastContext from "../context/ToastContext";
@@ -36,7 +37,7 @@ function ToastItem({ toast, onDismiss }) {
   const Icon = tone.icon;
 
   return (
-    <FramerMotion.motion.div
+    <motion.div
       layout
       initial={{ opacity: 0, y: -16, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -72,19 +73,20 @@ function ToastItem({ toast, onDismiss }) {
         <X size={15} />
       </button>
 
-      <FramerMotion.motion.div
+      <motion.div
         className={`absolute bottom-0 left-0 h-1 ${tone.progress}`}
         initial={{ width: "100%" }}
         animate={{ width: "0%" }}
         transition={{ duration: toast.duration / 1000, ease: "linear" }}
       />
-    </FramerMotion.motion.div>
+    </motion.div>
   );
 }
 
 export default function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const recentToastRef = useRef(null);
+  const timeoutIdsRef = useRef(new Set());
 
   const dismissToast = useCallback((id) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -112,14 +114,25 @@ export default function ToastProvider({ children }) {
 
       setToasts((current) => [toast, ...current].slice(0, 4));
 
-      window.setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         dismissToast(id);
+        timeoutIdsRef.current.delete(timeoutId);
       }, duration);
+      timeoutIdsRef.current.add(timeoutId);
 
       return id;
     },
     [dismissToast]
   );
+
+  useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+      timeoutIdsRef.current.clear();
+    };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -135,21 +148,22 @@ export default function ToastProvider({ children }) {
     [dismissToast, showToast]
   );
 
+  const toastLayer = (
+    <div className="pointer-events-none fixed right-4 top-4 z-[9999] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+      <AnimatePresence initial={false}>
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <ToastItem toast={toast} onDismiss={dismissToast} />
+          </div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+
   return (
     <ToastContext.Provider value={value}>
       {children}
-
-      <div className="fixed right-4 top-4 z-[80] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
-        <FramerMotion.AnimatePresence initial={false}>
-          {toasts.map((toast) => (
-            <ToastItem
-              key={toast.id}
-              toast={toast}
-              onDismiss={dismissToast}
-            />
-          ))}
-        </FramerMotion.AnimatePresence>
-      </div>
+      {typeof document !== "undefined" ? createPortal(toastLayer, document.body) : null}
     </ToastContext.Provider>
   );
 }
