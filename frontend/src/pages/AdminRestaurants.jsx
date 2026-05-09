@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 import adminAPI from "../api/adminAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
+import { getCategoryStyles } from "../utils/categoryUtils";
 
 const statusClasses = {
   approved: "bg-green-100 text-green-600",
@@ -540,98 +541,100 @@ export default function AdminRestaurants() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table-lite">
+            <table className="table-lite w-full border-collapse">
               <thead>
-                <tr>
-                  <th className="w-14"></th>
-                  <th>Restaurant</th>
-                  <th>Owner</th>
-                  <th>Orders</th>
-                  <th>Revenue</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                <tr className="bg-slate-50/50">
+                  <th className="w-20 px-6 py-5"></th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Restaurant</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Owner</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Orders</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Revenue</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Status</th>
+                  <th className="w-48 px-6 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {restaurants.map((restaurant) => {
                   const isUpdating = updatingRestaurantId === restaurant._id;
                   const isDeleting = deletingRestaurantId === restaurant._id;
 
                   return (
-                    <tr key={restaurant._id}>
-                      <td className="w-14">
-                        <div className="h-11 w-11 overflow-hidden rounded-xl bg-slate-100">
+                    <tr key={restaurant._id} className="group hover:bg-slate-50/80 transition-colors">
+                      <td className="w-20 px-6 py-5">
+                        <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-50 border border-slate-100 shadow-sm transition-all group-hover:shadow-md">
                           {restaurant.image ? (
                             <img
                               src={restaurant.image}
                               alt={restaurant.name}
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[#FF4F40]">
+                            <div className="flex h-full w-full items-center justify-center text-lg font-black text-[#FF4F40]">
                               {restaurant.name?.slice(0, 2).toUpperCase()}
                             </div>
                           )}
                         </div>
                       </td>
 
-                      <td>
-                        <p className="font-display font-bold text-slate-900">{restaurant.name}</p>
-                        <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                          {restaurant.category || "Uncategorized"}
-                        </p>
+                      <td className="px-6 py-5">
+                        <p className="font-display text-lg font-bold text-slate-900">{restaurant.name}</p>
+                        <div className="mt-1.5">
+                          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${getCategoryStyles(restaurant.category)}`}>
+                            {restaurant.category || "Uncategorized"}
+                          </span>
+                        </div>
                       </td>
 
-                      <td>
-                        <span className="inline-flex items-center gap-1.5 text-slate-600">
-                          <User size={13} className="shrink-0 text-slate-400" />
-                          <span className="truncate max-w-[120px]">
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+                          <User size={16} className="shrink-0 text-slate-400" />
+                          <span className="truncate max-w-[140px]">
                             {restaurant.owner?.name || restaurant.owner?.email || "—"}
                           </span>
                         </span>
                       </td>
 
-                      <td className="whitespace-nowrap text-slate-600">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-bold text-slate-600">
                         {restaurant.metrics?.totalOrders || 0}
                       </td>
 
-                      <td className="whitespace-nowrap font-semibold text-emerald-600">
+                      <td className="px-6 py-5 whitespace-nowrap font-bold text-emerald-600">
                         {formatCurrency(restaurant.metrics?.totalRevenue || 0)}
                       </td>
 
-                      <td>
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${statusClasses[restaurant.status] || statusClasses.pending}`}>
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-sm ${statusClasses[restaurant.status] || statusClasses.pending}`}>
                           {restaurant.status}
                         </span>
                       </td>
 
-                      <td className="text-right">
-                        <div className="inline-flex items-center justify-end gap-1">
+                      <td className="px-6 py-5 text-right">
+                        <div className="inline-flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#FF4F40]"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition-all hover:bg-slate-100 hover:text-[#FF4F40] hover:shadow-sm"
                             title="View"
                           >
-                            <ExternalLink size={16} />
+                            <ExternalLink size={18} />
                           </button>
                           <button
                             type="button"
                             onClick={() => openEditRestaurantForm(restaurant)}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-orange-50 hover:text-orange-500"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-400 transition-all hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/30"
                             title="Edit"
                           >
-                            <Pencil size={16} />
+                            <Pencil size={18} />
                           </button>
                           {restaurant.status !== "approved" ? (
                             <button
                               type="button"
                               onClick={() => handleStatusUpdate(restaurant, "approved")}
                               disabled={isUpdating}
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-500 disabled:opacity-50"
+                              className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500 transition-all hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30 disabled:opacity-50"
                               title="Approve"
                             >
-                              {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
                             </button>
                           ) : null}
                           {restaurant.status !== "rejected" ? (
@@ -639,20 +642,20 @@ export default function AdminRestaurants() {
                               type="button"
                               onClick={() => handleStatusUpdate(restaurant, "rejected")}
                               disabled={isUpdating}
-                              className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                              className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/30 disabled:opacity-50"
                               title="Reject"
                             >
-                              {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
                             </button>
                           ) : null}
                           <button
                             type="button"
                             onClick={() => handleDeleteRestaurant(restaurant)}
                             disabled={isDeleting}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/30 disabled:opacity-50"
                             title="Delete"
                           >
-                            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                           </button>
                         </div>
                       </td>

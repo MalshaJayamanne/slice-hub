@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Filter,
+  ChevronRight,
   Search,
   SlidersHorizontal,
   Star,
@@ -20,6 +20,7 @@ import {
 } from "../components/WorkspaceScaffold";
 import { CATEGORIES } from "../constants";
 import { restaurantService } from "../services/restaurantService";
+import { getCategoryStyles } from "../utils/categoryUtils";
 
 const categoryOptions = [
   "All",
@@ -42,7 +43,9 @@ const RestaurantList = () => {
   const [searchQuery, setSearchQuery] = useState(
     location.state?.initialSearch || ""
   );
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(
+    location.state?.initialCategory || "All"
+  );
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -66,13 +69,13 @@ const RestaurantList = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      Object.prototype.hasOwnProperty.call(
-        location.state || {},
-        "initialSearch"
-      )
-    ) {
-      setSearchQuery(location.state?.initialSearch || "");
+    if (location.state) {
+      if (Object.prototype.hasOwnProperty.call(location.state, "initialSearch")) {
+        setSearchQuery(location.state.initialSearch || "");
+      }
+      if (Object.prototype.hasOwnProperty.call(location.state, "initialCategory")) {
+        setSelectedCategory(location.state.initialCategory || "All");
+      }
     }
   }, [location.state]);
 
@@ -122,38 +125,49 @@ const RestaurantList = () => {
       sidebar={
         <WorkspaceSidebar
           icon={Store}
-          title="Browse Restaurants"
-          subtitle="A cleaner customer workspace for exploring approved restaurants and narrowing the list quickly."
+          title="Marketplace"
+          subtitle="Explore the best restaurants in your area, refined by category and rating."
           note={sidebarNote}
         >
           {!loading && !error ? (
-            <div className="grid grid-cols-1 gap-3">
-              <WorkspaceStat
-                label="Approved"
-                value={restaurants.length}
-                hint="Restaurants currently visible on the platform"
-              />
-              <WorkspaceStat
-                label="Matching"
-                value={filteredRestaurants.length}
-                hint={
-                  activeFilterCount > 0
-                    ? `${activeFilterCount} filters currently active`
-                    : "No filters applied"
-                }
-                tone="warning"
-              />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-3">
+                <WorkspaceStat
+                  label="Available"
+                  value={restaurants.length}
+                  hint="Approved vendors online"
+                />
+                <WorkspaceStat
+                  label="Matches"
+                  value={filteredRestaurants.length}
+                  hint={
+                    activeFilterCount > 0
+                      ? `${activeFilterCount} active filters`
+                      : "No active filters"
+                  }
+                  tone="warning"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-sky-600">
+                  Quick Hint
+                </p>
+                <p className="mt-2 text-xs font-medium leading-relaxed text-sky-700">
+                  Select a category chip to narrow your search to specific cuisines instantly.
+                </p>
+              </div>
             </div>
           ) : null}
         </WorkspaceSidebar>
       }
-      eyebrow="Customer workspace"
-      title="Explore Restaurants"
-      description="Browse live restaurant listings, refine the results, and jump straight into the menus that fit what you want right now."
+      eyebrow="Marketplace Explorer"
+      title="Discover Food"
+      description="Jump straight into curated menus, or use the filters below to find exactly what you're craving right now."
     >
       {loading ? (
         <WorkspaceLoadingState
-          title="Loading restaurants"
+          title="Loading marketplace"
           message="Collecting approved restaurant listings for the customer browsing flow."
         />
       ) : error ? (
@@ -164,108 +178,110 @@ const RestaurantList = () => {
         />
       ) : (
         <div className="space-y-6">
-          <div className="surface-panel p-5 sm:p-6 mb-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="relative flex-1">
+          <div className="surface-panel p-6 sm:p-8 mb-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+              <div className="relative flex-1 group">
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  size={18}
+                  className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"
+                  size={20}
                 />
                 <input
                   type="text"
-                  placeholder="Search restaurants..."
-                  className="input-surface w-full py-3 pl-12"
+                  placeholder="What are you looking for?"
+                  className="input-surface w-full py-4 pl-14 text-base"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowFilters((current) => !current)}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-6 py-3 font-semibold transition-all ${
-                  showFilters
-                    ? "border-primary bg-primary text-white shadow-md shadow-primary/20"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-                }`}
-              >
-                <SlidersHorizontal size={18} />
-                Filters
-              </button>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {categoryOptions.map((category) => (
+              <div className="flex gap-3">
                 <button
-                  key={category}
                   type="button"
-                  onClick={() => setSelectedCategory(category)}
-                  className={`rounded-full px-5 py-2 text-sm font-bold transition-all ${
-                    selectedCategory === category
-                      ? "bg-slate-900 text-white shadow-md"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                  onClick={() => setShowFilters((current) => !current)}
+                  className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 font-bold transition-all ${
+                    showFilters
+                      ? "border-primary bg-primary text-white shadow-lg shadow-primary/20"
+                      : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
-                  {category}
+                  <SlidersHorizontal size={18} />
+                  Filters
                 </button>
-              ))}
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-6 py-4 font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
-            {searchQuery.trim() ? (
-              <p className="mt-4 text-sm text-gray-500">
-                Showing matches for{" "}
-                <span className="font-semibold text-gray-700">
-                  {searchQuery.trim()}
-                </span>
-                .
+            <div className="mt-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 ml-1">
+                Browse by Category
               </p>
-            ) : null}
+              <div className="flex flex-wrap gap-2.5">
+                {categoryOptions.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setSelectedCategory(category)}
+                    className={`rounded-xl px-6 py-2.5 text-sm font-bold transition-all ${
+                      selectedCategory === category
+                        ? "bg-slate-900 text-white shadow-xl shadow-slate-900/20 -translate-y-0.5"
+                        : "bg-slate-50 text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-md border border-transparent hover:border-slate-100"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <AnimatePresence>
             {showFilters ? (
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="surface-panel p-6"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
               >
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                      Minimum Rating
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {[3, 4, 4.5].map((rating) => (
-                        <button
-                          key={rating}
-                          type="button"
-                          onClick={() =>
-                            setMinRating((current) =>
-                              current === rating ? 0 : rating
-                            )
-                          }
-                          className={`inline-flex items-center gap-1 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
-                            minRating === rating
-                              ? "border-primary bg-primary text-white"
-                              : "border-gray-200 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                          }`}
-                        >
-                          {rating}+ <Star size={14} />
-                        </button>
-                      ))}
+                <div className="surface-panel p-8 mb-8 border-2 border-primary/10">
+                  <div className="grid gap-8 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-5">
+                        Quality Filter
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {[3, 4, 4.5].map((rating) => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() =>
+                              setMinRating((current) =>
+                                current === rating ? 0 : rating
+                              )
+                            }
+                            className={`inline-flex items-center gap-2 rounded-2xl border-2 px-6 py-3 text-sm font-bold transition-all ${
+                              minRating === rating
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-slate-50 text-slate-400 hover:border-primary/30 hover:text-primary"
+                            }`}
+                          >
+                            {rating}+ <Star size={16} className={minRating === rating ? "fill-primary" : ""} />
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={clearFilters}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50"
-                    >
-                      <X size={16} />
-                      Reset Filters
-                    </button>
+                    <div className="flex flex-col justify-end">
+                       <p className="text-sm font-medium text-slate-500 mb-4">
+                        Narrow down results based on verified user ratings and professional review scores.
+                       </p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -273,114 +289,93 @@ const RestaurantList = () => {
           </AnimatePresence>
 
           {filteredRestaurants.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <WorkspaceStat
-                  label="Results"
-                  value={filteredRestaurants.length}
-                  hint="Restaurants currently matching your filters"
-                />
-                <WorkspaceStat
-                  label="Category"
-                  value={selectedCategory}
-                  hint="Current category scope"
-                  tone="dark"
-                />
-                <WorkspaceStat
-                  label="Rating Floor"
-                  value={minRating > 0 ? `${minRating}+` : "Any"}
-                  hint="Minimum rating filter"
-                  tone="warning"
-                />
-              </div>
-
-              <div className="surface-panel overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="table-lite">
-                    <thead>
-                      <tr>
-                        <th className="w-14"></th>
-                        <th>Restaurant</th>
-                        <th>Category</th>
-                        <th>Rating</th>
-                        <th>Delivery</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRestaurants.map((restaurant, index) => (
-                        <motion.tr
-                          key={restaurant?._id || index}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                        >
-                          <td className="w-14">
-                            <div className="h-11 w-11 overflow-hidden rounded-xl bg-slate-100">
-                              {restaurant.image ? (
-                                <img
-                                  src={restaurant.image}
-                                  alt={restaurant.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                  <Store size={18} className="text-slate-300" />
-                                </div>
-                              )}
+            <div className="surface-panel overflow-hidden shadow-2xl shadow-slate-200/60 border border-slate-100">
+              <div className="overflow-x-auto">
+                <table className="table-lite w-full border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      <th className="w-20 px-6 py-5"></th>
+                      <th className="min-w-[240px] px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Restaurant</th>
+                      <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Category</th>
+                      <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Rating</th>
+                      <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Delivery</th>
+                      <th className="w-32 px-6 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredRestaurants.map((restaurant, index) => (
+                      <motion.tr
+                        key={restaurant?._id || index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
+                        onClick={() => navigate(`/restaurant/${restaurant._id}`)}
+                      >
+                        <td className="w-20 px-6 py-6">
+                          <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-50 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+                            {restaurant.image ? (
+                              <img
+                                src={restaurant.image}
+                                alt={restaurant.name}
+                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <Store size={24} className="text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-6">
+                          <p className="font-display text-lg font-bold text-slate-900 group-hover:text-primary transition-colors">
+                            {restaurant.name}
+                          </p>
+                          <p className="mt-1 line-clamp-1 text-sm font-medium text-slate-400">
+                            {restaurant.description || "Premium dining experience"}
+                          </p>
+                        </td>
+                        <td className="px-6 py-6">
+                          {restaurant.category ? (
+                            <span className={`inline-flex items-center rounded-full border px-4 py-2 text-[10px] font-black uppercase tracking-widest ${getCategoryStyles(restaurant.category)}`}>
+                              {restaurant.category}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-6">
+                          {restaurant.rating ? (
+                            <div className="inline-flex items-center gap-2 rounded-2xl bg-orange-50 px-4 py-2 font-bold text-orange-600 border border-orange-100 shadow-sm">
+                              <Star size={16} className="fill-orange-400 text-orange-400" />
+                              <span className="text-base">{Number(restaurant.rating).toFixed(1)}</span>
                             </div>
-                          </td>
-                          <td>
-                            <p className="font-display font-bold text-slate-900">
-                              {restaurant.name}
-                            </p>
-                            <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">
-                              {restaurant.description || "—"}
-                            </p>
-                          </td>
-                          <td>
-                            {restaurant.category ? (
-                              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                                {restaurant.category}
-                              </span>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-                          <td>
-                            {restaurant.rating ? (
-                              <span className="inline-flex items-center gap-1 font-semibold text-orange-500">
-                                <Star size={13} className="fill-orange-400 text-orange-400" />
-                                {restaurant.rating}
-                              </span>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap text-slate-500">
-                            {restaurant.deliveryTime || "30–40 min"}
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/restaurant/${restaurant._id}`)}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF4F40] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#E63E30]"
-                            >
-                              View Menu
-                            </button>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-6 whitespace-nowrap text-base font-bold text-slate-500">
+                          {restaurant.deliveryTime || "25–35 min"}
+                        </td>
+                        <td className="px-6 py-6 text-right">
+                          <button
+                            type="button"
+                            className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white transition-all group-hover:bg-primary group-hover:shadow-xl group-hover:shadow-primary/30 group-hover:-translate-x-1"
+                          >
+                            <ChevronRight size={22} />
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </>
+            </div>
           ) : (
             <WorkspaceEmptyState
-              title="No restaurants match yet"
-              message="Try a different search, remove a filter, or reset the current filter set to see more approved restaurants."
-              actionLabel={activeFilterCount > 0 ? "Clear Filters" : undefined}
+              title="No restaurants found"
+              message="We couldn't find any restaurants matching your current criteria. Try expanding your search or clearing filters."
+              actionLabel={activeFilterCount > 0 ? "Clear All Filters" : undefined}
               onAction={activeFilterCount > 0 ? clearFilters : undefined}
             />
           )}

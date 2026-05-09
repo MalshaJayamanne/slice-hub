@@ -598,18 +598,18 @@ export default function AdminUsers() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table-lite">
+            <table className="table-lite w-full border-collapse">
               <thead>
-                <tr>
-                  <th className="w-12"></th>
-                  <th>User</th>
-                  <th>Role</th>
-                  <th>Joined</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                <tr className="bg-slate-50/50">
+                  <th className="w-20 px-6 py-5"></th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">User</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Role</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Joined</th>
+                  <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Status</th>
+                  <th className="w-48 px-6 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {users.map((user, index) => {
                   const isToggling = togglingUserId === user._id;
                   const isDeleting = deletingUserId === user._id;
@@ -620,65 +620,66 @@ export default function AdminUsers() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.03 }}
+                      className="group hover:bg-slate-50/80 transition-colors"
                     >
-                      <td className="w-12">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF4F40]/10 text-sm font-bold text-[#FF4F40]">
+                      <td className="w-20 px-6 py-5">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FF4F40]/10 text-[15px] font-black text-[#FF4F40] shadow-sm transition-all group-hover:shadow-md">
                           {getUserInitials(user.name)}
                         </div>
                       </td>
-                      <td>
-                        <p className="font-display font-bold text-slate-900">{user.name}</p>
-                        <p className="mt-0.5 text-xs text-slate-400 break-all">{user.email}</p>
+                      <td className="px-6 py-5">
+                        <p className="font-display text-lg font-bold text-slate-900">{user.name}</p>
+                        <p className="mt-0.5 text-sm font-semibold text-slate-400 break-all">{user.email}</p>
                       </td>
-                      <td>
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${roleClasses[user.role] || roleClasses.customer}`}>
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest shadow-sm ${roleClasses[user.role] || roleClasses.customer}`}>
                           {user.role}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap text-xs text-slate-400">
+                      <td className="px-6 py-5 whitespace-nowrap text-xs font-bold text-slate-400">
                         {formatDate(user.createdAt)}
                       </td>
-                      <td>
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className={`h-1.5 w-1.5 rounded-full ${user.isActive ? "bg-emerald-500" : "bg-red-400"}`} />
-                          <span className="text-xs text-slate-500 capitalize">{user.isActive ? "Active" : "Inactive"}</span>
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center gap-2">
+                          <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${user.isActive ? "bg-emerald-500" : "bg-red-400"}`} />
+                          <span className="text-sm font-bold text-slate-500 capitalize">{user.isActive ? "Active" : "Inactive"}</span>
                         </span>
                       </td>
-                      <td className="text-right">
-                        <div className="inline-flex items-center justify-end gap-1">
+                      <td className="px-6 py-5 text-right">
+                        <div className="inline-flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => (window.location.href = `mailto:${user.email}`)}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#FF4F40]"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition-all hover:bg-slate-100 hover:text-[#FF4F40] hover:shadow-sm"
                             title="Send Email"
                           >
-                            <Mail size={16} />
+                            <Mail size={18} />
                           </button>
                           <button
                             type="button"
                             onClick={() => openEditUserForm(user)}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-orange-50 hover:text-orange-500"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-400 transition-all hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/30"
                             title="Edit User"
                           >
-                            <Shield size={16} />
+                            <Shield size={18} />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleToggleUserStatus(user)}
                             disabled={isToggling}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-500 disabled:opacity-50"
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all disabled:opacity-50 hover:shadow-lg ${user.isActive ? 'bg-slate-50 text-slate-500 hover:bg-slate-500 hover:text-white hover:shadow-slate-500/30' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-emerald-500/30'}`}
                             title={user.isActive ? "Deactivate" : "Activate"}
                           >
-                            {isToggling ? <Loader2 size={16} className="animate-spin" /> : user.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
+                            {isToggling ? <Loader2 size={18} className="animate-spin" /> : user.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteUser(user)}
                             disabled={isDeleting}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/30 disabled:opacity-50"
                             title="Delete"
                           >
-                            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                           </button>
                         </div>
                       </td>

@@ -13,11 +13,18 @@ import {
   Users,
   ChevronRight,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import FeedbackAlert from "../components/FeedbackAlert";
 import restaurantAPI from "../api/restaurantApi";
+import orderAPI from "../api/orderAPI";
+import {
+  WorkspacePage,
+  WorkspaceSidebar,
+  WorkspaceStat,
+} from "../components/WorkspaceScaffold";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -34,6 +41,8 @@ export default function Dashboard() {
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [pageFeedback, setPageFeedback] = useState(null);
 
   useEffect(() => {
@@ -75,6 +84,33 @@ export default function Dashboard() {
 
     fetchSellerRestaurants();
   }, [user?._id, user?.role]);
+
+  useEffect(() => {
+    if (user?.role !== "customer") return;
+
+    const fetchCustomerStats = async () => {
+      try {
+        setOrdersLoading(true);
+        const res = await orderAPI.getMyOrders();
+        setOrders(Array.isArray(res?.data) ? res.data : []);
+      } catch (error) {
+        console.error("Failed to load customer orders:", error);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    fetchCustomerStats();
+  }, [user?._id, user?.role]);
+
+  const customerStats = useMemo(() => {
+    if (user?.role !== "customer") return null;
+    return {
+      total: orders.length,
+      spent: orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0),
+      pending: orders.filter((o) => o.status === "Pending").length,
+    };
+  }, [orders, user?.role]);
 
   const primarySellerRestaurant = useMemo(
     () => sellerRestaurants[0] || null,
@@ -201,6 +237,13 @@ export default function Dashboard() {
       hidden: user?.role !== "customer",
     },
     {
+      label: "Payment History",
+      description: "Review your transaction logs",
+      icon: CreditCard,
+      action: () => navigate("/payments"),
+      hidden: user?.role !== "customer",
+    },
+    {
       label: "Browse Restaurants",
       description: "Explore menus and place a new order",
       icon: Store,
@@ -216,178 +259,178 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="page-shell py-10 sm:py-12">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <motion.div
-          whileHover={{ y: -4 }}
-          className="surface-panel relative overflow-hidden p-8 text-center"
+    <WorkspacePage
+      sidebar={
+        <WorkspaceSidebar
+          icon={User}
+          title={user?.name || "Profile"}
+          subtitle={user?.email || "Account management"}
+          note={`Your ${user?.role || "user"} workspace is active and synced with live platform data.`}
         >
-          <div className="absolute right-[-2rem] top-[-2rem] h-28 w-28 rounded-full bg-primary/5" />
-          <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-red-100 shadow-sm">
-            <User size={42} className="text-red-500" />
-          </div>
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={primaryWorkspaceAction.action}
+              className="btn-primary w-full"
+            >
+              <primaryWorkspaceAction.icon size={18} />
+              {primaryWorkspaceAction.label}
+            </button>
 
-          <h2 className="font-display text-2xl font-bold text-slate-900">{user?.name || "User"}</h2>
-          <p className="text-gray-500 mt-1">{user?.email || "No email"}</p>
-          <p className="text-sm text-gray-400 mt-2 capitalize">
-            Role: {user?.role || "N/A"}
-          </p>
+            {user?.role === "customer" && customerStats && (
+              <div className="grid grid-cols-1 gap-3">
+                <WorkspaceStat
+                  label="Total Orders"
+                  value={customerStats.total}
+                  hint="Placed across all restaurants"
+                />
+                <WorkspaceStat
+                  label="Wallet Outflow"
+                  value={`Rs. ${customerStats.spent.toFixed(2)}`}
+                  hint="Total amount spent on platform"
+                  tone="warning"
+                />
+              </div>
+            )}
 
-          <button
-            type="button"
-            onClick={primaryWorkspaceAction.action}
-            className="btn-primary mt-6 w-full"
-          >
-            <primaryWorkspaceAction.icon size={18} />
-            {primaryWorkspaceAction.label}
-          </button>
-
-          {user?.role === "seller" ? (
-            <div className="mt-6 rounded-[1.5rem] border border-orange-100 bg-orange-50 p-4 text-left">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
-                Seller Workspace
-              </p>
-              {restaurantsLoading ? (
-                <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-                  <Loader2 size={16} className="animate-spin" />
-                  Loading restaurant access...
-                </div>
-              ) : primarySellerRestaurant ? (
-                <div className="mt-3">
-                  <p className="font-display font-semibold text-slate-900">
-                    {primarySellerRestaurant.name}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Your food management tools are ready.
-                  </p>
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-gray-600">
-                  Create a restaurant first, then you can manage its foods here.
+            {user?.role === "seller" && (
+              <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
+                  Seller Status
                 </p>
-              )}
-            </div>
-          ) : null}
-        </motion.div>
-
-        <div className="surface-panel lg:col-span-2 p-8 shadow-md sm:p-9">
-          <p className="section-kicker">Account workspace</p>
-          <h1 className="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900">
-            Welcome back {user?.name || ""}
-          </h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-gray-500">
-            Pick up where you left off and jump straight into the next task.
-          </p>
-
-          {pageFeedback ? (
-            <div className="mb-8 mt-8">
-              <FeedbackAlert
-                type={pageFeedback.type}
-                title={pageFeedback.title}
-                message={pageFeedback.message}
-                onClose={() => setPageFeedback(null)}
-              />
-            </div>
-          ) : null}
-
-          <div className={pageFeedback ? "" : "mt-8"}>
-          {user?.role === "seller" ? (
-            <div className="mb-8">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
-                Seller Actions
-              </p>
-              <div className="space-y-3">
-                {sellerQuickActions.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={item.action}
-                      className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-4 text-left">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                          <Icon className={item.tone || "text-gray-700"} />
-                        </div>
-                        <div>
-                          <p className="font-display font-bold text-slate-900">{item.label}</p>
-                          <p className="text-sm text-gray-500">{item.description}</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="text-gray-400" />
-                    </button>
-                  );
-                })}
+                {restaurantsLoading ? (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+                    <Loader2 size={16} className="animate-spin" />
+                    Syncing...
+                  </div>
+                ) : primarySellerRestaurant ? (
+                  <div className="mt-3">
+                    <p className="font-display font-semibold text-slate-900">
+                      {primarySellerRestaurant.name}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Live on marketplace
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-gray-600">
+                    Setup your restaurant to start selling.
+                  </p>
+                )}
               </div>
-            </div>
-          ) : null}
+            )}
+          </div>
+        </WorkspaceSidebar>
+      }
+      eyebrow="Account Workspace"
+      title={`Welcome back, ${user?.name?.split(" ")[0] || "User"}`}
+      description="Access your orders, manage your profile, and jump into your specialized workspaces from this central hub."
+    >
+      <div className="space-y-8">
+        {pageFeedback ? (
+          <FeedbackAlert
+            type={pageFeedback.type}
+            title={pageFeedback.title}
+            message={pageFeedback.message}
+            onClose={() => setPageFeedback(null)}
+          />
+        ) : null}
 
-          {user?.role === "admin" ? (
-            <div className="mb-8">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
-                Admin Actions
-              </p>
-              <div className="space-y-3">
-                {adminQuickActions.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={item.action}
-                      className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-4 text-left">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                          <Icon className={item.tone || "text-gray-700"} />
-                        </div>
-                        <div>
-                          <p className="font-display font-bold text-slate-900">{item.label}</p>
-                          <p className="text-sm text-gray-500">{item.description}</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="text-gray-400" />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
+        {user?.role === "seller" && (
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
-              Account
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">
+              Seller Control Panel
             </p>
             <div className="space-y-3">
-              {commonActions.filter((item) => !item.hidden).map((item) => {
+              {sellerQuickActions.map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.label}
                     onClick={item.action}
-                    className={`w-full flex items-center justify-between rounded-[1.5rem] p-4 transition ${
-                      item.danger
-                        ? "text-red-500 hover:bg-red-50"
-                        : "border border-gray-100 bg-[#fbfbfc] hover:bg-white hover:shadow-sm"
-                    }`}
+                    className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-5 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40"
                   >
-                    <div className="flex items-center gap-4 text-left">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                        <Icon />
+                    <div className="flex items-center gap-5 text-left">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+                        <Icon className={item.tone || "text-slate-600"} size={24} />
                       </div>
                       <div>
-                        <p className="font-display font-bold text-slate-900">{item.label}</p>
+                        <p className="font-display text-lg font-bold text-slate-900">{item.label}</p>
                         <p className="text-sm text-gray-500">{item.description}</p>
                       </div>
                     </div>
-                    <ChevronRight />
+                    <ChevronRight className="text-slate-300" />
                   </button>
                 );
               })}
             </div>
           </div>
+        )}
+
+        {user?.role === "admin" && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">
+              Platform Administration
+            </p>
+            <div className="space-y-3">
+              {adminQuickActions.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={item.action}
+                    className="w-full flex items-center justify-between rounded-[1.5rem] border border-gray-100 bg-[#fbfbfc] p-5 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-slate-200/40"
+                  >
+                    <div className="flex items-center gap-5 text-left">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+                        <Icon className={item.tone || "text-slate-600"} size={24} />
+                      </div>
+                      <div>
+                        <p className="font-display text-lg font-bold text-slate-900">{item.label}</p>
+                        <p className="text-sm text-gray-500">{item.description}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="text-slate-300" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">
+            Standard Actions
+          </p>
+          <div className="space-y-3">
+            {commonActions.filter((item) => !item.hidden).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className={`w-full flex items-center justify-between rounded-[1.5rem] p-5 transition ${
+                    item.danger
+                      ? "text-red-500 hover:bg-red-50/50"
+                      : "border border-gray-100 bg-[#fbfbfc] hover:bg-white hover:shadow-lg hover:shadow-slate-200/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-5 text-left">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+                      <Icon className={item.danger ? "text-red-500" : "text-slate-600"} size={24} />
+                    </div>
+                    <div>
+                      <p className="font-display text-lg font-bold text-slate-900">{item.label}</p>
+                      <p className="text-sm text-gray-500">{item.description}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="text-slate-300" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
+    </WorkspacePage>
   );
 }

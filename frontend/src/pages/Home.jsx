@@ -23,6 +23,9 @@ import foodAPI from "../api/foodAPI";
 import { useCart } from "../context/CartContext";
 import { restaurantService } from "../services/restaurantService";
 
+import { CATEGORIES } from "../constants";
+import { getCategoryStyles } from "../utils/categoryUtils";
+
 export default function Home() {
   const navigate = useNavigate();
   const { addItem } = useCart();
@@ -78,10 +81,11 @@ export default function Home() {
     }
   }, []);
 
-  const handleBrowseRestaurants = () => {
+  const handleBrowseRestaurants = (category = "") => {
     navigate("/restaurants", {
       state: {
         initialSearch: heroSearch.trim(),
+        initialCategory: category || "All",
       },
     });
   };
@@ -115,7 +119,9 @@ export default function Home() {
             className="mx-auto flex max-w-[64rem] flex-col items-center text-center"
           >
             <div className="mb-8 flex items-center gap-2 rounded-full border border-[#FF4F40]/20 bg-[#FF4F40]/5 px-4 py-2 text-[#FF4F40] shadow-sm backdrop-blur-md">
-              <Sparkles size={16} />
+              <span className="animate-pulse">
+                <Sparkles size={16} />
+              </span>
               <span className="text-[11px] font-black uppercase tracking-widest">
                 Premium Delivery Experience
               </span>
@@ -168,7 +174,7 @@ export default function Home() {
                 </label>
 
                 <button
-                  onClick={handleBrowseRestaurants}
+                  onClick={() => handleBrowseRestaurants()}
                   className="btn-primary min-h-[58px] rounded-xl px-8 text-base shadow-[#FF4F40]/20 sm:w-auto w-full"
                 >
                   Find Food
@@ -214,6 +220,34 @@ export default function Home() {
           />
         </section>
       ) : null}
+
+      <section className="page-shell mt-20">
+        <div className="mb-8">
+          <p className="section-kicker">Explore Cuisines</p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-contrast">
+            Browse by Category
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap gap-4">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => handleBrowseRestaurants(category.name)}
+              className={`group relative flex flex-col items-center justify-center rounded-[2rem] border p-8 transition-all hover:-translate-y-1 hover:shadow-xl ${getCategoryStyles(
+                category.name
+              )}`}
+            >
+              <div className="mb-4 rounded-2xl bg-white/50 p-4 shadow-inner group-hover:bg-white transition-colors">
+                <Store size={28} />
+              </div>
+              <span className="text-sm font-black uppercase tracking-widest">
+                {category.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {loading ? (
         <section className="page-shell mt-20">

@@ -16,6 +16,8 @@ import {
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
+import { getCategoryStyles } from "../utils/categoryUtils";
+
 const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -157,9 +159,11 @@ const RestaurantMenu = () => {
                 />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-[#FF4F40]">
-                  {restaurant?.category || "Restaurant Menu"}
-                </p>
+                <div className="mb-2">
+                  <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest ${getCategoryStyles(restaurant?.category)}`}>
+                    {restaurant?.category || "Specialty Menu"}
+                  </span>
+                </div>
                 <h1 className="font-display mt-1 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
                   {restaurant?.name}
                 </h1>

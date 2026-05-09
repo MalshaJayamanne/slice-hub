@@ -19,6 +19,7 @@ import {
   WorkspaceLoadingState,
   WorkspacePage,
   WorkspaceSidebar,
+  WorkspaceStat,
 } from "../components/WorkspaceScaffold";
 
 const statusClasses = {
@@ -210,48 +211,36 @@ export default function SellerOrders() {
           note={sidebarNote}
         >
           {orders.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3">
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                  Queue Revenue
-                </p>
-                <p className="font-display mt-3 text-2xl font-bold tracking-tight text-[#FF4F40]">
-                  {formatCurrency(visibleRevenue)}
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  Revenue across the orders currently visible in this queue.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <WorkspaceStat
+                label="Queue Revenue"
+                value={formatCurrency(visibleRevenue)}
+                hint="Total for current visible orders"
+                tone="primary"
+              />
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-gray-100 bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                    Pending
-                  </p>
-                  <p className="mt-2 text-xl font-black text-amber-600">
-                    {pendingCount}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-gray-100 bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                    Preparing
-                  </p>
-                  <p className="mt-2 text-xl font-black text-sky-600">
-                    {preparingCount}
-                  </p>
-                </div>
+                <WorkspaceStat
+                  label="Pending"
+                  value={pendingCount}
+                  tone="warning"
+                />
+                <WorkspaceStat
+                  label="Preparing"
+                  value={preparingCount}
+                  tone="primary"
+                />
               </div>
 
               <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">
-                  Delivered
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                  Total Delivered
                 </p>
-                <p className="mt-2 text-xl font-black text-emerald-600">
+                <p className="mt-2 text-2xl font-black text-emerald-600">
                   {deliveredCount}
                 </p>
-                <p className="mt-2 text-sm text-emerald-700">
-                  Completed orders stay synced with the customer tracking page.
+                <p className="mt-1 text-xs text-emerald-700/80">
+                  Completed orders stay synced with customers.
                 </p>
               </div>
             </div>

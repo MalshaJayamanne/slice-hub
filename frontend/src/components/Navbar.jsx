@@ -64,29 +64,31 @@ function Navbar({ cartCount = 0 }) {
             </div>
           </Link>
 
-          <div className="mx-4 hidden max-w-md flex-1 lg:flex">
-            <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <div className="mx-6 hidden max-w-lg flex-1 lg:flex">
+            <form onSubmit={handleSearchSubmit} className="relative w-full group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
               <input
                 type="text"
                 placeholder="Search for restaurants or dishes..."
                 value={navbarSearch}
                 onChange={(event) => setNavbarSearch(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200/60 bg-white/60 py-2.5 pl-12 pr-20 text-[15px] font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#FF4F40] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF4F40]/10"
+                className="w-full rounded-2xl border border-slate-200/60 bg-white/60 py-3 pl-14 pr-24 text-[15px] font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#FF4F40]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-slate-900 px-5 py-2 text-[11px] font-black uppercase tracking-widest text-white transition-all hover:bg-primary hover:shadow-lg hover:shadow-primary/30"
               >
                 Find
               </button>
             </form>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link
               to="/"
-              className="hidden rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 sm:inline-flex"
+              className={`hidden rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:-translate-y-0.5 sm:inline-flex ${
+                location.pathname === "/" ? "bg-primary/5 text-primary" : "text-slate-500 hover:text-slate-900"
+              }`}
             >
               Home
             </Link>
@@ -94,7 +96,9 @@ function Navbar({ cartCount = 0 }) {
             {token && user?.role === "customer" && (
               <Link
                 to="/orders"
-                className="hidden rounded-xl px-4 py-2.5 text-[15px] font-semibold text-slate-600 transition-colors hover:bg-slate-100/80 hover:text-slate-900 md:inline-flex"
+                className={`hidden rounded-xl px-4 py-2.5 text-sm font-bold transition-all hover:-translate-y-0.5 md:inline-flex ${
+                  location.pathname === "/orders" ? "bg-primary/5 text-primary" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
                 Orders
               </Link>
@@ -102,11 +106,11 @@ function Navbar({ cartCount = 0 }) {
 
             <Link
               to="/cart"
-              className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/60 bg-white/60 text-slate-600 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-orange-50 hover:text-orange-500 hover:shadow-sm"
+              className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/60 bg-white/60 text-slate-600 transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-primary/10"
             >
               <ShoppingCart size={20} />
               {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#FF4F40] text-[10px] font-black text-white shadow-sm">
+                <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-primary text-[10px] font-black text-white shadow-lg">
                   {cartCount}
                 </span>
               )}
@@ -117,15 +121,15 @@ function Navbar({ cartCount = 0 }) {
               <>
                 <Link
                   to="/dashboard"
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/60 bg-white/60 text-slate-600 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-orange-50 hover:text-orange-500 hover:shadow-sm sm:w-auto sm:px-4"
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/60 bg-white/60 text-slate-600 transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-primary/10 sm:w-auto sm:px-5"
                 >
                   <User size={20} />
-                  <span className="ml-2 hidden text-[15px] font-semibold sm:inline">Account</span>
+                  <span className="ml-2.5 hidden text-sm font-bold sm:inline">Account</span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
-                  className="hidden rounded-xl px-4 py-2.5 text-[15px] font-semibold text-slate-500 transition-colors hover:bg-red-50 hover:text-red-500 sm:inline-flex"
+                  className="hidden rounded-xl px-4 py-2.5 text-sm font-bold text-slate-500 transition-all hover:bg-red-50 hover:text-red-500 hover:-translate-y-0.5 sm:inline-flex"
                 >
                   Logout
                 </button>
@@ -133,7 +137,7 @@ function Navbar({ cartCount = 0 }) {
             ) : (
               <Link
                 to="/login"
-                className="rounded-xl bg-slate-900 px-5 py-2.5 text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#FF4F40] hover:shadow-lg hover:shadow-[#FF4F40]/25"
+                className="rounded-2xl bg-slate-900 px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:bg-primary hover:shadow-xl hover:shadow-primary/30"
               >
                 Log in
               </Link>

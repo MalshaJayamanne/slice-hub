@@ -14,6 +14,8 @@ import {
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
+import { getCategoryStyles } from "../utils/categoryUtils";
+
 export default function FoodDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -110,7 +112,7 @@ export default function FoodDetails() {
 
         <div className="surface-panel p-6 shadow-xl shadow-slate-200/50 sm:p-10">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-xl bg-[#FF4F40]/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF4F40]">
+            <span className={`inline-flex items-center rounded-xl border px-4 py-2.5 text-[11px] font-black uppercase tracking-widest ${getCategoryStyles(item?.category)}`}>
               {item?.category}
             </span>
             <span

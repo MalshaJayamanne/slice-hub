@@ -23,6 +23,9 @@ import Checkout from "../pages/Checkout";
 import OrderHistory from "../pages/OrderHistory";
 import OrderTracking from "../pages/OrderTracking";
 import SellerMenu from "../pages/SellerMenu";
+import PaymentSuccess from "../pages/PaymentSuccess";
+import PaymentFailed from "../pages/PaymentFailed";
+import PaymentHistory from "../pages/PaymentHistory";
 
 function AppRoutes() {
 
@@ -58,6 +61,9 @@ function AppRoutes() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<OrderHistory />} />
           <Route path="/orders/:id" element={<OrderTracking />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-failed" element={<PaymentFailed />} />
+          <Route path="/payments" element={<PaymentHistory />} />
 
         </Route>
 
