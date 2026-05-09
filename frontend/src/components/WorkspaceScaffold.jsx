@@ -113,21 +113,21 @@ export function WorkspaceStat({
   tone = "primary",
 }) {
   return (
-    <div className="stat-tile min-h-[160px] p-8">
+    <div className="stat-tile min-h-[160px] p-6 sm:p-8 flex flex-col justify-center">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
         {label}
       </p>
       <p
-        className={`font-display mt-4 text-3xl font-bold tracking-tight break-words ${
+        className={`font-display mt-3 text-2xl lg:text-3xl font-bold tracking-tight break-words ${
           valueToneClasses[tone] || valueToneClasses.primary
         }`}
       >
         {value}
       </p>
       {hint ? (
-        <p className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
-          {hint}
+        <p className="mt-3 flex items-start gap-2 text-[11px] font-bold text-slate-400">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
+          <span className="leading-snug">{hint}</span>
         </p>
       ) : null}
     </div>
