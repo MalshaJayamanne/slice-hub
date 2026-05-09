@@ -85,7 +85,7 @@ export default function Home() {
     navigate("/restaurants", {
       state: {
         initialSearch: heroSearch.trim(),
-        initialCategory: category,
+        initialCategory: category || "All",
       },
     });
   };
