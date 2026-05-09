@@ -282,48 +282,48 @@ export default function AdminOrders() {
                 />
               </div>
 
-              <div className="surface-panel overflow-hidden">
+              <div className="surface-panel overflow-hidden shadow-2xl shadow-slate-200/60 border border-slate-100">
                 <div className="overflow-x-auto">
-                  <table className="table-lite">
+                  <table className="table-lite w-full border-collapse">
                     <thead>
-                      <tr>
-                        <th>Order ID</th>
-                        <th>Restaurant</th>
-                        <th>Customer</th>
-                        <th>Seller</th>
-                        <th>Total</th>
-                        <th>Items</th>
-                        <th>Created</th>
-                        <th>Status</th>
+                      <tr className="bg-slate-50/50">
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Order ID</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Restaurant</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Customer</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Seller</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Total</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Items</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Created</th>
+                        <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {orders.map((order) => (
-                        <tr key={order._id}>
-                          <td className="font-display font-bold text-slate-900 whitespace-nowrap">
+                        <tr key={order._id} className="group hover:bg-slate-50/80 transition-colors">
+                          <td className="px-6 py-5 font-display text-[15px] font-bold text-slate-900 whitespace-nowrap">
                             {formatOrderId(order._id)}
                           </td>
-                          <td className="max-w-[130px]">
-                            <span className="block truncate">{order.restaurant?.name || "—"}</span>
+                          <td className="px-6 py-5 max-w-[130px]">
+                            <span className="block truncate font-semibold text-slate-800">{order.restaurant?.name || "—"}</span>
                           </td>
-                          <td className="max-w-[140px]">
-                            <span className="block truncate font-medium text-slate-800">{order.customer?.name || "—"}</span>
-                            <span className="block truncate text-xs text-slate-400">{order.customer?.email || ""}</span>
+                          <td className="px-6 py-5 max-w-[140px]">
+                            <span className="block truncate font-semibold text-slate-800">{order.customer?.name || "—"}</span>
+                            <span className="block truncate text-xs font-medium text-slate-400">{order.customer?.email || ""}</span>
                           </td>
-                          <td className="max-w-[120px]">
-                            <span className="block truncate">{order.restaurant?.owner?.name || "—"}</span>
+                          <td className="px-6 py-5 max-w-[120px]">
+                            <span className="block truncate font-medium text-slate-600">{order.restaurant?.owner?.name || "—"}</span>
                           </td>
-                          <td className="whitespace-nowrap font-semibold text-slate-900">
+                          <td className="px-6 py-5 whitespace-nowrap font-bold text-slate-900">
                             {formatCurrency(order.totalAmount)}
                           </td>
-                          <td className="whitespace-nowrap text-slate-500">
+                          <td className="px-6 py-5 whitespace-nowrap text-sm font-bold text-slate-500">
                             {order.metrics?.itemCount || 0}
                           </td>
-                          <td className="whitespace-nowrap text-xs text-slate-400">
+                          <td className="px-6 py-5 whitespace-nowrap text-[11px] font-bold text-slate-400">
                             {formatDateTime(order.createdAt)}
                           </td>
-                          <td>
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${statusClasses[order.status] || statusClasses.Pending}`}>
+                          <td className="px-6 py-5">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-sm ${statusClasses[order.status] || statusClasses.Pending}`}>
                               {order.status}
                             </span>
                           </td>

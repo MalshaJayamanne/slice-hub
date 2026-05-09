@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+import { getCategoryStyles } from "../utils/categoryUtils";
 
 const RestaurantCard = ({ restaurant }) => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const RestaurantCard = ({ restaurant }) => {
 
         <div className="absolute bottom-4 left-4 flex gap-2">
           {restaurant.category && (
-            <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 shadow-sm backdrop-blur-md">
+            <span className={`rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-sm backdrop-blur-md ${getCategoryStyles(restaurant.category)}`}>
               {restaurant.category}
             </span>
           )}

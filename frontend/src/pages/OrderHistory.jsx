@@ -179,84 +179,89 @@ export default function OrderHistory() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="surface-panel p-6 shadow-sm"
+                className="surface-panel p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <div className="mb-6 flex flex-wrap items-center gap-3">
                       <span
-                        className={`inline-flex items-center rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${
+                        className={`inline-flex items-center rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.2em] shadow-sm ${
                           STATUS_STYLES[order.status] ||
                           "bg-gray-50 text-gray-700 border-gray-200"
                         }`}
                       >
                         {order.status}
                       </span>
-                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+                      <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
                         Order #{order._id.slice(-6).toUpperCase()}
                       </span>
                     </div>
 
-                    <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <div className="rounded-2xl bg-gray-50 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">
+                    <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                           Restaurant
                         </p>
-                        <p className="mt-2 flex items-center gap-2 font-semibold text-gray-900">
-                          <Store size={16} className="text-primary" />
-                          {order?.restaurant?.name || "Restaurant"}
+                        <p className="mt-2 flex items-center gap-2 text-sm font-bold text-slate-900">
+                          <Store size={16} className="text-[#FF4F40]" />
+                          <span className="truncate">{order?.restaurant?.name || "Restaurant"}</span>
                         </p>
                       </div>
 
-                      <div className="rounded-2xl bg-gray-50 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">
+                      <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                           Ordered At
                         </p>
-                        <p className="mt-2 flex items-center gap-2 font-semibold text-gray-900">
-                          <Clock3 size={16} className="text-primary" />
-                          {formatDate(order.createdAt)}
+                        <p className="mt-2 flex items-center gap-2 text-sm font-bold text-slate-900">
+                          <Clock3 size={16} className="text-[#FF4F40]" />
+                          <span className="truncate">{formatDate(order.createdAt)}</span>
                         </p>
                       </div>
 
-                      <div className="rounded-2xl bg-gray-50 px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">
+                      <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                           Total
                         </p>
-                        <p className="mt-2 flex items-center gap-2 font-semibold text-gray-900">
-                          <Package size={16} className="text-primary" />
-                          {formatCurrency(order.totalAmount)}
+                        <p className="mt-2 flex items-center gap-2 font-display text-lg font-bold text-[#FF4F40]">
+                          <Package size={16} />
+                          <span className="truncate">{formatCurrency(order.totalAmount)}</span>
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Items
+                      <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                        Order Items
                       </p>
                       <div className="flex flex-wrap gap-3">
                         {order.items.map((item, itemIndex) => (
                           <div
                             key={`${order._id}-${item.food || itemIndex}`}
-                            className="rounded-2xl border border-gray-100 bg-white px-4 py-3"
+                            className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
                           >
-                            <p className="font-semibold text-gray-900">{item.name}</p>
-                            <p className="mt-1 text-sm text-gray-500">
-                              {item.quantity} x {formatCurrency(item.price)}
-                            </p>
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-[10px] font-black text-slate-400">
+                              {item.quantity}x
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{item.name}</p>
+                              <p className="mt-0.5 font-display text-sm font-bold text-[#FF4F40]">
+                                {formatCurrency(item.price)}
+                              </p>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="lg:w-52 lg:pl-4">
+                  <div className="lg:w-56 lg:pl-6 shrink-0 border-t border-slate-100 pt-6 lg:border-t-0 lg:border-l lg:pt-0 flex flex-col justify-center">
                     <button
                       type="button"
                       onClick={() => navigate(`/orders/${order._id}`)}
-                      className="btn-primary w-full"
+                      className="btn-primary w-full shadow-lg shadow-[#FF4F40]/20"
                     >
                       Track Order
-                      <ArrowRight size={16} />
+                      <ArrowRight size={18} />
                     </button>
                   </div>
                 </div>

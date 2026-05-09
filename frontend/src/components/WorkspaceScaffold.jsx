@@ -39,21 +39,31 @@ export function WorkspacePage({
   children,
 }) {
   return (
-    <div className="page-shell py-10 sm:py-12">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.9fr)] lg:gap-10">
-        {sidebar}
+    <div className="page-shell py-12 sm:py-16">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,2fr)] lg:gap-12">
+        <aside className="h-fit">
+          {sidebar}
+        </aside>
 
-        <div className="surface-panel p-8 shadow-lg shadow-slate-200/40 sm:p-10">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#FF4F40]">
-            {eyebrow}
-          </p>
-          <h1 className="font-display mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            {title}
-          </h1>
-          <p className="mt-4 text-[15px] leading-relaxed text-slate-500">{description}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="surface-panel p-8 shadow-2xl shadow-slate-200/50 sm:p-12"
+        >
+          <div className="max-w-4xl">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FF4F40]">
+              {eyebrow}
+            </p>
+            <h1 className="font-display mt-4 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+              {title}
+            </h1>
+            <p className="mt-6 text-[17px] leading-relaxed text-slate-500 max-w-2xl">{description}</p>
+          </div>
 
-          <div className="mt-10">{children}</div>
-        </div>
+          <div className="mt-12 h-px bg-slate-100/80 w-full" />
+
+          <div className="mt-12">{children}</div>
+        </motion.div>
       </div>
     </div>
   );
@@ -68,29 +78,30 @@ export function WorkspaceSidebar({
 }) {
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      className="surface-panel relative overflow-hidden p-8 text-center shadow-lg shadow-slate-200/40 sm:p-10"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="surface-panel relative overflow-hidden p-10 text-center shadow-xl shadow-slate-200/40"
     >
-      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#FF4F40]/5 blur-2xl" />
-      <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#FF4F40]/10 shadow-inner">
-        <Icon size={42} className="text-[#FF4F40]" />
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
+      <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-primary/10 shadow-inner">
+        <Icon size={48} className="text-primary" />
       </div>
 
-      <h2 className="font-display text-[2rem] font-bold tracking-tight text-slate-900">
+      <h2 className="font-display text-[2.25rem] font-bold tracking-tight text-slate-900 leading-tight">
         {title}
       </h2>
-      <p className="mt-3 text-[15px] leading-relaxed text-slate-500">{subtitle}</p>
+      <p className="mt-4 text-[15px] font-medium leading-relaxed text-slate-500">{subtitle}</p>
 
       {note ? (
-        <div className="mt-8 rounded-2xl border border-orange-200/50 bg-orange-50/50 p-5 text-left">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">
-            Workspace
+        <div className="mt-10 rounded-[2rem] border border-orange-100 bg-orange-50/50 p-6 text-left">
+          <p className="text-[10px] font-black uppercase tracking-widest text-orange-500">
+            Current Status
           </p>
-          <p className="mt-3 text-sm text-gray-700">{note}</p>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-slate-700">{note}</p>
         </div>
       ) : null}
 
-      {children ? <div className="mt-6 text-left">{children}</div> : null}
+      {children ? <div className="mt-8 space-y-4 text-left">{children}</div> : null}
     </motion.div>
   );
 }
@@ -102,18 +113,23 @@ export function WorkspaceStat({
   tone = "primary",
 }) {
   return (
-    <div className="stat-tile min-h-[166px]">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <div className="stat-tile min-h-[160px] p-8">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
         {label}
       </p>
       <p
-        className={`font-display mt-3 text-2xl font-bold tracking-tight break-words ${
+        className={`font-display mt-4 text-3xl font-bold tracking-tight break-words ${
           valueToneClasses[tone] || valueToneClasses.primary
         }`}
       >
         {value}
       </p>
-      {hint ? <p className="mt-2 text-sm text-gray-500">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

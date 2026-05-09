@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { getCategoryStyles } from "../utils/categoryUtils";
 
 const FoodCard = ({ food, onAddToCart }) => {
   const navigate = useNavigate();
@@ -48,9 +49,11 @@ const FoodCard = ({ food, onAddToCart }) => {
           </span>
         </div>
 
-        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-          {food?.category || "Specialty"}
-        </p>
+        <div className="mb-4">
+          <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${getCategoryStyles(food?.category)}`}>
+            {food?.category || "Specialty"}
+          </span>
+        </div>
 
         <p className="mb-6 min-h-[2.5rem] text-[14px] leading-relaxed text-slate-500 line-clamp-2">
           {food?.description || "A delicious culinary creation prepared with fresh ingredients."}

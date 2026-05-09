@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import orderAPI from "../api/orderAPI";
+import paymentAPI from "../api/paymentAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
 import { useCart } from "../context/CartContext";
 
@@ -42,6 +42,12 @@ export default function Checkout() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [cardDetails, setCardDetails] = useState({
+    cardName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
   const [deliveryType, setDeliveryType] = useState("standard");
   const [form, setForm] = useState({
     fullName: storedUser?.name || "",
@@ -80,6 +86,15 @@ export default function Checkout() {
     }));
   };
 
+  const handleCardChange = (event) => {
+    const { name, value } = event.target;
+
+    setCardDetails((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0 || !cartRestaurantId) {
       setError("Your cart is empty.");
@@ -92,41 +107,66 @@ export default function Checkout() {
       !form.streetAddress.trim() ||
       !form.city.trim()
     ) {
-      setError("Please complete the delivery and contact details.");
+      setError(
+        "Please complete the delivery and contact details."
+      );
       return;
+    }
+
+    if (paymentMethod === "card") {
+      if (
+        !cardDetails.cardName.trim() ||
+        !cardDetails.cardNumber.trim() ||
+        !cardDetails.expiryDate.trim() ||
+        !cardDetails.cvv.trim()
+      ) {
+        setError("Please complete card details.");
+        return;
+      }
+
+      const cleanedCard =
+        cardDetails.cardNumber.replace(/\s/g, "");
+
+      if (cleanedCard.length < 16) {
+        setError("Invalid card number.");
+        return;
+      }
+
+      if (cardDetails.cvv.length < 3) {
+        setError("Invalid CVV.");
+        return;
+      }
     }
 
     try {
       setPlacingOrder(true);
       setError("");
 
-      await orderAPI.placeOrder({
+      const response = await paymentAPI.processPayment({
         restaurantId: cartRestaurantId,
         items: cartItems.map((item) => ({
           foodId: item.foodId,
           quantity: item.quantity,
         })),
         deliveryAddress,
+        paymentMethod,
+        amount: subtotal,
+        cardNumber: paymentMethod === "card" ? cardDetails.cardNumber : "",
       });
 
       clearCart();
-      setIsOrdered(true);
 
-      window.setTimeout(() => {
-        navigate("/dashboard", {
-          state: {
-            feedback: {
-              type: "success",
-              title: "Order placed",
-              message: "Your order was placed successfully. You can review it from your account.",
-            },
-          },
-        });
-      }, 2500);
-    } catch (placeOrderError) {
+      navigate("/payment-success", {
+        state: {
+          payment: response.data.payment,
+          order: response.data.order,
+        },
+      });
+    } catch (paymentError) {
+      navigate("/payment-failed");
+
       setError(
-        placeOrderError?.response?.data?.message ||
-          "Failed to place the order. Please try again."
+        paymentError?.response?.data?.message || "Payment failed."
       );
     } finally {
       setPlacingOrder(false);
@@ -199,12 +239,12 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="Your name"
-                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
+                  className="input-surface"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                   Contact Number
                 </label>
                 <input
@@ -213,12 +253,12 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="071 234 5678"
-                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
+                  className="input-surface"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                   Street Address
                 </label>
                 <div className="relative">
@@ -228,17 +268,17 @@ export default function Checkout() {
                     onChange={handleChange}
                     type="text"
                     placeholder="123 Foodie St"
-                    className="input-surface w-full pl-12 pr-4 py-3 sm:pl-14 sm:pr-6 sm:py-4 sm:text-base"
+                    className="input-surface pl-12"
                   />
                   <Navigation
                     size={18}
-                    className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-primary sm:w-5 sm:h-5"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-primary"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                   City
                 </label>
                 <input
@@ -247,12 +287,12 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="Colombo"
-                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
+                  className="input-surface"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                   Zip Code
                 </label>
                 <input
@@ -261,12 +301,12 @@ export default function Checkout() {
                   onChange={handleChange}
                   type="text"
                   placeholder="10001"
-                  className="input-surface px-4 py-3 sm:px-6 sm:py-4 sm:text-base"
+                  className="input-surface"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                   Delivery Instructions
                 </label>
                 <textarea
@@ -274,7 +314,7 @@ export default function Checkout() {
                   value={form.instructions}
                   onChange={handleChange}
                   placeholder="e.g. Ring the bell, leave at the front door, gate code is 1234..."
-                  className="textarea-surface h-24 px-4 py-3 sm:h-32 sm:px-6 sm:py-4 sm:text-base"
+                  className="textarea-surface min-h-[120px]"
                 />
               </div>
             </form>
@@ -283,34 +323,41 @@ export default function Checkout() {
           <section className="surface-panel p-6 sm:rounded-3xl sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                <CreditCard size={20} className="sm:w-6 sm:h-6" />
+                <CreditCard size={20} />
               </div>
+
               <h2 className="text-xl sm:text-2xl font-black text-contrast">
                 Payment Method
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               <label
-                className={`relative flex flex-row sm:flex-col items-center gap-4 sm:gap-2 p-4 border-2 rounded-2xl cursor-pointer transition-all ${
+                className={`border-2 rounded-2xl p-5 cursor-pointer transition-all ${
                   paymentMethod === "card"
                     ? "border-primary bg-primary/5"
-                    : "border-gray-100 hover:border-primary/50"
+                    : "border-gray-100"
                 }`}
               >
                 <input
                   type="radio"
-                  name="payment"
                   className="hidden"
                   checked={paymentMethod === "card"}
                   onChange={() => setPaymentMethod("card")}
                 />
-                <CreditCard size={24} className="text-primary" />
-                <span className="font-black text-sm">Credit Card</span>
+
+                <CreditCard
+                  className="text-primary mb-3"
+                  size={28}
+                />
+
+                <p className="font-black">
+                  Credit Card
+                </p>
               </label>
 
               <label
-                className={`relative flex flex-row sm:flex-col items-center gap-4 sm:gap-2 p-4 border-2 rounded-2xl cursor-pointer transition-all ${
+                className={`border-2 rounded-2xl p-5 cursor-pointer transition-all ${
                   paymentMethod === "paypal"
                     ? "border-primary bg-primary/5"
                     : "border-gray-100 hover:border-primary/50"
@@ -318,19 +365,22 @@ export default function Checkout() {
               >
                 <input
                   type="radio"
-                  name="payment"
                   className="hidden"
                   checked={paymentMethod === "paypal"}
                   onChange={() => setPaymentMethod("paypal")}
                 />
-                <div className="font-black text-primary italic text-sm sm:text-base">
+
+                <p className="text-primary text-lg font-black italic mb-3">
                   PayPal
-                </div>
-                <span className="font-black text-sm">PayPal</span>
+                </p>
+
+                <p className="font-bold text-slate-700">
+                  Instant Verification
+                </p>
               </label>
 
               <label
-                className={`relative flex flex-row sm:flex-col items-center gap-4 sm:gap-2 p-4 border-2 rounded-2xl cursor-pointer transition-all ${
+                className={`border-2 rounded-2xl p-5 cursor-pointer transition-all ${
                   paymentMethod === "cash"
                     ? "border-primary bg-primary/5"
                     : "border-gray-100 hover:border-primary/50"
@@ -338,17 +388,96 @@ export default function Checkout() {
               >
                 <input
                   type="radio"
-                  name="payment"
                   className="hidden"
                   checked={paymentMethod === "cash"}
                   onChange={() => setPaymentMethod("cash")}
                 />
-                <div className="font-black text-green-600 text-sm sm:text-base">
+
+                <p className="text-emerald-600 text-lg font-black mb-3">
                   Cash
-                </div>
-                <span className="font-black text-sm">Cash on Delivery</span>
+                </p>
+
+                <p className="font-bold text-slate-700">
+                  Pay upon Delivery
+                </p>
               </label>
             </div>
+
+            {paymentMethod === "card" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              >
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    Cardholder Name
+                  </label>
+
+                  <input
+                    type="text"
+                    name="cardName"
+                    value={cardDetails.cardName}
+                    onChange={handleCardChange}
+                    placeholder="John Doe"
+                    className="input-surface w-full"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    Card Number
+                  </label>
+
+                  <input
+                    type="text"
+                    name="cardNumber"
+                    value={cardDetails.cardNumber}
+                    onChange={handleCardChange}
+                    placeholder="4242 4242 4242 4242"
+                    className="input-surface w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    Expiry
+                  </label>
+
+                  <input
+                    type="text"
+                    name="expiryDate"
+                    value={cardDetails.expiryDate}
+                    onChange={handleCardChange}
+                    placeholder="12/30"
+                    className="input-surface w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    CVV
+                  </label>
+
+                  <input
+                    type="password"
+                    name="cvv"
+                    value={cardDetails.cvv}
+                    onChange={handleCardChange}
+                    placeholder="123"
+                    className="input-surface w-full"
+                  />
+                </div>
+
+                <div className="md:col-span-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
+                  Demo Card:
+
+                  <div className="font-bold text-slate-800 mt-1">
+                    4242 4242 4242 4242
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </section>
 
           <section className="surface-panel p-8">
