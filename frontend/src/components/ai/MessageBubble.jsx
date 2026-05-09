@@ -1,4 +1,4 @@
-import { Bot, User } from "lucide-react";
+import { Pizza, User } from "lucide-react";
 
 const renderInlineText = (text) =>
   text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
@@ -43,7 +43,7 @@ function MessageBubble({ message }) {
     <div className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}>
       {!isUser && (
         <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FF4F40] text-white">
-          <Bot size={16} />
+          <Pizza size={16} fill="currentColor" />
         </div>
       )}
 
