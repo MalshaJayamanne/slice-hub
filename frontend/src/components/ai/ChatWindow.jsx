@@ -1,4 +1,4 @@
-import { ExternalLink, Loader2, Sparkles, X } from "lucide-react";
+import { ExternalLink, Loader2, Pizza, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import ChatInput from "./ChatInput";
@@ -26,7 +26,7 @@ function ChatWindow({
       <header className="flex items-center justify-between border-b border-slate-100 bg-slate-950 px-4 py-3 text-white">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#FF4F40] shadow-lg shadow-[#FF4F40]/30">
-            <Sparkles size={19} />
+            <Pizza size={19} fill="currentColor" />
           </div>
           <div>
             <h2 className="text-base font-black leading-tight">Slice Hub AI</h2>

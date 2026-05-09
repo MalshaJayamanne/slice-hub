@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bot, MessageCircle } from "lucide-react";
+import { MessageCircle, Pizza } from "lucide-react";
 
 import { sendAssistantMessage } from "../../api/aiAPI";
 import ChatWindow from "./ChatWindow";
@@ -93,7 +93,7 @@ function AIAssistant() {
         aria-label="Open Slice Hub AI assistant"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-          {isOpen ? <Bot size={19} /> : <MessageCircle size={19} />}
+          {isOpen ? <Pizza size={19} fill="currentColor" /> : <MessageCircle size={19} />}
         </span>
         {unreadLabel && <span className="hidden text-sm font-black sm:inline">{unreadLabel}</span>}
       </button>
