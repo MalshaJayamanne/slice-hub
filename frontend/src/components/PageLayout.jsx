@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import AIAssistant from "./AIAssistant";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useCart } from "../context/CartContext";
@@ -18,6 +19,7 @@ function PageLayout() {
       </main>
 
       <Footer />
+      <AIAssistant />
     </div>
   );
 }
