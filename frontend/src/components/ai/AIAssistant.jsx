@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bot } from "lucide-react";
+import { Pizza } from "lucide-react";
 
 import { sendAssistantMessage } from "../../api/aiAPI";
 import ChatWindow from "./ChatWindow";
@@ -17,6 +17,22 @@ const initialMessages = [
   ),
 ];
 
+const GeminiIcon = ({ size = 24, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M12 2L14.83 9.17L22 12L14.83 14.83L12 22L9.17 14.83L2 12L9.17 9.17L12 2Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -24,13 +40,6 @@ function AIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState({ foods: [], restaurants: [] });
 
-  const unreadLabel = useMemo(() => {
-    if (isOpen) {
-      return "";
-    }
-
-    return "Ask AI";
-  }, [isOpen]);
 
   const submitMessage = async (text) => {
     const cleanMessage = text.trim();
@@ -89,13 +98,13 @@ function AIAssistant() {
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="fixed bottom-6 right-4 z-[70] flex h-14 items-center gap-3 rounded-2xl bg-slate-950 px-4 text-white shadow-2xl shadow-slate-950/25 transition hover:-translate-y-1 hover:bg-[#FF4F40] sm:right-6"
+        className="fixed bottom-6 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-[#FF4F40] to-[#E63E30] text-white shadow-2xl shadow-[#FF4F40]/30 transition-all duration-300 hover:-translate-y-1.5 hover:rotate-6 hover:shadow-[#FF4F40]/40 sm:right-6"
         aria-label="Open Slice Hub AI assistant"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-          <Bot size={19} />
-        </span>
-        {unreadLabel && <span className="hidden text-sm font-black sm:inline">{unreadLabel}</span>}
+        <Pizza size={26} fill="currentColor" />
+        <div className="absolute -right-1.5 -top-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-gradient-to-tr from-[#4E82EE] via-[#A47CF3] to-[#E06B67] text-white shadow-lg shadow-purple-500/20">
+          <GeminiIcon size={14} className="text-white" />
+        </div>
       </button>
     </>
   );
