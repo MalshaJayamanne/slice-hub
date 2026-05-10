@@ -535,23 +535,23 @@ export default function AdminUsers() {
       ) : null}
 
       <div className="surface-panel overflow-hidden">
-        <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:w-80">
+        <div className="flex flex-col gap-4 border-b border-slate-100 p-5 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
             <input
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search users..."
               className="input-surface w-full py-2.5 pl-11 text-sm"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3">
             <select
               value={roleFilter}
               onChange={(event) => setRoleFilter(event.target.value)}
-              className="select-surface py-2.5 text-sm"
+              className="select-surface min-w-[140px] py-2.5 text-sm"
             >
               <option value="all">All Roles</option>
               <option value="customer">Customer</option>
@@ -561,7 +561,7 @@ export default function AdminUsers() {
             <select
               value={activityFilter}
               onChange={(event) => setActivityFilter(event.target.value)}
-              className="select-surface py-2.5 text-sm"
+              className="select-surface min-w-[140px] py-2.5 text-sm"
             >
               <option value="all">All Status</option>
               <option value="true">Active</option>
@@ -570,7 +570,7 @@ export default function AdminUsers() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
             >
               Clear
             </button>
