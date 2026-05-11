@@ -161,6 +161,7 @@ Functional requirements:
 - FR-05: The system shall restrict route and API access based on user role
 - FR-06: The system shall support at least three roles: customer, seller, and admin
 - FR-07: The system shall allow authenticated users to log out
+- FR-08: The system shall support Google OAuth authentication with backend token verification
 
 ### 3.2 Restaurant Discovery
 
@@ -168,11 +169,11 @@ The system shall allow customers to browse available restaurants.
 
 Functional requirements:
 
-- FR-08: The system shall display a list of restaurants
-- FR-09: Users shall be able to view basic restaurant information
-- FR-10: Users shall be able to search restaurants by name
-- FR-11: Users shall be able to filter restaurants by category or cuisine
-- FR-12: The system shall support restaurant approval visibility rules managed by admins
+- FR-09: The system shall display a list of restaurants
+- FR-10: Users shall be able to view basic restaurant information
+- FR-11: Users shall be able to search restaurants by name
+- FR-12: Users shall be able to filter restaurants by category or cuisine
+- FR-13: The system shall support restaurant approval visibility rules managed by admins
 
 ### 3.3 Menu and Food Management
 
@@ -180,14 +181,14 @@ The system shall support viewing and management of food items.
 
 Functional requirements:
 
-- FR-13: Customers shall be able to view a restaurant's menu
-- FR-14: Customers shall be able to view food item details
-- FR-15: Sellers shall be able to add food items
-- FR-16: Sellers shall be able to edit food items
-- FR-17: Sellers shall be able to delete food items
-- FR-18: Each food item shall include at least name, price, category, image, and availability status
-- FR-19: The system shall support menu categorization
-- FR-20: Users shall be able to search food items where applicable
+- FR-14: Customers shall be able to view a restaurant's menu
+- FR-15: Customers shall be able to view food item details
+- FR-16: Sellers shall be able to add food items
+- FR-17: Sellers shall be able to edit food items
+- FR-18: Sellers shall be able to delete food items
+- FR-19: Each food item shall include at least name, price, category, image, and availability status
+- FR-20: The system shall support menu categorization
+- FR-21: Users shall be able to search food items where applicable
 
 ### 3.4 Cart Management
 
@@ -195,11 +196,11 @@ The system shall support shopping cart behavior for customers.
 
 Functional requirements:
 
-- FR-21: Customers shall be able to add menu items to cart
-- FR-22: Customers shall be able to change item quantities in cart
-- FR-23: Customers shall be able to remove items from cart
-- FR-24: The system shall calculate subtotal, fees if any, and total price
-- FR-25: Cart contents shall persist for the active user session
+- FR-22: Customers shall be able to add menu items to cart
+- FR-23: Customers shall be able to change item quantities in cart
+- FR-24: Customers shall be able to remove items from cart
+- FR-25: The system shall calculate subtotal, fees if any, and total price
+- FR-26: Cart contents shall persist for the active user session
 
 ### 3.5 Checkout and Ordering
 
@@ -207,12 +208,12 @@ The system shall support order placement from cart contents.
 
 Functional requirements:
 
-- FR-26: Customers shall be able to proceed to checkout
-- FR-27: The system shall capture delivery and contact details
-- FR-28: The system shall validate order data before submission
-- FR-29: The system shall create an order record in the database
-- FR-30: The system shall store ordered items, total amount, timestamps, and status
-- FR-31: The system shall confirm successful order placement to the customer
+- FR-27: Customers shall be able to proceed to checkout
+- FR-28: The system shall capture delivery and contact details
+- FR-29: The system shall validate order data before submission
+- FR-30: The system shall create an order record in the database
+- FR-31: The system shall store ordered items, total amount, timestamps, and status
+- FR-32: The system shall confirm successful order placement to the customer
 
 ### 3.6 Order Tracking and History
 
@@ -220,13 +221,13 @@ The system shall allow customers and sellers to monitor order progress.
 
 Functional requirements:
 
-- FR-32: Customers shall be able to view order history
-- FR-33: Customers shall be able to view the current status of each order
-- FR-34: Sellers shall be able to view incoming orders for their restaurant
-- FR-35: Sellers shall be able to update order status
-- FR-36: Admins shall be able to view all platform orders
-- FR-37: Supported order statuses shall include at minimum `Pending`, `Preparing`, and `Delivered`
-- FR-38: The system should support additional statuses such as `Cancelled` in later phases
+- FR-33: Customers shall be able to view order history
+- FR-34: Customers shall be able to view the current status of each order
+- FR-35: Sellers shall be able to view incoming orders for their restaurant
+- FR-36: Sellers shall be able to update order status
+- FR-37: Admins shall be able to view all platform orders
+- FR-38: Supported order statuses shall include at minimum `Pending`, `Preparing`, and `Delivered`
+- FR-39: The system should support additional statuses such as `Cancelled` in later phases
 
 ### 3.7 Seller Dashboard
 
@@ -234,11 +235,11 @@ The system shall provide seller-facing operational views.
 
 Functional requirements:
 
-- FR-39: Sellers shall have access to a dashboard
-- FR-40: Sellers shall be able to view their menu items
-- FR-41: Sellers shall be able to review active and past orders
-- FR-42: Sellers shall be able to update order statuses through the UI
-- FR-43: The system should provide summary statistics such as total orders or revenue in later iterations
+- FR-40: Sellers shall have access to a dashboard
+- FR-41: Sellers shall be able to view their menu items
+- FR-42: Sellers shall be able to review active and past orders
+- FR-43: Sellers shall be able to update order statuses through the UI
+- FR-44: The system should provide summary statistics such as total orders or revenue in later iterations
 
 ### 3.8 Admin Dashboard
 
@@ -246,12 +247,12 @@ The system shall provide platform management features for admins.
 
 Functional requirements:
 
-- FR-44: Admins shall have access to an admin dashboard
-- FR-45: Admins shall be able to view all registered users
-- FR-46: Admins shall be able to manage restaurant/seller records
-- FR-47: Admins shall be able to review all orders
-- FR-48: Admins shall be able to approve or reject restaurants if that workflow is adopted
-- FR-49: Admins should be able to view system summaries and analytics
+- FR-45: Admins shall have access to an admin dashboard
+- FR-46: Admins shall be able to view all registered users
+- FR-47: Admins shall be able to manage restaurant/seller records
+- FR-48: Admins shall be able to review all orders
+- FR-49: Admins shall be able to approve or reject restaurants if that workflow is adopted
+- FR-50: Admins should be able to view system summaries and analytics
 
 ### 3.9 AI Assistant
 
@@ -259,9 +260,9 @@ The frontend contains a placeholder `AIAssistant.jsx` component, indicating a po
 
 Functional requirements for a future phase:
 
-- FR-50: The system may provide AI-assisted support or recommendations
-- FR-51: The AI assistant may help users discover food or navigate the platform
-- FR-52: AI-generated content shall be clearly presented as assistance, not as a guaranteed operational decision source
+- FR-51: The system may provide AI-assisted support or recommendations
+- FR-52: The AI assistant may help users discover food or navigate the platform
+- FR-53: AI-generated content shall be clearly presented as assistance, not as a guaranteed operational decision source
 
 ## 4. External Interface Requirements
 

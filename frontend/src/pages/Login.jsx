@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import GoogleSignIn from "../components/GoogleSignIn";
+import { emitAuthChanged } from "../utils/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -50,6 +52,7 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.user.token);
       localStorage.setItem("authUser", JSON.stringify(res.data.user));
+      emitAuthChanged();
 
       navigate("/dashboard", {
         state: {
@@ -131,7 +134,7 @@ const Login = () => {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-8 space-y-6">
           {pageFeedback ? (
             <FeedbackAlert
               type={pageFeedback.type}
@@ -150,6 +153,16 @@ const Login = () => {
             />
           ) : null}
 
+          <GoogleSignIn mode="signin" onError={setError} />
+
+          <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            Or use email
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+        </div>
+
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
@@ -233,7 +246,7 @@ const Login = () => {
         </form>
 
         <div className="surface-panel px-4 py-4 text-sm text-slate-600 shadow-sm">
-          Email and password sign-in is the supported login flow in this demo.
+          Google and email sign-in both create the same secure app session.
         </div>
         </div>
       </motion.div>

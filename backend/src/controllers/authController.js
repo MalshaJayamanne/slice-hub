@@ -1,9 +1,16 @@
 
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
-import { createHttpError, normalizeStringValue } from "../utils/validation.js";
+import {
+  createHttpError,
+  findEnumValue,
+  normalizeStringValue,
+} from "../utils/validation.js";
+
+const PUBLIC_ROLES = ["customer", "seller"];
 
 const createToken = (userId, role) =>
   jwt.sign({ userId, role }, process.env.JWT_SECRET, {
@@ -18,6 +25,7 @@ const buildAuthResponse = (user) => ({
   phone: user.phone,
   address: user.address,
   profileImage: user.profileImage,
+  authProvider: user.authProvider,
   isActive: user.isActive,
   token: createToken(user._id.toString(), user.role),
 });
@@ -29,7 +37,6 @@ export const registerUser = async (req, res, next) => {
     const normalizedEmail = normalizeStringValue(email).toLowerCase();
     const normalizedRole =
       typeof role === "string" ? role.trim().toLowerCase() : "customer";
-    const allowedPublicRoles = ["customer", "seller"];
 
     if (
       !normalizedName ||
@@ -44,7 +51,7 @@ export const registerUser = async (req, res, next) => {
       throw createHttpError("JWT_SECRET is not configured.", 500);
     }
 
-    if (!allowedPublicRoles.includes(normalizedRole)) {
+    if (!PUBLIC_ROLES.includes(normalizedRole)) {
       throw createHttpError("Role must be either customer or seller.", 400);
     }
 
@@ -97,7 +104,7 @@ export const loginUser = async (req, res, next) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
-    if (!isPasswordValid) {
+    if (!user.passwordHash || !isPasswordValid) {
       throw createHttpError("Invalid email or password.", 401);
     }
 
@@ -111,6 +118,73 @@ export const loginUser = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Login successful.",
+      user: buildAuthResponse(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const googleAuthUser = async (req, res, next) => {
+  try {
+    const { token, role } = req.body;
+    const normalizedRole = findEnumValue(role, PUBLIC_ROLES) || "customer";
+
+    if (!token || typeof token !== "string") {
+      throw createHttpError("Google credential token is required.", 400);
+    }
+
+    if (!process.env.JWT_SECRET) {
+      throw createHttpError("JWT_SECRET is not configured.", 500);
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      throw createHttpError("GOOGLE_CLIENT_ID is not configured.", 500);
+    }
+
+    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const googleId = normalizeStringValue(payload?.sub);
+    const email = normalizeStringValue(payload?.email).toLowerCase();
+    const name = normalizeStringValue(payload?.name) || email.split("@")[0];
+    const picture = normalizeStringValue(payload?.picture);
+
+    if (!googleId || !email || payload?.email_verified !== true) {
+      throw createHttpError("Google account email could not be verified.", 401);
+    }
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      if (!user.isActive) {
+        throw createHttpError(
+          "Your account is inactive. Please contact support.",
+          403
+        );
+      }
+
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.profileImage && picture) user.profileImage = picture;
+      await user.save();
+    } else {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        profileImage: picture,
+        authProvider: "google",
+        role: normalizedRole,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Google login successful.",
       user: buildAuthResponse(user),
     });
   } catch (error) {
