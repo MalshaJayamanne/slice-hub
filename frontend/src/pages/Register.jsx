@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import GoogleSignIn from "../components/GoogleSignIn";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -119,7 +120,7 @@ const Register = () => {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-8 space-y-6">
           {error ? (
             <FeedbackAlert
               type="error"
@@ -129,6 +130,16 @@ const Register = () => {
             />
           ) : null}
 
+          <GoogleSignIn role={role} mode="signup" onError={setError} />
+
+          <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            Or use email
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+        </div>
+
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
@@ -242,7 +253,7 @@ const Register = () => {
         </form>
 
         <div className="surface-panel px-4 py-4 text-sm text-slate-600 shadow-sm">
-          Email registration is the supported sign-up flow in this demo.
+          Google sign-up uses the selected account type for new SliceHub users.
         </div>
         </div>
       </motion.div>
