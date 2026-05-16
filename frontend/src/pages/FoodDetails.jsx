@@ -190,7 +190,6 @@ export default function FoodDetails() {
         </div>
       </div>
 
-
     </div>
   );
 }

@@ -46,6 +46,7 @@ const RestaurantList = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     location.state?.initialCategory || "All"
   );
+  const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
   const fetchRestaurants = async () => {
@@ -90,19 +91,23 @@ const RestaurantList = () => {
           String(restaurant?.category || "").toLowerCase() ===
             selectedCategory.toLowerCase();
 
-        return matchesSearch && matchesCategory;
+        const matchesRating = (restaurant?.averageRating || 0) >= minRating;
+
+        return matchesSearch && matchesCategory && matchesRating;
       }),
-    [restaurants, searchQuery, selectedCategory]
+    [restaurants, searchQuery, selectedCategory, minRating]
   );
 
   const activeFilterCount = [
     Boolean(searchQuery.trim()),
     selectedCategory !== "All",
+    minRating > 0,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All");
+    setMinRating(0);
   };
 
   const sidebarNote = loading
@@ -245,9 +250,12 @@ const RestaurantList = () => {
                 <div className="surface-panel p-8 mb-8 border-2 border-primary/10">
                   <div className="grid gap-8 md:grid-cols-2">
                     <div className="flex flex-col justify-end">
-                       <p className="text-sm font-medium text-slate-500 mb-4">
-                        Narrow down results based on verified user reviews and categories.
-                       </p>
+                      <p className="text-sm font-medium text-slate-500 mb-2">
+                        Browse through our verified restaurants and their latest menus.
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Ratings and reviews are provided by customers who have completed orders.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -264,7 +272,7 @@ const RestaurantList = () => {
                       <th className="w-20 px-6 py-5"></th>
                       <th className="min-w-[240px] px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Restaurant</th>
                       <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Category</th>
-
+                      <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Rating</th>
                       <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Delivery</th>
                       <th className="w-32 px-6 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Action</th>
                     </tr>
@@ -310,6 +318,19 @@ const RestaurantList = () => {
                           ) : (
                             <span className="text-slate-300">—</span>
                           )}
+                        </td>
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-2">
+                            <Star size={14} className={restaurant.averageRating > 0 ? "fill-amber-500 text-amber-500" : "text-slate-300"} />
+                            <span className={restaurant.averageRating > 0 ? "text-sm font-bold text-amber-600" : "text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap"}>
+                              {restaurant.averageRating > 0 ? restaurant.averageRating.toFixed(1) : "No ratings"}
+                            </span>
+                            {restaurant.numReviews > 0 && (
+                              <span className="text-[10px] font-bold text-slate-400">
+                                ({restaurant.numReviews})
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         <td className="px-6 py-6 whitespace-nowrap text-base font-bold text-slate-500">

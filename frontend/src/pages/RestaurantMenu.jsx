@@ -15,6 +15,7 @@ import {
   WorkspaceLoadingState,
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
+import ReviewList from "../components/ReviewList";
 
 
 import { getCategoryStyles } from "../utils/categoryUtils";
@@ -282,7 +283,13 @@ const RestaurantMenu = () => {
           </div>
         )}
 
-
+        <div className="mt-24">
+          <div className="flex items-center gap-4 mb-10">
+            <h2 className="font-display text-3xl font-bold text-slate-900">Restaurant Reviews</h2>
+            <div className="h-px flex-1 bg-slate-100" />
+          </div>
+          <ReviewList restaurantId={id} />
+        </div>
       </div>
     </div>
   );

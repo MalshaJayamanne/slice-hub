@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Clock3, Package, ShoppingBag, Store, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import orderAPI from "../api/orderAPI";
+import ReviewModal from "../components/ReviewModal";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -34,6 +35,7 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reviewTarget, setReviewTarget] = useState(null);
 
 
   const fetchOrders = async () => {
@@ -213,9 +215,22 @@ export default function OrderHistory() {
                     </p>
                     <p className="mt-2 flex items-center gap-2 text-base font-bold text-slate-900">
                       <Store size={18} className="text-[#FF4F40]" />
-                      <span className="truncate">{order?.restaurant?.name || "Restaurant"}</span>
                     </p>
-
+                    {order.status === "Delivered" && (
+                      <button
+                        onClick={() =>
+                          setReviewTarget({
+                            id: order.restaurant?._id || order.restaurant,
+                            name: order.restaurant?.name || "Restaurant",
+                            type: "restaurant",
+                          })
+                        }
+                        className="mt-3 flex items-center gap-2 text-xs font-bold text-amber-500 hover:text-amber-600 transition-colors"
+                      >
+                        <Star size={14} className="fill-current" />
+                        Rate Restaurant
+                      </button>
+                    )}
                   </div>
 
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition-colors hover:bg-slate-100/50">
@@ -272,6 +287,16 @@ export default function OrderHistory() {
 
         </div>
       )}
+
+      <ReviewModal
+        isOpen={!!reviewTarget}
+        onClose={() => setReviewTarget(null)}
+        target={reviewTarget}
+        onSuccess={() => {
+          // You could add a toast here
+          fetchOrders();
+        }}
+      />
     </WorkspacePage>
   );
 }

@@ -44,13 +44,15 @@ const RestaurantCard = ({ restaurant }) => {
             {restaurant.name}
           </h3>
 
-          {restaurant.numReviews > 0 && (
-            <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-[#f97316]">
-              <Star size={12} className="fill-[#f97316] text-[#f97316]" />
-              {restaurant.averageRating?.toFixed(1)}
-              <span className="text-[10px] opacity-60 font-medium">({restaurant.numReviews})</span>
-            </div>
-          )}
+          <div className="flex shrink-0 items-center gap-1.5 py-1 text-sm font-bold text-amber-600">
+            <Star size={14} className={restaurant.numReviews > 0 ? "fill-amber-400 text-amber-400" : "text-slate-300"} />
+            <span className={restaurant.numReviews > 0 ? "" : "text-[10px] text-slate-400 font-black uppercase tracking-widest"}>
+              {restaurant.numReviews > 0 ? restaurant.averageRating?.toFixed(1) : "No ratings"}
+            </span>
+            {restaurant.numReviews > 0 && (
+              <span className="text-[10px] opacity-60 font-medium ml-0.5 text-slate-400">({restaurant.numReviews})</span>
+            )}
+          </div>
         </div>
 
         <p className="min-h-[2.5rem] text-[14px] leading-relaxed text-slate-500 line-clamp-2">
