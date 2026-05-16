@@ -191,3 +191,37 @@ export const googleAuthUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone, address, profileImage, currentPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw createHttpError("User not found.", 404);
+    }
+
+    if (name !== undefined) user.name = normalizeStringValue(name) || user.name;
+    if (phone !== undefined) user.phone = normalizeStringValue(phone) || "";
+    if (address !== undefined) user.address = normalizeStringValue(address) || "";
+    if (profileImage !== undefined) user.profileImage = normalizeStringValue(profileImage) || "";
+
+    if (currentPassword && newPassword) {
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isPasswordValid) {
+        throw createHttpError("Current password is incorrect.", 401);
+      }
+      user.passwordHash = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: buildAuthResponse(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};

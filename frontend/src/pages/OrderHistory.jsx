@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Clock3, Package, ShoppingBag, Store } from "lucide-react";
+import { ArrowRight, Clock3, Package, ShoppingBag, Store, Star } from "lucide-react";
 import { motion } from "framer-motion";
-
 import orderAPI from "../api/orderAPI";
 import {
   WorkspaceEmptyState,
@@ -35,6 +34,7 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
 
   const fetchOrders = async () => {
     try {
@@ -207,7 +207,7 @@ export default function OrderHistory() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-3 mb-8">
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition-colors hover:bg-slate-100/50">
+                  <div className="relative group rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition-colors hover:bg-slate-100/50">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                       Restaurant
                     </p>
@@ -215,6 +215,7 @@ export default function OrderHistory() {
                       <Store size={18} className="text-[#FF4F40]" />
                       <span className="truncate">{order?.restaurant?.name || "Restaurant"}</span>
                     </p>
+
                   </div>
 
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition-colors hover:bg-slate-100/50">
@@ -246,13 +247,16 @@ export default function OrderHistory() {
                     {order.items.map((item, itemIndex) => (
                       <div
                         key={`${order._id}-${item.food || itemIndex}`}
-                        className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white px-5 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                        className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-white px-5 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
                       >
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-xs font-black text-slate-500 shadow-inner">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-xs font-black text-slate-500 shadow-inner group-hover:bg-primary/5 group-hover:text-primary transition-colors">
                           {item.quantity}x
                         </div>
                         <div className="pr-2">
-                          <p className="text-sm font-bold text-slate-900">{item.name}</p>
+                          <div className="flex items-center gap-3">
+                            <p className="text-sm font-bold text-slate-900">{item.name}</p>
+
+                          </div>
                           <p className="mt-0.5 font-display text-sm font-bold text-[#FF4F40]">
                             {formatCurrency(item.price)}
                           </p>
@@ -264,6 +268,8 @@ export default function OrderHistory() {
               </motion.div>
             ))}
           </div>
+
+
         </div>
       )}
     </WorkspacePage>

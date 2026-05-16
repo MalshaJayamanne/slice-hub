@@ -40,7 +40,7 @@ export function WorkspacePage({
 }) {
   return (
     <div className="page-shell py-12 sm:py-16">
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,2fr)] lg:gap-12">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(340px,0.7fr)_minmax(0,3fr)] lg:gap-12">
         <aside className="h-fit">
           {sidebar}
         </aside>

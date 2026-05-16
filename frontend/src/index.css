@@ -67,7 +67,7 @@
 
 @layer components {
   .page-shell {
-    @apply mx-auto max-w-7xl px-5 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-[100rem] px-5 sm:px-6 lg:px-8;
   }
 
   .app-main {

@@ -46,7 +46,6 @@ const RestaurantList = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     location.state?.initialCategory || "All"
   );
-  const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
   const fetchRestaurants = async () => {
@@ -91,25 +90,19 @@ const RestaurantList = () => {
           String(restaurant?.category || "").toLowerCase() ===
             selectedCategory.toLowerCase();
 
-        const matchesRating =
-          restaurant?.rating == null ||
-          Number(restaurant.rating) >= minRating;
-
-        return matchesSearch && matchesCategory && matchesRating;
+        return matchesSearch && matchesCategory;
       }),
-    [minRating, restaurants, searchQuery, selectedCategory]
+    [restaurants, searchQuery, selectedCategory]
   );
 
   const activeFilterCount = [
     Boolean(searchQuery.trim()),
     selectedCategory !== "All",
-    minRating > 0,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All");
-    setMinRating(0);
   };
 
   const sidebarNote = loading
@@ -251,35 +244,9 @@ const RestaurantList = () => {
               >
                 <div className="surface-panel p-8 mb-8 border-2 border-primary/10">
                   <div className="grid gap-8 md:grid-cols-2">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-5">
-                        Quality Filter
-                      </p>
-                      <div className="flex flex-wrap gap-3">
-                        {[3, 4, 4.5].map((rating) => (
-                          <button
-                            key={rating}
-                            type="button"
-                            onClick={() =>
-                              setMinRating((current) =>
-                                current === rating ? 0 : rating
-                              )
-                            }
-                            className={`inline-flex items-center gap-2 rounded-2xl border-2 px-6 py-3 text-sm font-bold transition-all ${
-                              minRating === rating
-                                ? "border-primary bg-primary/5 text-primary"
-                                : "border-slate-50 text-slate-400 hover:border-primary/30 hover:text-primary"
-                            }`}
-                          >
-                            {rating}+ <Star size={16} className={minRating === rating ? "fill-primary" : ""} />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     <div className="flex flex-col justify-end">
                        <p className="text-sm font-medium text-slate-500 mb-4">
-                        Narrow down results based on verified user ratings and professional review scores.
+                        Narrow down results based on verified user reviews and categories.
                        </p>
                     </div>
                   </div>
@@ -297,7 +264,7 @@ const RestaurantList = () => {
                       <th className="w-20 px-6 py-5"></th>
                       <th className="min-w-[240px] px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Restaurant</th>
                       <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Category</th>
-                      <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Rating</th>
+
                       <th className="px-6 py-5 text-left text-xs font-black uppercase tracking-widest text-slate-400">Delivery</th>
                       <th className="w-32 px-6 py-5 text-right text-xs font-black uppercase tracking-widest text-slate-400">Action</th>
                     </tr>
@@ -344,16 +311,7 @@ const RestaurantList = () => {
                             <span className="text-slate-300">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-6">
-                          {restaurant.rating ? (
-                            <div className="inline-flex items-center gap-2 rounded-2xl bg-orange-50 px-4 py-2 font-bold text-orange-600 border border-orange-100 shadow-sm">
-                              <Star size={16} className="fill-orange-400 text-orange-400" />
-                              <span className="text-base">{Number(restaurant.rating).toFixed(1)}</span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
+
                         <td className="px-6 py-6 whitespace-nowrap text-base font-bold text-slate-500">
                           {restaurant.deliveryTime || "25–35 min"}
                         </td>

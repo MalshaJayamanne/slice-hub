@@ -50,9 +50,7 @@ export default function OrderTracking() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+
 
   const fetchOrder = async () => {
     try {
@@ -472,72 +470,7 @@ export default function OrderTracking() {
           </div>
         </div>
 
-        {isDelivered && !isSubmitted && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="surface-panel mx-auto mt-12 max-w-2xl rounded-[2.5rem] p-10 text-center shadow-md lg:col-span-3"
-          >
-            <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Star size={40} className="text-yellow-500 fill-yellow-500" />
-            </div>
-            <h2 className="font-display text-3xl font-bold text-slate-900 mb-4">
-              How was your order?
-            </h2>
-            <p className="text-gray-500 mb-8 font-medium">
-              This note stays on your device for the current demo review.
-            </p>
 
-            <div className="flex justify-center gap-3 mb-8">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className={`p-2 transition-all ${
-                    rating >= star
-                      ? "text-yellow-500 scale-110"
-                      : "text-gray-200"
-                  }`}
-                >
-                  <Star
-                    size={32}
-                    fill={rating >= star ? "currentColor" : "none"}
-                  />
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              placeholder="Tell us about your experience..."
-              className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-6 h-32 resize-none font-medium"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-            />
-
-            <button
-              onClick={() => setIsSubmitted(true)}
-              className="w-full bg-primary hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all"
-            >
-              Save Local Note
-            </button>
-          </motion.div>
-        )}
-
-        {isSubmitted && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mx-auto mt-12 max-w-2xl rounded-[2.5rem] border border-green-100 bg-green-50 p-10 text-center lg:col-span-3"
-          >
-            <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-800 mb-2">
-              Thank you for your feedback!
-            </h2>
-            <p className="text-green-600 font-medium">
-              Your note was saved locally for this demo review.
-            </p>
-          </motion.div>
-        )}
       </div>
     </div>
   );

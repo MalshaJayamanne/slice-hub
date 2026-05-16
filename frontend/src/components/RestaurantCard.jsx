@@ -44,10 +44,11 @@ const RestaurantCard = ({ restaurant }) => {
             {restaurant.name}
           </h3>
 
-          {restaurant.rating && (
+          {restaurant.numReviews > 0 && (
             <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-[#f97316]">
               <Star size={12} className="fill-[#f97316] text-[#f97316]" />
-              {restaurant.rating}
+              {restaurant.averageRating?.toFixed(1)}
+              <span className="text-[10px] opacity-60 font-medium">({restaurant.numReviews})</span>
             </div>
           )}
         </div>

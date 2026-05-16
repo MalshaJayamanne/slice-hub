@@ -16,6 +16,7 @@ import {
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
+
 import { getCategoryStyles } from "../utils/categoryUtils";
 
 const RestaurantMenu = () => {
@@ -280,6 +281,8 @@ const RestaurantMenu = () => {
             ))}
           </div>
         )}
+
+
       </div>
     </div>
   );
