@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 import adminAPI from "../api/adminAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
+import ImageUploadField from "../components/ImageUploadField";
 import { getCategoryStyles } from "../utils/categoryUtils";
 
 const statusClasses = {
@@ -446,14 +447,15 @@ export default function AdminRestaurants() {
               <option value="rejected">Rejected</option>
             </select>
 
-            <input
-              placeholder="Image URL"
-              value={restaurantForm.image}
-              onChange={(event) =>
-                handleRestaurantFormChange("image", event.target.value)
-              }
-              className="input-surface md:col-span-2"
-            />
+            <div className="md:col-span-2">
+              <ImageUploadField
+                label="Restaurant Image"
+                value={restaurantForm.image}
+                uploadType="restaurant"
+                onChange={(image) => handleRestaurantFormChange("image", image)}
+                helperText="Upload a restaurant image for marketplace cards or paste an existing image URL."
+              />
+            </div>
 
             <textarea
               placeholder="Description"

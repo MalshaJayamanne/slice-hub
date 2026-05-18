@@ -1,286 +1,163 @@
-# Slice Hub
+# 🍕 Slice Hub
 
-Slice Hub is a MERN-style food ordering project with separate `frontend` and `backend` apps. The platform is planned to support three user roles:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 
-- Customer
-- Seller
-- Admin
+**Slice Hub** is a premium, full-stack MERN ecosystem designed for seamless food discovery, ordering, and management. It features a triple-role architecture (Customer, Seller, Admin) with modern UI/UX, real-time feedback loops, and AI-powered assistance.
 
-The current repository includes:
+---
 
-- A React + Vite frontend scaffold
-- A Node.js + Express backend foundation
-- MongoDB connection setup with Mongoose
-- Authentication foundation with register/login, password hashing, JWT, and auth middleware
-- Project requirements in [SRS.md](./SRS.md)
+## ✨ Key Features
 
-## Tech Stack
+### 👤 Customer Experience
+- **Smart Discovery**: Browse restaurants with intuitive filtering and high-quality visuals.
+- **Dynamic Cart**: Real-time cart management with instant price calculations.
+- **Order Tracking**: Live progress monitoring from preparation to delivery.
+- **Feedback Loop**: Integrated star-rating and review system for dishes and restaurants.
+- **Payment History**: Comprehensive view of all past transactions and invoices.
+
+### 🏪 Seller Management
+- **Menu Control**: Full CRUD operations for menu items with availability toggles.
+- **Order Command Center**: Manage incoming orders, update statuses, and track sales.
+- **Restaurant Profile**: Custom setup for restaurant branding and descriptions.
+- **Analytics Overview**: Visual insights into restaurant performance.
+
+### 🛡️ Admin Command Center
+- **User Oversight**: Manage customer and seller accounts across the platform.
+- **Establishment Control**: Review and moderate restaurant listings.
+- **System Monitoring**: Full visibility into platform-wide order flow and activity.
+- **Role-Based Security**: Advanced access control for sensitive operations.
+
+### 🤖 Smart & Modern Capabilities
+- **AI Assistant**: Integrated AI support to help users navigate and discover food.
+- **Glassmorphism UI**: A sleek, futuristic dashboard design with smooth animations.
+- **Bento-style Layouts**: Clean, modular information display for maximum clarity.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-
-- React
-- Vite
-- JavaScript
-- React Router DOM
-- Axios
-- Redux Toolkit
+- **Framework**: React.js with Vite
+- **State Management**: Redux Toolkit
+- **Routing**: React Router DOM
+- **UI & Icons**: Lucide React, Custom CSS (Glassmorphism)
+- **Data Fetching**: Axios
 
 ### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB (Mongoose ODM)
+- **Security**: JWT (JSON Web Tokens), Bcrypt.js
+- **Environment**: Dotenv
 
-- Node.js
-- Express.js
-- MongoDB Atlas / MongoDB
-- Mongoose
-- bcryptjs
-- jsonwebtoken
+---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 slice-hub/
-|-- backend/
-|   |-- .env
-|   |-- .env.example
-|   |-- .gitignore
-|   |-- package.json
-|   `-- src/
-|       |-- app.js
-|       |-- server.js
-|       |-- config/
-|       |   `-- db.js
-|       |-- controllers/
-|       |   `-- authController.js
-|       |-- middleware/
-|       |   |-- authMiddleware.js
-|       |   |-- errorMiddleware.js
-|       |   `-- roleMiddleware.js
-|       |-- models/
-|       |   |-- Food.js
-|       |   |-- Order.js
-|       |   |-- Restaurant.js
-|       |   `-- User.js
-|       `-- routes/
-|           |-- adminRoutes.js
-|           |-- authRoutes.js
-|           |-- foodRoutes.js
-|           |-- orderRoutes.js
-|           `-- restaurantRoutes.js
-|-- frontend/
-|   |-- package.json
-|   |-- vite.config.js
-|   |-- public/
-|   `-- src/
-|       |-- assets/
-|       |-- components/
-|       |-- pages/
-|       |-- routes/
-|       |-- App.jsx
-|       |-- constants.js
-|       |-- index.css
-|       `-- main.jsx
-|-- README.md
-|-- SRS.md
-`-- Split work.md
+├── backend/                # Express API
+│   ├── src/
+│   │   ├── controllers/    # Route controllers (Auth, Food, Order, Review, AI)
+│   │   ├── models/         # Mongoose Schemas (User, Food, Restaurant, Order, Review)
+│   │   ├── routes/         # API Endpoints
+│   │   ├── middleware/     # Auth & Role-based security
+│   │   └── config/         # DB & Environment configs
+│   └── .env.example        # Environment template
+├── frontend/               # React + Vite Client
+│   ├── src/
+│   │   ├── components/     # Reusable UI (Navbar, Modals, Cards, AI)
+│   │   ├── pages/          # Dashboard & Public pages
+│   │   ├── store/          # Redux Toolkit slices
+│   │   └── assets/         # Static media & styles
+│   └── vite.config.js      # Build config
+├── README.md               # Project documentation
+└── SRS.md                  # Software Requirements Specification
 ```
 
-## Environment Variables
+---
 
-Backend environment variables live in `backend/.env`.
+## 🚀 Getting Started
 
-Required values:
+### Prerequisites
+- Node.js (v16+)
+- MongoDB Atlas account or local MongoDB
+- NPM or Yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MalshaJayamanne/slice-hub.git
+   cd slice-hub
+   ```
+
+2. **Setup Backend**
+   ```bash
+   cd backend
+   npm install
+   # Create .env based on .env.example
+   cp .env.example .env
+   ```
+
+3. **Setup Frontend**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+### Running Locally
+
+Open two terminals in the root directory:
+
+**Terminal 1: Backend**
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2: Frontend**
+```bash
+cd frontend
+npm run dev
+```
+
+---
+
+## 🔑 Environment Variables
+
+Required variables in `backend/.env`:
 
 ```env
 PORT=5000
-NODE_ENV=development
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 CLIENT_URL=http://localhost:5173
-MONGODB_URI=your-mongodb-connection-string
-JWT_SECRET=your-jwt-secret
-JWT_EXPIRES_IN=7d
-```
-
-Use [backend/.env.example](./backend/.env.example) as the template.
-
-## Install Commands
-
-Run these commands from the project root:
-
-```powershell
-cd frontend
-npm install
-```
-
-```powershell
-cd backend
-npm install
-```
-
-## Run Commands
-
-### Run Frontend
-
-```powershell
-cd frontend
-npm run dev
-```
-
-Frontend URL:
-
-```text
-http://localhost:5173
-```
-
-### Run Backend
-
-```powershell
-cd backend
-npm run dev
-```
-
-If you want to run without nodemon:
-
-```powershell
-cd backend
-npm start
-```
-
-Backend URL:
-
-```text
-http://localhost:5000
-```
-
-Health check:
-
-```text
-GET http://localhost:5000/api/health
-```
-
-## Full Project Run Order
-
-Open two terminals.
-
-Terminal 1:
-
-```powershell
-cd c:\Projects\slice-hub\backend
-npm run dev
-```
-
-Terminal 2:
-
-```powershell
-cd c:\Projects\slice-hub\frontend
-npm run dev
-```
-
-Then open:
-
-```text
-Frontend: http://localhost:5173
-Backend:  http://localhost:5000/api/health
-```
-
-## Available Backend Auth APIs
-
-### Register
-
-```http
-POST /api/auth/register
-Content-Type: application/json
-```
-
-Example body:
-
-```json
-{
-  "name": "Kavindu",
-  "email": "kavindu@example.com",
-  "password": "12345678",
-  "role": "customer"
-}
-```
-
-### Login
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-```
-
-Example body:
-
-```json
-{
-  "email": "kavindu@example.com",
-  "password": "12345678"
-}
-```
-
-## Current Status
-
-Implemented now:
-
-- Backend project structure
-- Express server setup
-- MongoDB connection setup
-- Environment variable setup
-- `User` model
-- Auth register/login routes
-- Password hashing with bcrypt
-- JWT generation
-- Auth middleware
-- Role-check middleware
-
-Still in progress:
-
-- Restaurant APIs
-- Food APIs
-- Order APIs
-- Frontend integration of all backend features
-
----
-
-# 🔮 Future Development
-
-Upcoming features:
-
-- Backend API using **Node.js + Express**
-- Database integration with **MongoDB**
-- Authentication using **JWT**
-- Payment gateway integration
-- Order notifications
-- Real-time order tracking
-
----
-
-# 🤝 Collaboration
-
-This project is developed collaboratively.
-
-Team members can contribute by:
-
-1. Creating a new branch
-2. Implementing new features
-3. Submitting pull requests
-
-Example workflow:
-
-```
-git checkout -b new-feature
-git add .
-git commit -m "Added new feature"
-git push origin new-feature
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 ---
 
-## Documentation
+## 🛡️ License
 
-- Requirements: [SRS.md](./SRS.md)
-- Task split: [Split work.md](./Split%20work.md)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Notes
+---
 
-- Do not commit `backend/.env`
-- Rotate exposed database credentials if they were shared publicly
-- Update this README as new APIs and frontend pages are completed
+## 🤝 Contributing
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+Developed with ❤️ by [Malsha Jayamanne](https://github.com/MalshaJayamanne)

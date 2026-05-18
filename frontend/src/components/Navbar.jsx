@@ -2,25 +2,40 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 
+import {
+  AUTH_CHANGED_EVENT,
+  clearAuthSession,
+  getAuthToken,
+  getAuthUser,
+} from "../utils/auth";
+
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(() => getAuthToken());
+  const [user, setUser] = useState(() => getAuthUser());
   const [navbarSearch, setNavbarSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
-  let user = null;
-
-  try {
-    user = JSON.parse(localStorage.getItem("authUser"));
-  } catch (_error) {
-    user = null;
-  }
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authUser");
+    clearAuthSession();
     navigate("/login");
   };
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setToken(getAuthToken());
+      setUser(getAuthUser());
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -123,8 +138,14 @@ function Navbar({ cartCount = 0 }) {
                   to="/dashboard"
                   className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/60 bg-white/60 text-slate-600 transition-all hover:-translate-y-1 hover:border-primary/30 hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-primary/10 sm:w-auto sm:px-5"
                 >
-                  <User size={20} />
-                  <span className="ml-2.5 hidden text-sm font-bold sm:inline">Account</span>
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="Profile" className="h-6 w-6 rounded-full object-cover sm:h-7 sm:w-7" />
+                  ) : (
+                    <User size={20} />
+                  )}
+                  <span className="ml-2.5 hidden text-sm font-bold sm:inline">
+                    {user?.name?.split(" ")[0] || "Account"}
+                  </span>
                 </Link>
 
                 <button

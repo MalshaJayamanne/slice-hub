@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AlertCircle, Inbox, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -40,7 +41,7 @@ export function WorkspacePage({
 }) {
   return (
     <div className="page-shell py-12 sm:py-16">
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,2fr)] lg:gap-12">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(340px,0.7fr)_minmax(0,3fr)] lg:gap-12">
         <aside className="h-fit">
           {sidebar}
         </aside>
@@ -71,11 +72,21 @@ export function WorkspacePage({
 
 export function WorkspaceSidebar({
   icon: Icon,
+  imageSrc,
+  imageAlt,
   title,
   subtitle,
   note,
   children,
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [imageSrc]);
+
+  const shouldShowImage = Boolean(imageSrc && !imageFailed);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -83,8 +94,17 @@ export function WorkspaceSidebar({
       className="surface-panel relative overflow-hidden p-10 text-center shadow-xl shadow-slate-200/40"
     >
       <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
-      <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-primary/10 shadow-inner">
-        <Icon size={48} className="text-primary" />
+      <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2.5rem] bg-primary/10 shadow-inner">
+        {shouldShowImage ? (
+          <img
+            src={imageSrc}
+            alt={imageAlt || title || "Workspace image"}
+            className="h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Icon size={48} className="text-primary" />
+        )}
       </div>
 
       <h2 className="font-display text-[2.25rem] font-bold tracking-tight text-slate-900 leading-tight">

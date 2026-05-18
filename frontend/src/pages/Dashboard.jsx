@@ -14,12 +14,16 @@ import {
   ChevronRight,
   Loader2,
   CreditCard,
+  Save,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
+import ImageUploadField from "../components/ImageUploadField";
 import restaurantAPI from "../api/restaurantApi";
 import orderAPI from "../api/orderAPI";
+import { clearAuthSession, emitAuthChanged, getAuthUser } from "../utils/auth";
 import {
   WorkspacePage,
   WorkspaceSidebar,
@@ -30,20 +34,21 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  let user = null;
-  try {
-    const storedUser = localStorage.getItem("authUser");
-    user = storedUser ? JSON.parse(storedUser) : null;
-  } catch (error) {
-    console.error("Invalid user JSON:", error);
-    user = null;
-  }
+  const [user, setUser] = useState(() => getAuthUser());
 
   const [sellerRestaurants, setSellerRestaurants] = useState([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [pageFeedback, setPageFeedback] = useState(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileFeedback, setProfileFeedback] = useState(null);
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    profileImage: user?.profileImage || "",
+  });
 
   useEffect(() => {
     if (location.state?.feedback) {
@@ -150,9 +155,64 @@ export default function Dashboard() {
   }, [navigate, primarySellerRestaurant, user?.role]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authUser");
+    clearAuthSession();
     navigate("/login");
+  };
+
+  const handleProfileFormChange = (field, value) => {
+    setProfileForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!profileForm.name.trim()) {
+      setProfileFeedback({
+        type: "error",
+        title: "Profile incomplete",
+        message: "Name is required.",
+      });
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+      setProfileFeedback(null);
+
+      const response = await API.put("/auth/profile", {
+        name: profileForm.name.trim(),
+        phone: profileForm.phone.trim(),
+        address: profileForm.address.trim(),
+        profileImage: profileForm.profileImage.trim(),
+      });
+
+      const updatedUser = response?.data?.user;
+      if (updatedUser) {
+        localStorage.setItem("authUser", JSON.stringify(updatedUser));
+        localStorage.setItem("token", updatedUser.token);
+        setUser(updatedUser);
+        emitAuthChanged();
+      }
+
+      setProfileFeedback({
+        type: "success",
+        title: "Profile saved",
+        message: "Your profile details were updated.",
+      });
+    } catch (profileError) {
+      setProfileFeedback({
+        type: "error",
+        title: "Profile update failed",
+        message:
+          profileError?.response?.data?.message ||
+          "Could not update your profile.",
+      });
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const sellerQuickActions = primarySellerRestaurant
@@ -263,6 +323,8 @@ export default function Dashboard() {
       sidebar={
         <WorkspaceSidebar
           icon={User}
+          imageSrc={profileForm.profileImage || user?.profileImage}
+          imageAlt={user?.name || "Profile"}
           title={user?.name || "Profile"}
           subtitle={user?.email || "Account management"}
           note={`Your ${user?.role || "user"} workspace is active and synced with live platform data.`}
@@ -397,6 +459,69 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        <form onSubmit={handleProfileSubmit} className="surface-panel p-6 sm:p-7">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
+                Profile
+              </p>
+              <h2 className="font-display mt-2 text-2xl font-bold text-slate-900">
+                Account Details
+              </h2>
+            </div>
+            <button type="submit" disabled={profileSaving} className="btn-primary">
+              {profileSaving ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Save size={18} />
+              )}
+              {profileSaving ? "Saving..." : "Save Profile"}
+            </button>
+          </div>
+
+          {profileFeedback ? (
+            <div className="mb-5">
+              <FeedbackAlert
+                type={profileFeedback.type}
+                title={profileFeedback.title}
+                message={profileFeedback.message}
+                onClose={() => setProfileFeedback(null)}
+              />
+            </div>
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <input
+              placeholder="Full name"
+              value={profileForm.name}
+              onChange={(event) => handleProfileFormChange("name", event.target.value)}
+              className="input-surface"
+            />
+            <input
+              placeholder="Phone"
+              value={profileForm.phone}
+              onChange={(event) => handleProfileFormChange("phone", event.target.value)}
+              className="input-surface"
+            />
+            <div className="md:col-span-2">
+              <ImageUploadField
+                label="Profile Image"
+                value={profileForm.profileImage}
+                uploadType="profile"
+                onChange={(image) => handleProfileFormChange("profileImage", image)}
+                helperText="Upload your avatar or paste an image URL."
+                aspectClass="aspect-square"
+              />
+            </div>
+            <textarea
+              placeholder="Address"
+              value={profileForm.address}
+              onChange={(event) => handleProfileFormChange("address", event.target.value)}
+              className="textarea-surface min-h-28 md:col-span-2"
+            />
+          </div>
+        </form>
 
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">

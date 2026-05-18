@@ -55,7 +55,7 @@ const statusActionMeta = {
   },
 };
 
-const formatCurrency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
+const formatCurrency = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
 const formatOrderId = (value) => `#${String(value || "").slice(-6).toUpperCase()}`;
 const formatDateTime = (value) =>
   value ? new Date(value).toLocaleString("en-LK") : "Unknown";
@@ -353,7 +353,7 @@ export default function SellerOrders() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.04 }}
-                    className="surface-panel flex flex-col items-start gap-8 rounded-3xl p-6 xl:flex-row xl:items-center"
+                    className="surface-panel flex flex-col items-start gap-8 rounded-3xl p-6 xl:flex-row xl:items-start"
                   >
                     <div className="w-full flex-1 space-y-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -376,113 +376,111 @@ export default function SellerOrders() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Order Id
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {formatOrderId(order._id)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Customer Name
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {getCustomerName(order)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Current Status
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {order.status}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Created Time
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {formatDateTime(order.createdAt)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Items
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {getOrderItemCount(order)} items
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                            Total
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-gray-900">
-                            {formatCurrency(order.totalAmount)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-                        {order.items?.length ? (
-                          order.items.map((item, itemIndex) => (
-                            <div
-                              key={`${order._id}-${getItemName(item)}-${itemIndex}`}
-                              className="flex min-w-[220px] flex-shrink-0 items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
-                            >
-                              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-sm font-black text-primary shadow-sm">
-                                {getItemName(item).slice(0, 2).toUpperCase()}
-                              </div>
-
-                              <div className="min-w-0">
-                                <p className="truncate text-xs font-bold text-slate-900">
-                                  {getItemName(item)}
-                                </p>
-                                <p className="text-[10px] text-gray-500">
-                                  {item.quantity || 0}x {" | "}{" "}
-                                  {formatCurrency(item.price)}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-                            No items recorded for this order.
+                      <div className="flex flex-wrap gap-3">
+                        <div className="flex-1 min-w-[200px] rounded-2xl border border-slate-50 bg-slate-50/50 p-4 flex items-center gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                            <Clock3 size={18} className="text-slate-400" />
                           </div>
-                        )}
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                              Created Time
+                            </p>
+                            <p className="mt-0.5 text-sm font-bold text-slate-700">
+                              {formatDateTime(order.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-[140px] rounded-2xl border border-slate-50 bg-slate-50/50 p-4 flex items-center gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                            <ShoppingBag size={18} className="text-slate-400" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                              Quantity
+                            </p>
+                            <p className="mt-0.5 text-sm font-bold text-slate-700">
+                              {getOrderItemCount(order)} items
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-[200px] rounded-2xl border border-slate-50 bg-slate-50/50 p-4 flex items-center gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                            <Store size={18} className="text-slate-400" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                              Restaurant
+                            </p>
+                            <p className="mt-0.5 text-sm font-bold text-slate-700">
+                              {order.restaurant?.name || "Main Kitchen"}
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                        <span className="inline-flex items-center gap-2">
-                          <User size={16} />
-                          {order.customer?.email || "No customer email"}
-                        </span>
+                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/40 p-5 space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
+                          Order Items
+                        </p>
+                        <div className="grid grid-cols-1 gap-3">
+                          {order.items?.length ? (
+                            order.items.map((item, itemIndex) => (
+                              <div
+                                key={`${order._id}-${getItemName(item)}-${itemIndex}`}
+                                className="group flex items-center gap-4 rounded-2xl border border-white bg-white/80 p-3 transition-all hover:border-primary/20 hover:shadow-lg hover:shadow-slate-200/30"
+                              >
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-xs font-black text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                                  {getItemName(item).slice(0, 2).toUpperCase()}
+                                </div>
 
-                        <span className="inline-flex items-center gap-2">
-                          <Store size={16} />
-                          {order.restaurant?.name || "Restaurant order"}
-                        </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-bold text-slate-900">
+                                    {getItemName(item)}
+                                  </p>
+                                  <div className="mt-1 flex items-center gap-3 text-xs">
+                                    <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 font-black text-primary">{item.quantity || 0}x</span>
+                                    <span className="text-slate-300">|</span>
+                                    <span className="font-bold text-slate-600">{formatCurrency(item.price)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="rounded-xl border border-dashed border-slate-200 bg-white/50 px-4 py-3 text-sm text-slate-500">
+                              No items recorded for this order.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-slate-50 text-sm text-slate-400">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
+                            <User size={14} className="text-slate-400" />
+                          </div>
+                          <span className="font-semibold">{order.customer?.email || "Guest"}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
+                            <Store size={14} className="text-slate-400" />
+                          </div>
+                          <span className="font-semibold">{order.restaurant?.name || "Self Managed"}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="h-px w-full bg-gray-100 xl:h-24 xl:w-px" />
+                    <div className="h-px w-full bg-gray-100 xl:h-auto xl:self-stretch xl:w-px" />
 
-                    <div className="w-full space-y-4 xl:w-auto">
+                    <div className="w-full space-y-6 xl:w-72 xl:shrink-0 xl:text-right">
                       <div className="flex flex-col gap-2">
-                        <p className="text-center text-xs font-bold uppercase tracking-widest text-gray-400 xl:text-left">
+                        <p className="text-center text-xs font-bold uppercase tracking-widest text-gray-400 xl:text-right">
                           Update Status
                         </p>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 xl:justify-end">
                           {statusFlow.map((status) => {
                             const iconConfig = statusActionMeta[status];
                             const Icon = iconConfig.icon;
@@ -542,21 +540,21 @@ export default function SellerOrders() {
                           })}
                         </div>
 
-                        <p className="text-center text-xs text-gray-500 xl:text-left">
+                        <p className="text-center text-xs text-gray-500 xl:text-right">
                           {nextStatus
                             ? `Next step: mark this order as ${nextStatus}.`
                             : "This order is complete."}
                         </p>
                       </div>
 
-                      <div className="w-full text-center xl:text-right">
-                        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">
+                      <div className="w-full space-y-1 text-center xl:text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
                           Total Amount
                         </p>
-                        <p className="font-display text-2xl font-bold text-[#FF4F40]">
+                        <p className="font-display text-3xl font-black text-[#FF4F40]">
                           {formatCurrency(order.totalAmount)}
                         </p>
-                        <p className="mt-2 text-xs text-gray-500">
+                        <p className="mt-2 text-xs leading-relaxed text-gray-500">
                           {order.items?.length
                             ? order.items
                                 .map(

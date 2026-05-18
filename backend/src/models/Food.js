@@ -40,6 +40,14 @@ const foodSchema = new mongoose.Schema(
       ref: "Restaurant",
       required: true,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
