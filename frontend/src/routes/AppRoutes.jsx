@@ -7,7 +7,6 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
-
 import RestaurantList from "../pages/RestaurantList";
 import RestaurantMenu from "../pages/RestaurantMenu";
 import SellerOrders from "../pages/SellerOrders";
@@ -55,6 +54,7 @@ function AppRoutes() {
           <Route path="/dashboard" element={<Dashboard />} />
 
         </Route>
+
 
         <Route element={<ProtectedRoute role="customer" />}>
 

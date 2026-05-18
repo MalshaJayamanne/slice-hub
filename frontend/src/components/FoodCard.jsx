@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import { getCategoryStyles } from "../utils/categoryUtils";
 
 const FoodCard = ({ food, onAddToCart }) => {
@@ -41,15 +41,17 @@ const FoodCard = ({ food, onAddToCart }) => {
 
       <div className="flex flex-1 flex-col p-6">
         <div className="mb-1 flex items-start justify-between gap-3">
-          <h3 className="font-display text-[1.35rem] font-bold leading-tight text-slate-900 transition-colors group-hover:text-[#FF4F40]">
-            {food?.name}
-          </h3>
-          <span className="whitespace-nowrap font-display text-xl font-bold text-[#FF4F40]">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-display text-lg font-bold leading-tight text-slate-900 transition-colors group-hover:text-[#FF4F40] line-clamp-1">
+              {food?.name}
+            </h3>
+          </div>
+          <span className="whitespace-nowrap font-display text-lg font-bold text-[#FF4F40]">
             Rs. {food?.price}
           </span>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${getCategoryStyles(food?.category)}`}>
             {food?.category || "Specialty"}
           </span>

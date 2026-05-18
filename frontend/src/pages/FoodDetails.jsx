@@ -14,6 +14,7 @@ import {
 } from "../components/WorkspaceScaffold";
 import { useCart } from "../context/CartContext";
 
+
 import { getCategoryStyles } from "../utils/categoryUtils";
 
 export default function FoodDetails() {
@@ -188,6 +189,7 @@ export default function FoodDetails() {
           ) : null}
         </div>
       </div>
+
     </div>
   );
 }

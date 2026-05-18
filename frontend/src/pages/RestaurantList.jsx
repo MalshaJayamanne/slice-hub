@@ -91,13 +91,11 @@ const RestaurantList = () => {
           String(restaurant?.category || "").toLowerCase() ===
             selectedCategory.toLowerCase();
 
-        const matchesRating =
-          restaurant?.rating == null ||
-          Number(restaurant.rating) >= minRating;
+        const matchesRating = (restaurant?.averageRating || 0) >= minRating;
 
         return matchesSearch && matchesCategory && matchesRating;
       }),
-    [minRating, restaurants, searchQuery, selectedCategory]
+    [restaurants, searchQuery, selectedCategory, minRating]
   );
 
   const activeFilterCount = [
@@ -251,36 +249,13 @@ const RestaurantList = () => {
               >
                 <div className="surface-panel p-8 mb-8 border-2 border-primary/10">
                   <div className="grid gap-8 md:grid-cols-2">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-5">
-                        Quality Filter
-                      </p>
-                      <div className="flex flex-wrap gap-3">
-                        {[3, 4, 4.5].map((rating) => (
-                          <button
-                            key={rating}
-                            type="button"
-                            onClick={() =>
-                              setMinRating((current) =>
-                                current === rating ? 0 : rating
-                              )
-                            }
-                            className={`inline-flex items-center gap-2 rounded-2xl border-2 px-6 py-3 text-sm font-bold transition-all ${
-                              minRating === rating
-                                ? "border-primary bg-primary/5 text-primary"
-                                : "border-slate-50 text-slate-400 hover:border-primary/30 hover:text-primary"
-                            }`}
-                          >
-                            {rating}+ <Star size={16} className={minRating === rating ? "fill-primary" : ""} />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     <div className="flex flex-col justify-end">
-                       <p className="text-sm font-medium text-slate-500 mb-4">
-                        Narrow down results based on verified user ratings and professional review scores.
-                       </p>
+                      <p className="text-sm font-medium text-slate-500 mb-2">
+                        Browse through our verified restaurants and their latest menus.
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Ratings and reviews are provided by customers who have completed orders.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -345,15 +320,19 @@ const RestaurantList = () => {
                           )}
                         </td>
                         <td className="px-6 py-6">
-                          {restaurant.rating ? (
-                            <div className="inline-flex items-center gap-2 rounded-2xl bg-orange-50 px-4 py-2 font-bold text-orange-600 border border-orange-100 shadow-sm">
-                              <Star size={16} className="fill-orange-400 text-orange-400" />
-                              <span className="text-base">{Number(restaurant.rating).toFixed(1)}</span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <Star size={14} className={restaurant.averageRating > 0 ? "fill-amber-500 text-amber-500" : "text-slate-300"} />
+                            <span className={restaurant.averageRating > 0 ? "text-sm font-bold text-amber-600" : "text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap"}>
+                              {restaurant.averageRating > 0 ? restaurant.averageRating.toFixed(1) : "No ratings"}
+                            </span>
+                            {restaurant.numReviews > 0 && (
+                              <span className="text-[10px] font-bold text-slate-400">
+                                ({restaurant.numReviews})
+                              </span>
+                            )}
+                          </div>
                         </td>
+
                         <td className="px-6 py-6 whitespace-nowrap text-base font-bold text-slate-500">
                           {restaurant.deliveryTime || "25–35 min"}
                         </td>
