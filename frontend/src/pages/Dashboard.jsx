@@ -15,8 +15,9 @@ import {
   Loader2,
   CreditCard,
   Save,
+  X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import API from "../api/axios";
 import FeedbackAlert from "../components/FeedbackAlert";
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const [pageFeedback, setPageFeedback] = useState(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: user?.name || "",
     phone: user?.phone || "",
@@ -56,6 +58,16 @@ export default function Dashboard() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (location.state?.openProfile) {
+      setIsProfileModalOpen(true);
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...location.state, openProfile: undefined },
+      });
+    }
+  }, [location.state, navigate]);
 
   useEffect(() => {
     if (user?.role !== "seller") return;
@@ -197,11 +209,12 @@ export default function Dashboard() {
         emitAuthChanged();
       }
 
-      setProfileFeedback({
+      setPageFeedback({
         type: "success",
         title: "Profile saved",
         message: "Your profile details were updated.",
       });
+      setIsProfileModalOpen(false);
     } catch (profileError) {
       setProfileFeedback({
         type: "error",
@@ -328,6 +341,7 @@ export default function Dashboard() {
           title={user?.name || "Profile"}
           subtitle={user?.email || "Account management"}
           note={`Your ${user?.role || "user"} workspace is active and synced with live platform data.`}
+          onImageClick={() => setIsProfileModalOpen(true)}
         >
           <div className="space-y-4">
             <button
@@ -460,69 +474,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        <form onSubmit={handleProfileSubmit} className="surface-panel p-6 sm:p-7">
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
-                Profile
-              </p>
-              <h2 className="font-display mt-2 text-2xl font-bold text-slate-900">
-                Account Details
-              </h2>
-            </div>
-            <button type="submit" disabled={profileSaving} className="btn-primary">
-              {profileSaving ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <Save size={18} />
-              )}
-              {profileSaving ? "Saving..." : "Save Profile"}
-            </button>
-          </div>
-
-          {profileFeedback ? (
-            <div className="mb-5">
-              <FeedbackAlert
-                type={profileFeedback.type}
-                title={profileFeedback.title}
-                message={profileFeedback.message}
-                onClose={() => setProfileFeedback(null)}
-              />
-            </div>
-          ) : null}
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <input
-              placeholder="Full name"
-              value={profileForm.name}
-              onChange={(event) => handleProfileFormChange("name", event.target.value)}
-              className="input-surface"
-            />
-            <input
-              placeholder="Phone"
-              value={profileForm.phone}
-              onChange={(event) => handleProfileFormChange("phone", event.target.value)}
-              className="input-surface"
-            />
-            <div className="md:col-span-2">
-              <ImageUploadField
-                label="Profile Image"
-                value={profileForm.profileImage}
-                uploadType="profile"
-                onChange={(image) => handleProfileFormChange("profileImage", image)}
-                helperText="Upload your avatar or paste an image URL."
-                aspectClass="aspect-square"
-              />
-            </div>
-            <textarea
-              placeholder="Address"
-              value={profileForm.address}
-              onChange={(event) => handleProfileFormChange("address", event.target.value)}
-              className="textarea-surface min-h-28 md:col-span-2"
-            />
-          </div>
-        </form>
-
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">
             Standard Actions
@@ -556,6 +507,121 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isProfileModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsProfileModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b p-6 sm:px-8 shrink-0">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#FF4F40]">
+                    Settings
+                  </p>
+                  <h2 className="font-display mt-1 text-2xl font-bold text-slate-900">
+                    Update Profile
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="rounded-full p-2.5 transition-colors hover:bg-slate-100"
+                >
+                  <X size={20} className="text-slate-400" />
+                </button>
+              </div>
+
+              <form onSubmit={handleProfileSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+                  {profileFeedback ? (
+                    <FeedbackAlert
+                      type={profileFeedback.type}
+                      title={profileFeedback.title}
+                      message={profileFeedback.message}
+                      onClose={() => setProfileFeedback(null)}
+                    />
+                  ) : null}
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-400">
+                        Full Name
+                      </label>
+                      <input
+                        placeholder="Full name"
+                        value={profileForm.name}
+                        onChange={(event) => handleProfileFormChange("name", event.target.value)}
+                        className="input-surface"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-400">
+                        Phone Number
+                      </label>
+                      <input
+                        placeholder="Phone"
+                        value={profileForm.phone}
+                        onChange={(event) => handleProfileFormChange("phone", event.target.value)}
+                        className="input-surface"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <ImageUploadField
+                        label="Profile Image"
+                        value={profileForm.profileImage}
+                        uploadType="profile"
+                        onChange={(image) => handleProfileFormChange("profileImage", image)}
+                        helperText="Upload your avatar or paste an image URL."
+                        aspectClass="aspect-square"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-slate-400">
+                        Address
+                      </label>
+                      <textarea
+                        placeholder="Address"
+                        value={profileForm.address}
+                        onChange={(event) => handleProfileFormChange("address", event.target.value)}
+                        className="textarea-surface min-h-24"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 p-6 sm:px-8 border-t border-slate-100 shrink-0 bg-slate-50/50">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileModalOpen(false)}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={profileSaving} className="btn-primary px-6">
+                    {profileSaving ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Save size={18} />
+                    )}
+                    {profileSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </WorkspacePage>
   );
 }

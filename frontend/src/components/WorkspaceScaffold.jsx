@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Inbox, Loader2 } from "lucide-react";
+import { AlertCircle, Inbox, Loader2, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 
 const toneClasses = {
@@ -77,6 +77,7 @@ export function WorkspaceSidebar({
   title,
   subtitle,
   note,
+  onImageClick,
   children,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -94,16 +95,32 @@ export function WorkspaceSidebar({
       className="surface-panel relative overflow-hidden p-10 text-center shadow-xl shadow-slate-200/40"
     >
       <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
-      <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2.5rem] bg-primary/10 shadow-inner">
+      <div
+        onClick={onImageClick}
+        className={`mx-auto mb-8 relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2.5rem] bg-primary/10 shadow-inner group ${
+          onImageClick
+            ? "cursor-pointer ring-4 ring-transparent hover:ring-[#FF4F40]/30 transition-all duration-300"
+            : ""
+        }`}
+      >
         {shouldShowImage ? (
           <img
             src={imageSrc}
             alt={imageAlt || title || "Workspace image"}
-            className="h-full w-full object-cover"
+            className={`h-full w-full object-cover ${
+              onImageClick ? "group-hover:scale-110 transition-transform duration-500" : ""
+            }`}
             onError={() => setImageFailed(true)}
           />
         ) : (
           <Icon size={48} className="text-primary" />
+        )}
+
+        {/* Edit overlay icon */}
+        {onImageClick && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Pencil className="text-white h-6 w-6 transform scale-90 group-hover:scale-100 transition-transform duration-300" />
+          </div>
         )}
       </div>
 
