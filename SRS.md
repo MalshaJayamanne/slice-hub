@@ -264,6 +264,22 @@ Functional requirements for a future phase:
 - FR-52: The AI assistant may help users discover food or navigate the platform
 - FR-53: AI-generated content shall be clearly presented as assistance, not as a guaranteed operational decision source
 
+### 3.10 Image Upload and Media Management
+
+The system shall support image-based presentation for food items, restaurants, and user profiles. Image fields may be populated by uploading a local image file to Cloudinary or by pasting an existing image URL.
+
+Functional requirements:
+
+- FR-54: Sellers shall be able to upload food item images when adding or editing menu items
+- FR-55: Sellers shall be able to upload restaurant cover, logo, or banner images when creating or editing restaurant profiles
+- FR-56: Customers, sellers, and admins shall be able to update their own profile image
+- FR-57: Admins shall be able to manage user profile images from the admin user management screen
+- FR-58: Admins shall be able to manage restaurant images from the admin restaurant management screen
+- FR-59: The system shall support direct image URL entry as an alternative to file upload
+- FR-60: The system shall validate uploaded image type and size before sending media to Cloudinary
+- FR-61: Uploaded images shall return a hosted URL that is stored in the relevant entity image field
+- FR-62: The system should support future review images, restaurant verification documents, and category or promotion banner images
+
 ## 4. External Interface Requirements
 
 ### 4.1 User Interface Requirements
