@@ -15,6 +15,8 @@ import { motion } from "framer-motion";
 
 import adminAPI from "../api/adminAPI";
 import FeedbackAlert from "../components/FeedbackAlert";
+import ImageUploadField from "../components/ImageUploadField";
+import { emitAuthChanged, getAuthUser } from "../utils/auth";
 import {
   WorkspaceEmptyState,
   WorkspaceErrorState,
@@ -240,7 +242,21 @@ export default function AdminUsers() {
       }
 
       if (editingUserId) {
-        await adminAPI.updateUser(editingUserId, payload);
+        const response = await adminAPI.updateUser(editingUserId, payload);
+        const updatedUser = response?.data?.user;
+        const currentUser = getAuthUser();
+
+        if (updatedUser?._id && currentUser?._id === updatedUser._id) {
+          localStorage.setItem(
+            "authUser",
+            JSON.stringify({
+              ...currentUser,
+              ...updatedUser,
+              token: currentUser.token,
+            })
+          );
+          emitAuthChanged();
+        }
       } else {
         await adminAPI.createUser(payload);
       }
@@ -478,14 +494,16 @@ export default function AdminUsers() {
               onChange={(event) => handleUserFormChange("phone", event.target.value)}
               className="input-surface"
             />
-            <input
-              placeholder="Profile image URL"
-              value={userForm.profileImage}
-              onChange={(event) =>
-                handleUserFormChange("profileImage", event.target.value)
-              }
-              className="input-surface"
-            />
+            <div className="md:col-span-2">
+              <ImageUploadField
+                label="Profile Image"
+                value={userForm.profileImage}
+                uploadType="profile"
+                onChange={(image) => handleUserFormChange("profileImage", image)}
+                helperText="Upload an avatar for this account or paste an existing image URL."
+                aspectClass="aspect-square"
+              />
+            </div>
             <textarea
               placeholder="Address"
               value={userForm.address}
@@ -623,8 +641,16 @@ export default function AdminUsers() {
                       className="group hover:bg-slate-50/80 transition-colors"
                     >
                       <td className="w-20 px-6 py-5">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FF4F40]/10 text-[15px] font-black text-[#FF4F40] shadow-sm transition-all group-hover:shadow-md">
-                          {getUserInitials(user.name)}
+                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#FF4F40]/10 text-[15px] font-black text-[#FF4F40] shadow-sm transition-all group-hover:shadow-md">
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt={user.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            getUserInitials(user.name)
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-5">
