@@ -2,25 +2,40 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, Pizza } from "lucide-react";
 
+import {
+  AUTH_CHANGED_EVENT,
+  clearAuthSession,
+  getAuthToken,
+  getAuthUser,
+} from "../utils/auth";
+
 function Navbar({ cartCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(() => getAuthToken());
+  const [user, setUser] = useState(() => getAuthUser());
   const [navbarSearch, setNavbarSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
-  let user = null;
-
-  try {
-    user = JSON.parse(localStorage.getItem("authUser"));
-  } catch (_error) {
-    user = null;
-  }
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authUser");
+    clearAuthSession();
     navigate("/login");
   };
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setToken(getAuthToken());
+      setUser(getAuthUser());
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

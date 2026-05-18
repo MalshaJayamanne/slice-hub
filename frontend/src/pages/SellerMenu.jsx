@@ -14,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import foodAPI from "../api/foodAPI";
 import restaurantAPI from "../api/restaurantApi";
+import ImageUploadField from "../components/ImageUploadField";
 
 const initialForm = {
   name: "",
@@ -387,12 +388,16 @@ const SellerMenu = () => {
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="input-surface"
             />
-            <input
-              placeholder="Image URL"
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-              className="input-surface"
-            />
+            <div className="md:col-span-2 xl:col-span-1">
+              <ImageUploadField
+                label="Food Image"
+                value={form.image}
+                uploadType="food"
+                onChange={(image) => setForm({ ...form, image })}
+                helperText="Use a sharp dish photo. JPG, PNG, WEBP, or GIF up to 5MB."
+                aspectClass="aspect-square"
+              />
+            </div>
             <textarea
               placeholder="Description"
               value={form.description}

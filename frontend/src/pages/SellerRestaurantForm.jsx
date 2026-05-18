@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Save,
-  Image as ImageIcon,
   Loader2,
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
 
 import restaurantAPI from "../api/restaurantApi";
+import ImageUploadField from "../components/ImageUploadField";
 
 const initialFormData = {
   name: "",
@@ -144,28 +144,18 @@ const SellerRestaurantForm = () => {
         onSubmit={handleSubmit}
         className="mt-8 space-y-6"
       >
-        <div className="space-y-2">
-          <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
-            Restaurant Image URL
-          </label>
-
-          <div className="flex items-center gap-2">
-            <ImageIcon size={20} className="text-gray-400" />
-
-            <input
-              type="text"
-              placeholder="https://example.com/image.jpg"
-              className="input-surface"
-              value={formData.image}
-              onChange={(event) =>
-                setFormData((current) => ({
-                  ...current,
-                  image: event.target.value,
-                }))
-              }
-            />
-          </div>
-        </div>
+        <ImageUploadField
+          label="Restaurant Cover Image"
+          value={formData.image}
+          uploadType="restaurant"
+          onChange={(image) =>
+            setFormData((current) => ({
+              ...current,
+              image,
+            }))
+          }
+          helperText="Upload a restaurant cover, storefront, logo, or paste an existing image URL."
+        />
 
         <div className="space-y-2">
           <label className="ml-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-gray-400">
