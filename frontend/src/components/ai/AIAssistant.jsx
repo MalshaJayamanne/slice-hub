@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Pizza } from "lucide-react";
 
 import { sendAssistantMessage } from "../../api/aiAPI";
+import { useCart } from "../../context/CartContext";
 import ChatWindow from "./ChatWindow";
 
 const createMessage = (sender, text) => ({
@@ -33,13 +34,58 @@ const GeminiIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const getCartActionIndex = (message) => {
+  if (!/(add|put|place).*(cart|basket)|cart.*(this|that|it|one)/i.test(message)) {
+    return null;
+  }
+
+  const ordinalMatch = message.match(/\b(first|1st|one|second|2nd|two|third|3rd|three)\b/i);
+  const ordinalMap = {
+    first: 0,
+    "1st": 0,
+    one: 0,
+    second: 1,
+    "2nd": 1,
+    two: 1,
+    third: 2,
+    "3rd": 2,
+    three: 2,
+  };
+
+  return ordinalMatch ? ordinalMap[ordinalMatch[1].toLowerCase()] : 0;
+};
+
 function AIAssistant() {
+  const { addItem } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState({ foods: [], restaurants: [] });
 
+  const historyForRequest = useMemo(
+    () =>
+      messages.slice(-8).map((message) => ({
+        sender: message.sender,
+        text: message.text,
+      })),
+    [messages]
+  );
+
+  const addSuggestedFood = (food) => {
+    const result = addItem({
+      ...food,
+      _id: food._id || food.id,
+      restaurant: food.restaurant || {
+        _id: food.restaurantId,
+        name: food.restaurantName,
+      },
+    });
+
+    setMessages((current) => [...current, createMessage("bot", result.message)]);
+
+    return result;
+  };
 
   const submitMessage = async (text) => {
     const cleanMessage = text.trim();
@@ -53,17 +99,39 @@ function AIAssistant() {
     setIsLoading(true);
     setMessages((current) => [...current, createMessage("user", cleanMessage)]);
 
-    try {
-      const data = await sendAssistantMessage(cleanMessage);
+    const cartActionIndex = getCartActionIndex(cleanMessage);
 
-      setSuggestions({
+    if (cartActionIndex !== null && suggestions.foods.length > 0) {
+      const targetFood = suggestions.foods[cartActionIndex] || suggestions.foods[0];
+      addSuggestedFood(targetFood);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await sendAssistantMessage(cleanMessage, historyForRequest);
+      const nextSuggestions = {
         foods: data.suggestions?.foods || [],
         restaurants: data.suggestions?.restaurants || [],
-      });
+      };
+
+      setSuggestions(nextSuggestions);
       setMessages((current) => [
         ...current,
         createMessage("bot", data.reply || "I could not find a response for that yet."),
       ]);
+
+      if (data.action?.type === "add_to_cart") {
+        const itemIndex = Number(data.action.itemIndex) || 0;
+        const targetFood =
+          suggestions.foods[itemIndex] ||
+          nextSuggestions.foods[itemIndex] ||
+          nextSuggestions.foods[0];
+
+        if (targetFood) {
+          addSuggestedFood(targetFood);
+        }
+      }
     } catch (error) {
       const fallback =
         error.response?.data?.message ||
@@ -89,6 +157,7 @@ function AIAssistant() {
           isLoading={isLoading}
           suggestions={suggestions}
           onClose={() => setIsOpen(false)}
+          onAddFoodToCart={addSuggestedFood}
           onInputChange={setInput}
           onPrompt={submitMessage}
           onSubmit={handleSubmit}

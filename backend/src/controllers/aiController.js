@@ -4,6 +4,7 @@ import { createHttpError, normalizeStringValue } from "../utils/validation.js";
 export const chatWithAI = async (req, res, next) => {
   try {
     const message = normalizeStringValue(req.body.message);
+    const history = Array.isArray(req.body.history) ? req.body.history : [];
 
     if (!message) {
       throw createHttpError("Message is required.", 400);
@@ -15,6 +16,7 @@ export const chatWithAI = async (req, res, next) => {
 
     const result = await generateAssistantReply({
       message,
+      history,
       user: req.user || null,
     });
 
@@ -25,17 +27,35 @@ export const chatWithAI = async (req, res, next) => {
       suggestions: {
         foods: result.context.foods.slice(0, 5).map((food) => ({
           id: food._id,
+          _id: food._id,
           name: food.name,
           price: food.price,
+          category: food.category,
+          description: food.description,
+          image: food.image,
+          availability: food.availability,
+          rating: food.rating || food.restaurant?.rating || null,
+          orderCount: food.orderCount || 0,
           restaurantId: food.restaurant?._id || food.restaurant,
           restaurantName: food.restaurant?.name || "",
+          restaurant: food.restaurant
+            ? {
+                _id: food.restaurant._id || food.restaurant,
+                name: food.restaurant.name || "",
+              }
+            : null,
         })),
         restaurants: result.context.restaurants.slice(0, 5).map((restaurant) => ({
           id: restaurant._id,
+          _id: restaurant._id,
           name: restaurant.name,
           category: restaurant.category,
+          description: restaurant.description,
+          image: restaurant.image,
+          rating: restaurant.rating || null,
         })),
       },
+      action: result.action,
     });
   } catch (error) {
     next(error);

@@ -7,8 +7,9 @@ const formatFood = (food) => {
 
 const formatRestaurant = (restaurant) => {
   const description = restaurant.description ? ` - ${restaurant.description}` : "";
+  const rating = restaurant.rating ? ` Rating: ${restaurant.rating}.` : "";
 
-  return `${restaurant.name} (${restaurant.category})${description}`;
+  return `${restaurant.name} (${restaurant.category})${description}.${rating}`;
 };
 
 const formatOrder = (order) => {
@@ -24,7 +25,41 @@ const formatOrder = (order) => {
   return `Latest order ${order._id} from ${restaurantName}: ${order.status}. Items: ${items}. Total: Rs. ${order.totalAmount}.`;
 };
 
-export const buildSliceHubPrompt = ({ message, foods, restaurants, latestOrder, user }) => {
+const formatHistory = (history = []) => {
+  if (!history.length) {
+    return "No recent assistant conversation.";
+  }
+
+  return history
+    .slice(-8)
+    .map((entry) => `${entry.sender === "user" ? "User" : "Assistant"}: ${entry.text}`)
+    .join("\n");
+};
+
+const formatOrderHistory = (orders = []) => {
+  if (!orders.length) {
+    return "No recent order history found for this user.";
+  }
+
+  return orders
+    .slice(0, 5)
+    .map((order) => {
+      const restaurantName = order.restaurant?.name || "the restaurant";
+      const items = order.items.map((item) => `${item.quantity} x ${item.name}`).join(", ");
+      return `${restaurantName}: ${items}`;
+    })
+    .join("\n");
+};
+
+export const buildSliceHubPrompt = ({
+  message,
+  history = [],
+  foods,
+  restaurants,
+  latestOrder,
+  orderHistory = [],
+  user,
+}) => {
   const foodContext = foods.length
     ? foods.map(formatFood).join("\n")
     : "No matching foods were found in the current catalog.";
@@ -40,9 +75,16 @@ export const buildSliceHubPrompt = ({ message, foods, restaurants, latestOrder, 
     "Keep replies friendly, concise, and practical. Mention prices in Rs. when available.",
     "If the user asks to track an order and no authenticated order context is available, ask them to log in and open Orders.",
     "If there are matching foods or restaurants, suggest at most five options.",
+    "Use recent conversation only to understand follow-up phrases like cheaper ones, the second one, or add it to cart.",
     "",
     `User role: ${user?.role || "guest"}`,
     `User message: ${message}`,
+    "",
+    "Recent conversation:",
+    formatHistory(history),
+    "",
+    "Recent order history for personalization:",
+    formatOrderHistory(orderHistory),
     "",
     "Matching food catalog:",
     foodContext,

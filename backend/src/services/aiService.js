@@ -6,6 +6,7 @@ import Restaurant from "../models/Restaurant.js";
 import { buildSliceHubPrompt } from "../utils/promptBuilder.js";
 
 const MAX_CONTEXT_ITEMS = 8;
+const HISTORY_LIMIT = 8;
 const PRICE_PATTERNS = [
   /(?:under|below|less than|within|max|maximum)\s*(?:rs\.?|lkr)?\s*(\d+)/i,
   /(?:rs\.?|lkr)\s*(\d+)\s*(?:or less|and below|maximum|max)/i,
@@ -98,6 +99,42 @@ const extractKeywords = (message) =>
     .filter((word) => word.length > 2 && !STOP_WORDS.has(word))
     .slice(0, 8);
 
+const normalizeHistory = (history = []) =>
+  history
+    .filter((entry) => ["user", "bot"].includes(entry?.sender) && entry?.text)
+    .map((entry) => ({
+      sender: entry.sender,
+      text: String(entry.text).slice(0, 600),
+    }))
+    .slice(-HISTORY_LIMIT);
+
+const getConversationText = (history) =>
+  history.map((entry) => entry.text).join(" ");
+
+const extractActionIntent = (message) => {
+  if (!/(add|put|place).*(cart|basket)|cart.*(this|that|it|one)/i.test(message)) {
+    return null;
+  }
+
+  const ordinalMatch = message.match(/\b(first|1st|one|second|2nd|two|third|3rd|three)\b/i);
+  const ordinalMap = {
+    first: 0,
+    "1st": 0,
+    one: 0,
+    second: 1,
+    "2nd": 1,
+    two: 1,
+    third: 2,
+    "3rd": 2,
+    three: 2,
+  };
+
+  return {
+    type: "add_to_cart",
+    itemIndex: ordinalMatch ? ordinalMap[ordinalMatch[1].toLowerCase()] : 0,
+  };
+};
+
 const buildTextFilter = (keywords, fields) => {
   if (keywords.length === 0) {
     return {};
@@ -139,28 +176,97 @@ const getLatestOrder = async (user, message) => {
     .lean();
 };
 
-export const collectAssistantContext = async ({ message, user }) => {
-  const keywords = extractKeywords(message);
+const getRecentCustomerOrders = async (user) => {
+  if (!user || user.role !== "customer") {
+    return [];
+  }
+
+  return Order.find({ customer: user._id })
+    .populate("restaurant", "name category rating")
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+};
+
+const getFoodOrderCounts = async (foods) => {
+  if (!foods.length) {
+    return new Map();
+  }
+
+  const foodIds = foods.map((food) => food._id);
+  const counts = await Order.aggregate([
+    { $unwind: "$items" },
+    { $match: { "items.food": { $in: foodIds } } },
+    { $group: { _id: "$items.food", orderCount: { $sum: "$items.quantity" } } },
+  ]);
+
+  return new Map(counts.map((item) => [String(item._id), item.orderCount]));
+};
+
+const buildUserPreferenceSets = (orders) => {
+  const foodNames = new Set();
+  const restaurantIds = new Set();
+
+  orders.forEach((order) => {
+    if (order.restaurant?._id) {
+      restaurantIds.add(String(order.restaurant._id));
+    }
+
+    order.items.forEach((item) => {
+      if (item.name) {
+        foodNames.add(item.name.toLowerCase());
+      }
+    });
+  });
+
+  return { foodNames, restaurantIds };
+};
+
+const scoreFood = (food, preferences) => {
+  let score = Number(food.orderCount || 0);
+  const restaurantId = food.restaurant?._id || food.restaurant;
+
+  if (restaurantId && preferences.restaurantIds.has(String(restaurantId))) {
+    score += 5;
+  }
+
+  if (preferences.foodNames.has(String(food.name || "").toLowerCase())) {
+    score += 4;
+  }
+
+  if (food.restaurant?.rating) {
+    score += Number(food.restaurant.rating);
+  }
+
+  return score;
+};
+
+export const collectAssistantContext = async ({ message, history = [], user }) => {
+  const normalizedHistory = normalizeHistory(history);
+  const conversationText = getConversationText(normalizedHistory);
+  const keywords = extractKeywords(`${message} ${conversationText}`);
   const maxPrice = extractMaxPrice(message);
+  const orderHistory = await getRecentCustomerOrders(user);
+  const preferences = buildUserPreferenceSets(orderHistory);
   const restaurantFilter = {
     status: "approved",
     ...buildTextFilter(keywords, ["name", "category", "description"]),
   };
 
   const approvedRestaurants = await Restaurant.find(restaurantFilter)
-    .select("name category description")
-    .sort({ createdAt: -1 })
+    .select("name category description image rating")
+    .sort({ rating: -1, createdAt: -1 })
     .limit(MAX_CONTEXT_ITEMS)
     .lean();
 
   const approvedRestaurantIds = approvedRestaurants.map((restaurant) => restaurant._id);
   const fallbackRestaurantIds =
     approvedRestaurantIds.length > 0
-      ? approvedRestaurantIds
-      : (
-          await Restaurant.find({ status: "approved" })
+        ? approvedRestaurantIds
+        : (
+            await Restaurant.find({ status: "approved" })
             .select("_id")
-            .sort({ createdAt: -1 })
+            .sort({ rating: -1, createdAt: -1 })
             .limit(MAX_CONTEXT_ITEMS)
             .lean()
         ).map((restaurant) => restaurant._id);
@@ -176,7 +282,7 @@ export const collectAssistantContext = async ({ message, user }) => {
   }
 
   let foods = await Food.find(foodFilter)
-    .populate("restaurant", "name category")
+    .populate("restaurant", "name category rating")
     .sort({ price: 1, createdAt: -1 })
     .limit(MAX_CONTEXT_ITEMS)
     .lean();
@@ -192,11 +298,19 @@ export const collectAssistantContext = async ({ message, user }) => {
     }
 
     foods = await Food.find(fallbackFoodFilter)
-      .populate("restaurant", "name category")
+      .populate("restaurant", "name category rating")
       .sort({ price: 1, createdAt: -1 })
       .limit(MAX_CONTEXT_ITEMS)
       .lean();
   }
+
+  const orderCounts = await getFoodOrderCounts(foods);
+  foods = foods
+    .map((food) => ({
+      ...food,
+      orderCount: orderCounts.get(String(food._id)) || 0,
+    }))
+    .sort((a, b) => scoreFood(b, preferences) - scoreFood(a, preferences));
 
   const latestOrder = await getLatestOrder(user, message);
 
@@ -204,6 +318,8 @@ export const collectAssistantContext = async ({ message, user }) => {
     foods,
     restaurants: approvedRestaurants,
     latestOrder,
+    orderHistory,
+    history: normalizedHistory,
     keywords,
     maxPrice,
   };
@@ -226,7 +342,17 @@ const formatFoods = (foods) =>
     })
     .join("\n");
 
-const buildLocalReply = ({ message, context, user }) => {
+const buildLocalReply = ({ message, context, user, action }) => {
+  if (action?.type === "add_to_cart") {
+    const targetFood = context.foods[action.itemIndex] || context.foods[0];
+
+    if (targetFood) {
+      return `I found ${targetFood.name} for the cart. Use the Add button on the match card to add it.`;
+    }
+
+    return "Tell me which food you want to add, or ask for suggestions first, and I can help you put it in the cart.";
+  }
+
   if (/track|status|latest order|where.*order/i.test(message)) {
     if (!user) {
       return "Please log in first, then I can help track your latest Slice Hub order.";
@@ -273,9 +399,11 @@ const askGemini = async ({ message, context, user }) => {
   });
   const prompt = buildSliceHubPrompt({
     message,
+    history: context.history,
     foods: context.foods,
     restaurants: context.restaurants,
     latestOrder: context.latestOrder,
+    orderHistory: context.orderHistory,
     user,
   });
   const result = await model.generateContent(prompt);
@@ -283,8 +411,9 @@ const askGemini = async ({ message, context, user }) => {
   return result.response.text().trim();
 };
 
-export const generateAssistantReply = async ({ message, user }) => {
-  const context = await collectAssistantContext({ message, user });
+export const generateAssistantReply = async ({ message, history = [], user }) => {
+  const context = await collectAssistantContext({ message, history, user });
+  const action = extractActionIntent(message);
 
   try {
     const aiReply = await askGemini({ message, context, user });
@@ -294,6 +423,7 @@ export const generateAssistantReply = async ({ message, user }) => {
         reply: aiReply,
         mode: "gemini",
         context,
+        action,
       };
     }
   } catch (error) {
@@ -301,8 +431,9 @@ export const generateAssistantReply = async ({ message, user }) => {
   }
 
   return {
-    reply: buildLocalReply({ message, context, user }),
+    reply: buildLocalReply({ message, context, user, action }),
     mode: "local",
     context,
+    action,
   };
 };
